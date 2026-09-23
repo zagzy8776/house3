@@ -2,83 +2,145 @@
 
 Finds shortlet operators across the launch states and produces a **call list**.
 
-## What this outputs, and what it deliberately does not
+## Two layers, deliberately separate
 
-**Output:** operator prospects — who to call, in which neighbourhood, running how
-many properties, at what advertised rate, and whether they already run a booking
-system.
+```
+DISCOVERY_SOURCE  ->  scraped public data  ->  PROSPECT / CATALOGUE
+BOOKING_SOURCE    ->  PARTNER_API | ICAL_FEED | PARTNER_DASHBOARD | AFFILIATE_PROGRAM
+                                          ->  BOOKABLE INVENTORY
+```
 
-**Not output:** inventory. There is no calendar here and no agreement, so a lead
-cannot be sold. When an operator signs, they onboard through the same channels as
-any other partner (`PARTNER_API`, `ICAL_FEED`, `PARTNER_DASHBOARD`), and
-`assertAuthorized()` gates them exactly as before.
+`SCRAPER` is invalid as a **booking** source and valid as a **discovery** source.
+Those are different layers, and conflating them was the mistake. `sources/`
+implements discovery; it cannot produce bookable inventory because there is no
+calendar and no agreement here. `AdapterRegistry.register` refuses anything
+declaring `layer = BOOKING_SOURCE`.
 
-That distinction is enforced in code, not documentation:
+A lead becomes bookable only after a human signs the operator, at which point
+they onboard through the same channels as any partner and `assertAuthorized()`
+gates them exactly as before.
 
-- `policy.ALLOWED_FIELDS` is an allowlist. `assert_no_media_or_prose()` rejects
-  anything else, so an over-eager parser fails loudly instead of writing a
-  photographer's work into our database.
-- `policy.FORBIDDEN_FIELDS` names media, descriptions, body text, review text and
-  personal agent names explicitly, so the exclusion is a decision on record.
-- There is no code path from a `PartnerLead` to a bookable unit that does not pass
-  through a signed supply agreement.
+## Architecture
 
-## Running it
+```
+compliance/     robots.txt · per-host rate limit · field allowlist
+sources/        base.py (SourceAdapter protocol + registry) · npc.py
+extraction/     property · operator · contact · pms
+normalization/  names · phones · addresses · dedupe (operator consolidation)
+pipeline.py     discover -> fetch -> parse -> consolidate -> funnel
+```
+
+Adding a portal is a new file in `sources/` implementing two methods, `discover`
+and `parse`. Everything after parsing is source-agnostic — that is what stops
+this becoming a pile of brittle per-site scripts.
+
+## Running
 
 ```bash
 cd services/acquisition
 
-# Offline, against the bundled fixture. No dependencies, no network.
-python pipeline.py --fixture --out leads.jsonl
+# Offline against bundled NPC-shaped pages. No dependencies, no network.
+python pipeline.py --source npc --state LA --area lekki --fixture --interval 0
 
-# Tests (plain Python or pytest)
-python test_policy.py
+# Tests
+python test_acquisition.py
 ```
 
-Nothing is installed for the default path — the transport is `urllib`. Only a
-crawling environment needs the browser:
+Real crawl needs a browser, because NPC is Livewire/Alpine and paginates in JS:
 
 ```bash
 pip install playwright && playwright install chromium
-
-cat > targets.txt <<'EOF'
-https://example-portal.ng/shortlets/lekki
-https://example-portal.ng/shortlets/maitama
-EOF
-
-python pipeline.py --targets targets.txt --out leads.jsonl --transport playwright --interval 5
+python pipeline.py --source npc --state LA --transport playwright --interval 5
 ```
 
-## The rules every fetch obeys
+**Verify the regexes against real markup before trusting a large crawl:**
 
-| Rule | Where | Why |
-|---|---|---|
-| `robots.txt` respected, cached per host per run | `policy.RobotsCache` | If a site says no, the answer is no |
-| One request per host per `--interval` seconds | `policy.HostThrottle` | We are a guest. A crawler that degrades someone else's site is the fastest route to being blocked |
-| Allowlisted fields only | `policy.ALLOWED_FIELDS` | What we do not fetch cannot leak |
-| Media and prose refused | `policy.assert_no_media_or_prose` | Photographs and descriptions are the operator's copyright |
-| No contact channel → discarded | `pipeline.run` | A lead nobody can call is noise |
-| Retention window | `src/domain/lead.ts` | Outreach data is held for a year, then reviewed |
-
-## Where the work is divided
-
-```
-Python (this service)          TypeScript (src/domain/lead*.ts)
-─────────────────────          ──────────────────────────────────
-fetch, parse, extract     →    normalise, dedupe, score, retain
-transport concerns             business logic, one implementation
+```bash
+python pipeline.py --dump-html https://www.nigeriapropertycentre.com/for-rent/short-let/lagos
 ```
 
-`pipeline.py` writes JSONL. The TypeScript side owns identity normalisation,
-deduplication across sources and scoring — so that logic exists once, is typed,
-and is covered by the 182-test suite rather than duplicated in two languages.
+The extraction patterns are derived from the observed structure but were not
+tuned against a full page dump. Treat a first small crawl as calibration.
 
-## Adding a source
+## Nigeria Property Centre — reconnaissance, 2026-09-23
 
-1. Write a `SourceSpec` with the operator, area, phone and rate patterns for that
-   site's markup.
-2. Run it with `--targets` and a rate-limited interval.
-3. Check the output for anything you did not intend to collect. If a field appears
-   that is not in `ALLOWED_FIELDS`, the run fails — that is the guard working.
+| Finding | Detail |
+|---|---|
+| robots.txt | `User-agent: *` disallows only `*report/create*`. Every property path permitted, a Sitemap is published, AI crawlers get `Allow: /`, and `trovitBot` is blocked |
+| Sitemaps | `sitemap_listings_1..4.txt` plus `neighbourhoods`, `area_guides`, `list_pages`, `market_reports`, `demand_supply` |
+| Canonical paths | `/for-rent/short-let/{state}/{locality}` |
+| Scale | Lagos: **13,525** short-let listings across **50** localities |
+| Prices | Lagos avg **₦170K/day**, most between **₦120–240K**, max ₦700K, min ₦35K |
+| Runtime | Livewire/Alpine — filters and pagination need a real browser |
+| Listings are posted by | "an estate agent or developer you can contact directly" |
 
-Rate patterns are per-site because portals differ. Expect to tune them.
+Discovery uses **their sitemap**, not a guessed URL pattern. A publisher that
+advertises a sitemap is telling crawlers where its canonical pages are; guessing
+URL shapes is both more fragile and less welcome.
+
+## Operator consolidation
+
+The step that turns a crawl into a call list. An operator with twelve units must
+not appear twelve times.
+
+Matching is a **connected-components** problem, not pairwise, because identity is
+transitive through a listing:
+
+```
+Listing A  phone 0803...          \
+Listing B  phone 0803...          /  same phone  -> one component
+Listing C  email bookings@...     <- C shares nothing with A except through B
+```
+
+Signals are weighted: `phone`, `email` and website/email **domain** are strong
+(union always); normalised `name + area` is weak (still unioned, but the evidence
+is recorded on the operator so a human can see why — and split it if the machine
+was wrong).
+
+`test_three_real_fixture_pages_consolidate_to_one_operator` proves it end to end
+through real parsing: three pages, three distinct listing ids, **one operator**.
+
+## The funnel
+
+```
+     3 listings discovered
+     3 usable records
+     3 unique properties
+     1 unique operators          <- the gap here is the value of consolidation
+     1 multi-property operators
+     1 with detectable booking/PMS infrastructure
+```
+
+If `unique properties == unique operators`, consolidation is not working.
+
+Fields extracted: `source`, `source_url`, `source_listing_id`, `property_name`,
+`operator_name`, `phone`, `email`, `website`, `state`, `city`, `area`,
+`property_type`, `bedrooms`, `bathrooms`, `advertised_price`, `currency`,
+`pms_detected`, `booking_url`, `availability_url`, `title_document` — with
+`first_seen_at` / `last_seen_at` provenance applied on the TypeScript side.
+
+## What is never collected
+
+`compliance/ALLOWED_FIELDS` is an allowlist. `FORBIDDEN_FIELDS` names `photo`,
+`images`, `gallery`, `description`, `body_text`, `review_text` and `agent_name`
+explicitly, and `assert_no_media_or_prose()` **fails the run** if an extractor
+reaches for any of them — or for a field nobody declared.
+
+Crawling permission and copyright are different things. NPC's robots.txt permits
+us to fetch their pages; it does not license their photographs or their written
+descriptions. This module makes that structural rather than a promise.
+
+`agent_name` is on the list for a different reason: we are contacting a business
+about a commercial proposition, and the name of whichever staff member happened
+to post a listing is personal data we have no need for.
+
+## Retention
+
+Outreach data is held for a year (`LEAD_RETENTION_DAYS`), then reviewed. An
+expired record is **blocked from contact** by the scorer, not merely flagged.
+
+## Next portals
+
+`propertypro.py`, `jiji.py`, `shortlet.py` each implement `discover` + `parse`.
+Before writing one: fetch its `robots.txt`, then `--dump-html` a listing page and
+read the real markup. An adapter written without that step is guesswork.

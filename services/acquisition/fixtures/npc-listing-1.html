@@ -1,0 +1,43 @@
+<!doctype html>
+<!--
+  Fixture modelled on the structure observed at
+  nigeriapropertycentre.com/for-rent/short-let/lagos (2026-09-23).
+
+  Contains ONLY the fields the allowlist permits: property facts, the operator's
+  published contact, and its booking infrastructure. There is deliberately no
+  description prose and no image, because the extractor is not allowed to keep
+  either - a fixture that contained them would hide a regression.
+-->
+<html lang="en-NG">
+  <head>
+    <meta charset="utf-8" />
+    <title>Luxury 3 Bedrooms Flats with City View | Nigeria Property Centre</title>
+    <meta property="og:title" content="Luxury 3 Bedrooms Flats with City View" />
+    <!-- Booking infrastructure: an operator who can onboard via API/iCal. -->
+    <script src="https://app.smoobu.com/js/booking-widget.js"></script>
+  </head>
+  <body>
+    <nav>
+      <a href="/for-rent/short-let/lagos">Lagos</a> /
+      <a href="/for-rent/short-let/lagos/ikeja">Ikeja</a>
+    </nav>
+
+    <main>
+      <h1>Luxury 3 Bedrooms Flats with City View</h1>
+      <p class="price">₦220,000 /day</p>
+      <p class="type">Flat / apartment short let</p>
+      <p class="specs">3 Bedrooms · 3 Bathrooms · 180 sqm</p>
+      <p class="title-doc">Certificate of Occupancy (C of O)</p>
+      <p class="location">Adeniyi Jones, Ikeja, Lagos</p>
+
+      <div class="agent-card">
+        <span class="agent-name">Adeniyi Jones Residences Ltd</span>
+        <a href="tel:+234 803 000 0000">Call agent</a>
+        <a href="mailto:stay@adeniyijones.ng?subject=Enquiry">Email</a>
+        <a href="https://adeniyijones.ng/availability">Check availability</a>
+        <a href="https://instagram.com/adeniyijones">Instagram</a>
+        <a href="https://wa.me/2348030000000">WhatsApp</a>
+      </div>
+    </main>
+  </body>
+</html>
