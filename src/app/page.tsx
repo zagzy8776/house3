@@ -1,154 +1,122 @@
 /**
- * Search page.
+ * Landing page — the Figma Make design, wired to real data.
  *
- * Deliberately renders the FULL price breakdown on every result, via MoneyTable.
- * There is no code path in this app that shows a total without the fee that
- * produced it, and no inline colours - everything comes from globals.css, which
- * mirrors design/tokens.tokens.json.
+ * This is a server component that builds every number the design displays, then
+ * hands them to `LandingPage` (client) which owns only interaction state. Three
+ * things are computed rather than hardcoded:
+ *
+ *  1. `guestNightlyDisplay` per card — from `computeQuote()`, so the card price
+ *     cannot drift from the checkout price.
+ *  2. `cities[].count` — from the repository, with `countIsReal` telling the card
+ *     to show "Opening soon" instead of inventing a number.
+ *  3. `recentBooking` — from an actual confirmed booking. Absent means the hero
+ *     shows the honest "pay the operator direct" card instead of fake activity.
  */
 
-import { findState, liveStates } from '@/data/nigeria';
+import { addDays } from '@/domain/dates';
+import { formatNaira } from '@/domain/money';
+import { computeQuote, resolveFeePolicy } from '@/domain/pricing';
+import { allFeePolicies } from '@/data/feePolicies';
+import { CITIES, HERO_STATS, LISTINGS, type MarketingListing } from '@/content/marketing';
 import { getContainer } from '@/server/container';
-import type { SellableUnit } from '@/server/bookingService';
-import { MoneyTable } from './components/MoneyTable';
+import { LandingPage, type RecentBooking } from './components/marketing/LandingPage';
+import type { ListingCardModel } from './components/marketing/ListingCard';
 
 export const dynamic = 'force-dynamic';
 
-type SearchParams = {
-  state?: string;
-  area?: string;
-  checkIn?: string;
-  checkOut?: string;
-  guests?: string;
-};
+/** A fixed quote date keeps server and client renders identical. */
+const QUOTE_DATE = '2026-01-01';
 
-function isoPlusDays(days: number): string {
-  return new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+const CITY_STATE: Record<string, string> = Object.fromEntries(CITIES.map((city) => [city.city, city.stateCode]));
+
+function stateCodeForArea(area: string): string {
+  for (const [city, code] of Object.entries(CITY_STATE)) {
+    if (area.includes(city)) return code;
+  }
+  return 'LA';
 }
 
-export default async function Home({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const params = await searchParams;
-  const rolloutMode = process.env.ROLLOUT_MODE === 'all' ? 'all' : 'phased';
-  const live = liveStates(rolloutMode, Number(process.env.LAST_LIVE_LAUNCH_ORDER ?? '5'));
+export default async function Home() {
+  const { repo } = getContainer();
+  const policies = allFeePolicies();
 
-  const stateCode = params.state ?? live[0]?.code ?? 'LA';
-  const checkIn = params.checkIn ?? isoPlusDays(7);
-  const checkOut = params.checkOut ?? isoPlusDays(9);
-  const guests = Number(params.guests ?? '2');
-  const area = params.area?.trim() ? params.area.trim() : undefined;
-
-  let results: SellableUnit[] = [];
-  let error: string | null = null;
-  let operatorCount = 0;
-
-  try {
-    const outcome = getContainer().service.search({
-      stateCode,
-      area,
-      stay: { checkIn, checkOut },
-      guests
+  /**
+   * Guest-facing per-night total: the operator's rate plus our disclosed fee and
+   * the VAT on that fee. Cleaning is excluded so the figure is a true nightly
+   * rate; the full including-cleaning total appears on the breakdown and at
+   * checkout.
+   */
+  function guestNightly(listing: MarketingListing, stateCode: string): number {
+    const policy = resolveFeePolicy(policies, { stateCode });
+    const quote = computeQuote({
+      stay: { checkIn: QUOTE_DATE, checkOut: addDays(QUOTE_DATE, 1) },
+      nightlyRateKobo: listing.rate * 100,
+      policy
     });
-    results = outcome.results;
-    operatorCount = new Set(results.map((result) => result.partner.id)).size;
-  } catch (caught) {
-    error = caught instanceof Error ? caught.message : 'Search failed';
+    return quote.totalKobo;
   }
 
+  const listings: ListingCardModel[] = LISTINGS.map((listing) => {
+    const stateCode = stateCodeForArea(listing.area);
+    return {
+      ...listing,
+      guestNightlyDisplay: formatNaira(guestNightly(listing, stateCode), { decimals: false })
+    };
+  });
+
+  const cities = CITIES.map((city) => {
+    const realCount = repo.listUnits({ stateCode: city.stateCode, status: 'LISTED' }).length;
+    return {
+      city: city.city,
+      stateCode: city.stateCode,
+      count: realCount,
+      image: city.image,
+      countIsReal: realCount > 0
+    };
+  });
+
+  const heroStats = HERO_STATS.map((stat) => ({ value: stat.value, label: stat.label }));
+
+  // The breakdown widget demonstrates the model on the flagship Lagos listing.
+  const flagship = repo.getUnit('u_lekki_2bed');
+  const flagshipPartner = flagship ? repo.getPartner(flagship.partnerId) : undefined;
+
+  const breakdown = {
+    operatorName: flagshipPartner?.displayName ?? 'the operator',
+    unitName: flagship?.name ?? '2-Bedroom Apartment, Lekki Phase 1',
+    nightlyRateKobo: flagship?.nightlyRateKobo ?? 15_000_000,
+    cleaningFeeKobo: flagship?.cleaningFeeKobo ?? 1_000_000,
+    policy: resolveFeePolicy(policies, { stateCode: 'LA' })
+  };
+
+  /**
+   * Real social proof only. A confirmed booking produces this line; no bookings
+   * means the card falls back to a factual statement about how payment works.
+   */
+  const recentBooking: RecentBooking = (() => {
+    for (const unit of repo.listUnits({})) {
+      const confirmed = repo
+        .listBookingsForUnit(unit.id)
+        .find((booking) => booking.status === 'CONFIRMED' || booking.status === 'COMPLETED');
+      if (!confirmed) continue;
+
+      return {
+        unitName: unit.name,
+        area: unit.area,
+        nights: confirmed.nights,
+        whenLabel: 'Confirmed'
+      };
+    }
+    return null;
+  })();
+
   return (
-    <main className="h3-page">
-      <h1>
-        House3
-        <span className="h3-badge">
-          {findState(stateCode)?.name ?? stateCode} · {results.length} stay{results.length === 1 ? '' : 's'}
-        </span>
-      </h1>
-      <p className="h3-lede">
-        Shortlets, serviced flats and hostel beds across Nigeria. Every price is itemised: the
-        operator&apos;s own rate, our service fee, and VAT on that fee.
-      </p>
-
-      <form method="get" className="h3-search">
-        <label className="h3-field">
-          State
-          <select name="state" defaultValue={stateCode} className="h3-select">
-            {live.map((option) => (
-              <option key={option.code} value={option.code}>
-                {option.name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="h3-field">
-          Area (optional)
-          <input name="area" defaultValue={area ?? ''} placeholder="Lekki Phase 1" className="h3-input" />
-        </label>
-
-        <label className="h3-field">
-          Check in
-          <input type="date" name="checkIn" defaultValue={checkIn} className="h3-input" />
-        </label>
-
-        <label className="h3-field">
-          Check out
-          <input type="date" name="checkOut" defaultValue={checkOut} className="h3-input" />
-        </label>
-
-        <label className="h3-field">
-          Guests
-          <input type="number" name="guests" defaultValue={guests} min={1} max={20} className="h3-input" />
-        </label>
-
-        <button type="submit" className="h3-btn h3-btn--primary">
-          Search
-        </button>
-      </form>
-
-      {error ? <p className="h3-error">{error}</p> : null}
-
-      <p className="h3-summary">
-        {results.length} stay{results.length === 1 ? '' : 's'} from {operatorCount} operator
-        {operatorCount === 1 ? '' : 's'}
-        {area ? ` in ${area}` : ''} · {checkIn} to {checkOut} · {guests} guest{guests === 1 ? '' : 's'}
-      </p>
-
-      <ul className="h3-list">
-        {results.map((result) => (
-          <ResultCard key={result.unit.id} result={result} />
-        ))}
-      </ul>
-    </main>
-  );
-}
-
-function ResultCard({ result }: { result: SellableUnit }) {
-  return (
-    <li className="h3-card">
-      <div className="h3-card__head">
-        <div>
-          <h2 className="h3-card__title">{result.unit.name}</h2>
-          <div className="h3-meta">
-            {result.unit.bedrooms} bed · {result.unit.bathrooms} bath · sleeps {result.unit.maxGuests} ·{' '}
-            {result.unit.area}
-          </div>
-          <div className="h3-operator">
-            Operated by <strong>{result.partner.displayName}</strong> · minimum stay {result.unit.minNights}{' '}
-            night{result.unit.minNights === 1 ? '' : 's'}
-          </div>
-        </div>
-
-        <div className="h3-card__price">
-          <MoneyTable
-            lines={result.quote.lines}
-            totalKobo={result.quote.totalKobo}
-            settlement={{
-              operatorName: result.partner.displayName,
-              operatorKobo: result.split.partnerShareKobo,
-              platformKobo: result.split.platformShareKobo
-            }}
-          />
-        </div>
-      </div>
-    </li>
+    <LandingPage
+      listings={listings}
+      cities={cities}
+      heroStats={heroStats}
+      breakdown={breakdown}
+      recentBooking={recentBooking}
+    />
   );
 }

@@ -1,86 +1,123 @@
 /*
- * House3 design tokens + primitives.
+ * House3 design tokens.
  *
- * MIRROR OF design/tokens.tokens.json. If you change a value here, change it
- * there in the same commit - the JSON is what gets imported into Figma, this file
- * is what the app renders. Keeping them in one file each is deliberate: one
- * import target for Figma, one for the bundler.
+ * SOURCE OF TRUTH: design/tokens.tokens.json (imported into Figma).
+ * This file is the app-side mirror - change both in the same commit.
  *
- * Naming: --h3-<group>-<name>. Semantic tokens are what components use; nothing
- * in the app should reference a raw hex.
+ * Palette and typefaces come from the Figma Make design: warm near-black
+ * ground, burnt-orange primary, Fraunces display serif, Outfit UI sans,
+ * JetBrains Mono for money.
+ *
+ * The `--h3-*` semantic names are retained so the booking funnel (MoneyTable,
+ * search, checkout, confirmation) re-skins automatically with the palette.
+ * Components never reference a raw hex.
  */
 
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import 'tailwindcss';
+
+/* Expose the palette to Tailwind v4 utilities (bg-card, text-muted-foreground…). */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --radius-DEFAULT: var(--radius);
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-outfit);
+  --font-mono: var(--font-jetbrains);
+}
+
+/* ---------------------------------------------------------------------------
+ * 1. Figma Make palette (verbatim from the design)
+ * ------------------------------------------------------------------------- */
+
 :root {
-  /* ---- primitive: green (brand) ---- */
-  --h3-green-50: #e9f7f0;
-  --h3-green-100: #c9ebd9;
-  --h3-green-300: #6fc79a;
-  --h3-green-500: #128a4e;
-  --h3-green-700: #0a6136;
-  --h3-green-900: #063c22;
+  --background: #0e0c0a;
+  --foreground: #f5f0e8;
+  --card: #1a1714;
+  --card-foreground: #f5f0e8;
+  --primary: #d97c2b;
+  --primary-foreground: #0e0c0a;
+  --secondary: #2a2420;
+  --secondary-foreground: #c8b99a;
+  --muted: #1f1b17;
+  --muted-foreground: #8a7a68;
+  --accent: #e8a44a;
+  --accent-foreground: #0e0c0a;
+  --border: rgba(255, 255, 255, 0.08);
+  --ring: #d97c2b;
+  --radius: 0.75rem;
+  --font-fraunces: 'Fraunces', Georgia, serif;
+  --font-outfit: 'Outfit', system-ui, sans-serif;
+  --font-jetbrains: 'JetBrains Mono', ui-monospace, monospace;
+}
 
-  /* ---- primitive: ink (neutrals) ---- */
-  --h3-ink-900: #10161a;
-  --h3-ink-700: #3a4750;
-  --h3-ink-500: #6b7a85;
-  --h3-ink-300: #aebbc4;
-  --h3-ink-100: #e4eaee;
-  --h3-ink-50: #f4f7f9;
-  --h3-white: #ffffff;
+/* ---------------------------------------------------------------------------
+ * 2. Semantic layer the funnel components already consume
+ *
+ * Re-pointed at the new palette, so MoneyTable, the results page, checkout and
+ * confirmation adopt the brand without being rewritten.
+ * ------------------------------------------------------------------------- */
 
-  /* ---- primitive: amber / red ---- */
-  --h3-amber-500: #e8a33d;
-  --h3-amber-700: #8a5a12;
-  --h3-amber-50: #fdf3e3;
-  --h3-red-500: #c4342b;
-  --h3-red-50: #fdecea;
+:root {
+  /* surfaces */
+  --h3-bg-page: var(--background);
+  --h3-bg-surface: var(--card);
+  --h3-bg-sunken: var(--muted);
+  --h3-bg-brand-tint: rgba(217, 124, 43, 0.1);
+  --h3-bg-danger-tint: rgba(224, 106, 90, 0.14);
 
-  /* ---- semantic: surfaces ---- */
-  --h3-bg-page: var(--h3-ink-50);
-  --h3-bg-surface: var(--h3-white);
-  --h3-bg-sunken: var(--h3-ink-100);
-  --h3-bg-brand-tint: var(--h3-green-50);
-  --h3-bg-danger-tint: var(--h3-red-50);
+  /* text */
+  --h3-text-primary: var(--foreground);
+  --h3-text-secondary: var(--secondary-foreground);
+  --h3-text-tertiary: var(--muted-foreground);
+  --h3-text-disabled: rgba(138, 122, 104, 0.5);
+  --h3-text-on-brand: var(--primary-foreground);
+  --h3-text-brand: var(--accent);
+  --h3-text-danger: #e8756b;
 
-  /* ---- semantic: text ---- */
-  --h3-text-primary: var(--h3-ink-900);
-  --h3-text-secondary: var(--h3-ink-700);
-  --h3-text-tertiary: var(--h3-ink-500);
-  --h3-text-disabled: var(--h3-ink-300);
-  --h3-text-on-brand: var(--h3-white);
-  --h3-text-brand: var(--h3-green-700);
-  --h3-text-danger: var(--h3-red-500);
+  /* borders */
+  --h3-border-default: var(--border);
+  --h3-border-strong: rgba(255, 255, 255, 0.18);
+  --h3-border-brand: rgba(217, 124, 43, 0.35);
 
-  /* ---- semantic: borders ---- */
-  --h3-border-default: var(--h3-ink-100);
-  --h3-border-strong: var(--h3-ink-300);
-  --h3-border-brand: var(--h3-green-300);
+  /* actions */
+  --h3-action-primary-bg: var(--primary);
+  --h3-action-primary-bg-pressed: #b8651f;
+  --h3-action-primary-text: var(--primary-foreground);
+  --h3-action-secondary-bg: var(--secondary);
+  --h3-action-secondary-text: var(--foreground);
 
-  /* ---- semantic: action ---- */
-  --h3-action-primary-bg: var(--h3-green-500);
-  --h3-action-primary-bg-pressed: var(--h3-green-700);
-  --h3-action-primary-text: var(--h3-white);
-  --h3-action-secondary-bg: var(--h3-white);
-  --h3-action-secondary-text: var(--h3-green-700);
+  /* hold urgency - orange is the brand, so the hold state borrows it */
+  --h3-hold-bg: rgba(232, 164, 74, 0.12);
+  --h3-hold-icon: var(--accent);
+  --h3-hold-text: var(--accent);
 
-  /* ---- semantic: hold urgency (real server-enforced timer, so the copy can
-     be calm; amber.700 for text because amber.500 fails contrast as text) ---- */
-  --h3-hold-bg: var(--h3-amber-50);
-  --h3-hold-icon: var(--h3-amber-500);
-  --h3-hold-text: var(--h3-amber-700);
+  /* money - the design colours the fee and VAT rows with the BRAND accent.
+     That works because orange is the identity, not a warning: it reads as
+     "our line", which is the intended meaning. */
+  --h3-money-operator: var(--foreground);
+  --h3-money-fee: var(--accent);
+  --h3-money-tax: var(--accent);
+  --h3-money-discount: #6fc79a;
+  --h3-money-total: var(--primary);
+  --h3-money-settlement: var(--muted-foreground);
 
-  /* ---- semantic: money ----
-     The fee row is intentionally ink, not amber. We are not hiding the fee, so
-     it must not be styled to look like a penalty. */
-  --h3-money-operator: var(--h3-ink-900);
-  --h3-money-fee: var(--h3-ink-900);
-  --h3-money-tax: var(--h3-ink-700);
-  --h3-money-discount: var(--h3-green-700);
-  --h3-money-total: var(--h3-ink-900);
-  --h3-money-settlement: var(--h3-ink-500);
-
-  /* ---- typography ---- */
-  --h3-font-base: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* typography */
+  --h3-font-base: var(--font-outfit);
+  --h3-font-display: var(--font-fraunces);
+  --h3-font-mono: var(--font-jetbrains);
   --h3-weight-regular: 400;
   --h3-weight-medium: 500;
   --h3-weight-semibold: 600;
@@ -96,7 +133,7 @@
   --h3-leading-snug: 1.3;
   --h3-leading-normal: 1.45;
 
-  /* ---- space ---- */
+  /* space */
   --h3-space-1: 2px;
   --h3-space-2: 4px;
   --h3-space-3: 8px;
@@ -108,29 +145,28 @@
   --h3-space-9: 40px;
   --h3-space-10: 48px;
 
-  /* ---- radius ---- */
+  /* radius */
   --h3-radius-sm: 4px;
   --h3-radius-md: 8px;
   --h3-radius-lg: 12px;
   --h3-radius-pill: 999px;
 
-  /* ---- size ---- */
+  /* size */
   --h3-touch-target: 44px;
   --h3-button-height: 48px;
   --h3-input-height: 44px;
   --h3-content-max: 720px;
 
-  /* ---- shadow ---- */
-  --h3-shadow-sm: 0 1px 2px #10161a0f;
-  --h3-shadow-md: 0 4px 12px #10161a1a;
-  --h3-shadow-sticky: 0 -2px 8px #10161a14;
+  /* shadow */
+  --h3-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --h3-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.55);
+  --h3-shadow-sticky: 0 -2px 12px rgba(0, 0, 0, 0.5);
 
-  /* ---- border ---- */
   --h3-border-hairline: 1px;
 }
 
 /* ---------------------------------------------------------------------------
- * Base
+ * 3. Base
  * ------------------------------------------------------------------------- */
 
 *,
@@ -140,30 +176,51 @@
 }
 
 html {
+  font-family: var(--font-outfit);
+  background: var(--background);
+  color: var(--foreground);
+  scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
-  background: var(--h3-bg-page);
-  color: var(--h3-text-primary);
-  font-family: var(--h3-font-base);
-  font-size: var(--h3-text-body);
-  line-height: var(--h3-leading-normal);
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
 }
 
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+h1,
+h2 {
+  font-family: var(--font-fraunces);
+  font-weight: 300;
+  letter-spacing: -0.01em;
+}
 h1 {
   font-size: var(--h3-text-h1);
   line-height: var(--h3-leading-tight);
-  font-weight: var(--h3-weight-semibold);
-  letter-spacing: -0.01em;
   margin: 0 0 var(--h3-space-3);
 }
-
 h2 {
   font-size: var(--h3-text-h2);
   line-height: var(--h3-leading-snug);
-  font-weight: var(--h3-weight-semibold);
   margin: 0 0 var(--h3-space-2);
 }
 
@@ -176,7 +233,11 @@ a {
 }
 
 /* ---------------------------------------------------------------------------
- * Layout
+ * 4. Funnel primitives
+ *
+ * Carried over from the previous light theme. Because every value here is a
+ * semantic token, the palette switch above re-skinned the whole booking flow
+ * without touching a single component.
  * ------------------------------------------------------------------------- */
 
 .h3-page {
@@ -205,10 +266,6 @@ a {
   margin-bottom: var(--h3-space-7);
 }
 
-/* ---------------------------------------------------------------------------
- * Form controls
- * ------------------------------------------------------------------------- */
-
 .h3-field {
   display: flex;
   flex-direction: column;
@@ -223,10 +280,11 @@ a {
   padding: 0 var(--h3-space-3);
   border: var(--h3-border-hairline) solid var(--h3-border-default);
   border-radius: var(--h3-radius-md);
-  background: var(--h3-bg-surface);
+  background: var(--h3-bg-sunken);
   color: var(--h3-text-primary);
   font: inherit;
   font-size: var(--h3-text-body);
+  color-scheme: dark;
 }
 
 .h3-input:focus-visible,
@@ -234,10 +292,6 @@ a {
   outline: 2px solid var(--h3-border-brand);
   outline-offset: 1px;
 }
-
-/* ---------------------------------------------------------------------------
- * Buttons
- * ------------------------------------------------------------------------- */
 
 .h3-btn {
   min-height: var(--h3-button-height);
@@ -262,17 +316,13 @@ a {
 }
 
 .h3-btn--primary:focus-visible {
-  outline: 2px solid var(--h3-green-900);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
 .h3-btn--block {
   width: 100%;
 }
-
-/* ---------------------------------------------------------------------------
- * Cards
- * ------------------------------------------------------------------------- */
 
 .h3-card {
   background: var(--h3-bg-surface);
@@ -309,73 +359,6 @@ a {
   margin-top: var(--h3-space-2);
 }
 
-/* ---------------------------------------------------------------------------
- * Money table - the trust centrepiece.
- *
- * Rules encoded here:
- *  - tabular-nums so decimal points line up down the column. People compare
- *    prices by the position of the comma; proportional figures break that.
- *  - the fee row is NOT visually distinguished from the operator row, because it
- *    is not a penalty, it is a disclosed line item.
- *  - VAT is muted: it is the government's line, not ours.
- *  - the total row is the only bold row.
- * ------------------------------------------------------------------------- */
-
-.h3-money {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--h3-text-money);
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum' 1;
-}
-
-.h3-money td {
-  padding: var(--h3-space-1) 0;
-  vertical-align: top;
-}
-
-.h3-money td:first-child {
-  padding-right: var(--h3-space-4);
-}
-
-.h3-money td:last-child {
-  text-align: right;
-  white-space: nowrap;
-}
-
-.h3-money__row--room td,
-.h3-money__row--passthrough td {
-  color: var(--h3-money-operator);
-}
-
-.h3-money__row--fee td {
-  color: var(--h3-money-fee);
-}
-
-.h3-money__row--tax td {
-  color: var(--h3-money-tax);
-  font-size: var(--h3-text-small);
-}
-
-.h3-money__row--discount td {
-  color: var(--h3-money-discount);
-}
-
-.h3-money__row--total td {
-  color: var(--h3-money-total);
-  font-weight: var(--h3-weight-semibold);
-  border-top: var(--h3-border-hairline) solid var(--h3-border-strong);
-  padding-top: var(--h3-space-3);
-}
-
-/* The "operator receives X, House3 keeps Y" line. */
-.h3-settlement {
-  font-size: var(--h3-text-micro);
-  line-height: var(--h3-leading-snug);
-  color: var(--h3-money-settlement);
-  margin: var(--h3-space-3) 0 0;
-}
-
 .h3-note {
   font-size: var(--h3-text-small);
   color: var(--h3-text-secondary);
@@ -406,7 +389,111 @@ a {
 }
 
 /* ---------------------------------------------------------------------------
- * Hold banner - shown while the server-enforced 15-minute hold is live.
+ * 5. Money table - the trust centrepiece
+ *
+ *  - The design sets money in JetBrains Mono. Monospace is strictly better than
+ *    tabular-nums for this: it aligns decimals AND keeps digit widths identical,
+ *    so the column scans cleanly and nothing looks like it was nudged.
+ *  - The fee row takes the BRAND accent, matching the Figma design. That reads
+ *    as "our line" rather than a penalty, because orange is the identity here.
+ *  - The total row is highlighted the way the design does it.
+ * ------------------------------------------------------------------------- */
+
+.h3-money {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--h3-font-mono);
+  font-size: var(--h3-text-money);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.h3-money td {
+  padding: var(--h3-space-3) 0;
+  vertical-align: top;
+}
+
+.h3-money td:first-child {
+  padding-right: var(--h3-space-4);
+}
+
+.h3-money td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.h3-money tr + tr td {
+  border-top: var(--h3-border-hairline) solid var(--h3-border-default);
+}
+
+.h3-money__row--room td,
+.h3-money__row--passthrough td {
+  color: var(--h3-money-operator);
+}
+
+.h3-money__row--fee td {
+  color: var(--h3-money-fee);
+}
+
+.h3-money__row--tax td {
+  color: var(--h3-money-tax);
+}
+
+.h3-money__row--discount td {
+  color: var(--h3-money-discount);
+}
+
+.h3-money__row--total td {
+  color: var(--h3-money-total);
+  font-weight: var(--h3-weight-bold);
+  font-size: 1.25rem;
+  padding-top: var(--h3-space-4);
+}
+
+.h3-settlement {
+  font-family: var(--h3-font-outfit, var(--h3-font-base));
+  font-size: var(--h3-text-micro);
+  line-height: var(--h3-leading-snug);
+  color: var(--h3-money-settlement);
+  margin: var(--h3-space-3) 0 0;
+}
+
+/* Total callout block, mirroring the design's highlighted "You pay" row. */
+.h3-total-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--h3-space-4);
+  padding: var(--h3-space-4);
+  border-radius: var(--h3-radius-lg);
+  background: var(--h3-bg-brand-tint);
+  border: var(--h3-border-hairline) solid var(--h3-border-brand);
+}
+
+.h3-total-box__amount {
+  font-family: var(--h3-font-mono);
+  font-weight: var(--h3-weight-bold);
+  font-size: 1.25rem;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.h3-ledger {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: var(--h3-text-small);
+  font-family: var(--h3-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.h3-ledger li {
+  padding: var(--h3-space-2) 0;
+  border-bottom: var(--h3-border-hairline) solid var(--h3-border-default);
+}
+
+/* ---------------------------------------------------------------------------
+ * 6. Hold banner and sticky checkout bar
  * ------------------------------------------------------------------------- */
 
 .h3-hold {
@@ -414,6 +501,7 @@ a {
   gap: var(--h3-space-4);
   align-items: flex-start;
   background: var(--h3-hold-bg);
+  border: var(--h3-border-hairline) solid var(--h3-border-brand);
   border-radius: var(--h3-radius-lg);
   padding: var(--h3-space-4) var(--h3-space-5);
   margin-bottom: var(--h3-space-5);
@@ -434,7 +522,6 @@ a {
   margin: var(--h3-space-1) 0 0;
 }
 
-/* Sticky checkout bar: total left, primary action right. */
 .h3-sticky {
   position: sticky;
   bottom: 0;
@@ -455,34 +542,43 @@ a {
 }
 
 .h3-sticky__amount {
+  font-family: var(--h3-font-mono);
   font-size: var(--h3-text-money);
   font-weight: var(--h3-weight-semibold);
   font-variant-numeric: tabular-nums;
   margin: 0;
 }
 
-.h3-ledger {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  font-size: var(--h3-text-small);
-  font-variant-numeric: tabular-nums;
+/* ---------------------------------------------------------------------------
+ * 7. Motion
+ *
+ * The design leans on blur and 3D tilt. All of it is opt-out, and the two
+ * heaviest effects are disabled on small screens where they cost the most and
+ * where pointer-tracking has no meaning anyway.
+ * ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .h3-desktop-only {
+    display: none !important;
+  }
 }
 
-.h3-ledger li {
-  padding: var(--h3-space-2) 0;
-  border-bottom: var(--h3-border-hairline) solid var(--h3-border-default);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 @media (min-width: 480px) {
   .h3-page {
     padding: var(--h3-space-7);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
   }
 }
