@@ -1,0 +1,247 @@
+{
+  "$comment": "Verified source registry. Each entry cites the evidence its decision was made on. termsStatus is a human decision with a reviewer and a date; robots.txt is checked separately at request time because a publisher may change it. A source that could not be reached is UNREACHABLE, never 'permitted by default'.",
+  "sources": [
+    {
+      "key": "apartments_ng",
+      "host": "apartments.ng",
+      "displayName": "Apartments.ng",
+      "layer": "DISCOVERY",
+      "accessMethod": "PUBLIC_WEB",
+      "termsStatus": "UNREVIEWED",
+      "robots": {
+        "fetch": "FETCHED",
+        "url": "https://apartments.ng/robots.txt",
+        "sitemaps": [],
+        "disallowCount": 1,
+        "disallowSamples": [
+          "/oc-admin/"
+        ],
+        "crawlDelay": null,
+        "notes": "Reached (HTTP 200). 1 wildcard Disallow rule(s). robots.txt is not a licence: terms of service still govern."
+      },
+      "termsUrl": "https://apartments.ng/terms",
+      "attributionRequirement": null,
+      "rateLimitPerMinute": null,
+      "reviewedBy": null,
+      "lastReviewedAt": null,
+      "notes": "Listing portal with an editorial blog alongside its listings.",
+      "blockedReason": "No human review recorded."
+    },
+    {
+      "key": "gidistays",
+      "host": "gidistays.com",
+      "displayName": "GidiStays",
+      "layer": "OPERATOR_SITE",
+      "accessMethod": "PUBLIC_WEB",
+      "termsStatus": "UNREVIEWED",
+      "robots": {
+        "fetch": "FETCHED",
+        "url": "https://gidistays.com/robots.txt",
+        "sitemaps": [
+          "https://gidistays.com/sitemap.xml"
+        ],
+        "disallowCount": 0,
+        "disallowSamples": [],
+        "crawlDelay": null,
+        "notes": "Reached (HTTP 200). No wildcard Disallow rules. 1 Sitemap directive(s) - a published crawl path. robots.txt is not a licence: terms of service still govern."
+      },
+      "termsUrl": "https://gidistays.com/terms",
+      "attributionRequirement": null,
+      "rateLimitPerMinute": null,
+      "reviewedBy": null,
+      "lastReviewedAt": null,
+      "notes": "An operator's own site marketing its own apartments in Lagos.",
+      "blockedReason": "No human review recorded."
+    },
+    {
+      "key": "hotels_ng",
+      "host": "hotels.ng",
+      "displayName": "Hotels.ng",
+      "layer": "BOOKING",
+      "accessMethod": "PUBLIC_WEB",
+      "termsStatus": "UNREVIEWED",
+      "robots": {
+        "fetch": "FETCHED",
+        "url": "https://hotels.ng/robots.txt",
+        "sitemaps": [],
+        "disallowCount": 0,
+        "disallowSamples": [],
+        "crawlDelay": null,
+        "notes": "Reached (HTTP 200). No wildcard Disallow rules. robots.txt is not a licence: terms of service still govern."
+      },
+      "termsUrl": "https://hotels.ng/terms",
+      "attributionRequirement": null,
+      "rateLimitPerMinute": null,
+      "reviewedBy": null,
+      "lastReviewedAt": null,
+      "notes": "OTA. Publishes nightly rates for apartments and takes bookings, so it is a candidate BOOKING channel, not discovery inventory.",
+      "blockedReason": "No human review recorded."
+    },
+    {
+      "key": "jiji",
+      "host": "jiji.ng",
+      "displayName": "Jiji Nigeria",
+      "layer": "DISCOVERY",
+      "accessMethod": "PUBLIC_WEB",
+      "termsStatus": "UNREVIEWED",
+      "robots": {
+        "fetch": "FETCHED",
+        "url": "https://jiji.ng/robots.txt",
+        "sitemaps": [],
+        "disallowCount": 4,
+        "disallowSamples": [
+          "/test/*",
+          "/admin/*",
+          "/crm/*",
+          "/auth/facebook*"
+        ],
+        "crawlDelay": null,
+        "notes": "Reached (HTTP 200). 4 wildcard Disallow rule(s). robots.txt is not a licence: terms of service still govern."
+      },
+      "termsUrl": "https://jiji.ng/terms",
+      "attributionRequirement": null,
+      "rateLimitPerMinute": null,
+      "reviewedBy": null,
+      "lastReviewedAt": null,
+      "notes": "Classifieds. Advertisers are frequently agents or resellers rather than the property owner, so a listing is evidence of a property and never of an operator identity.",
+      "blockedReason": "No human review recorded."
+    },
+    {
+      "key": "krent",
+      "host": "krent.space",
+      "displayName": "Krent",
+      "layer": "DISCOVERY",
+      "accessMethod": "PUBLIC_WEB",
+      "termsStatus": "UNREVIEWED",
+      "robots": {
+        "fetch": "FETCHED",
+        "url": "https://krent.space/robots.txt",
+        "sitemaps": [],
+        "disallowCount": 0,
+        "disallowSamples": [],
+        "crawlDelay": null,
+        "notes": "Reached (HTTP 200). No wildcard Disallow rules. robots.txt is not a licence: terms of service still govern."
+      },
+      "termsUrl": "https://krent.space/terms",
+      "attributionRequirement": null,
+      "rateLimitPerMinute": null,
+      "reviewedBy": null,
+      "lastReviewedAt": null,
+      "notes": "Listing portal for short lets with an agent-connect booking flow.",
+      "blockedReason": "No human review recorded."
+    },
+    {
+      "key": "npc",
+      "host": "nigeriapropertycentre.com",
+      "displayName": "Nigeria Property Centre",
+      "layer": "DISCOVERY",
+      "accessMethod": "PUBLIC_WEB",
+      "termsStatus": "UNREVIEWED",
+      "robots": {
+        "fetch": "FETCHED",
+        "url": "https://nigeriapropertycentre.com/robots.txt",
+        "sitemaps": [
+          "https://nigeriapropertycentre.com/sitemaps/index.xml"
+        ],
+        "disallowCount": 1,
+        "disallowSamples": [
+          "*report/create*"
+        ],
+        "crawlDelay": null,
+        "notes": "Reached (HTTP 200). 1 wildcard Disallow rule(s). 1 Sitemap directive(s) - a published crawl path. robots.txt is not a licence: terms of service still govern."
+      },
+      "termsUrl": "https://nigeriapropertycentre.com/terms-of-use",
+      "attributionRequirement": null,
+      "rateLimitPerMinute": null,
+      "reviewedBy": null,
+      "lastReviewedAt": null,
+      "notes": "Third-party listing portal. Its listings are published by agents, not by NPC.",
+      "blockedReason": "No human review recorded."
+    },
+    {
+      "key": "plistbooking",
+      "host": "plistbooking.com",
+      "displayName": "Plistbooking",
+      "layer": "BOOKING",
+      "accessMethod": "PUBLIC_WEB",
+      "termsStatus": "UNREVIEWED",
+      "robots": {
+        "fetch": "FETCHED",
+        "url": "https://plistbooking.com/robots.txt",
+        "sitemaps": [],
+        "disallowCount": 0,
+        "disallowSamples": [],
+        "crawlDelay": null,
+        "notes": "Reached (HTTP 200). No wildcard Disallow rules. robots.txt is not a licence: terms of service still govern."
+      },
+      "termsUrl": "https://plistbooking.com/terms",
+      "attributionRequirement": null,
+      "rateLimitPerMinute": null,
+      "reviewedBy": null,
+      "lastReviewedAt": null,
+      "notes": "Takes bookings and quotes nightly prices directly. Belongs in the BOOKING layer behind an affiliate or partner agreement - not in sources/.",
+      "blockedReason": "No human review recorded."
+    },
+    {
+      "key": "propertypro",
+      "host": "propertypro.ng",
+      "displayName": "PropertyPro Nigeria",
+      "layer": "DISCOVERY",
+      "accessMethod": "PUBLIC_WEB",
+      "termsStatus": "UNREVIEWED",
+      "robots": {
+        "fetch": "FETCHED",
+        "url": "https://propertypro.ng/robots.txt",
+        "sitemaps": [],
+        "disallowCount": 25,
+        "disallowSamples": [
+          "/admin",
+          "/admin/*",
+          "/backend",
+          "/backend/*",
+          "/links",
+          "/*max_price=*",
+          "/*min_price=*",
+          "/*baths=*",
+          "/*toilets=*",
+          "/*sort=*",
+          "/*order=*",
+          "/*limit=*"
+        ],
+        "crawlDelay": null,
+        "notes": "Reached (HTTP 200). 25 wildcard Disallow rule(s). robots.txt is not a licence: terms of service still govern."
+      },
+      "termsUrl": "https://propertypro.ng/terms",
+      "attributionRequirement": null,
+      "rateLimitPerMinute": null,
+      "reviewedBy": null,
+      "lastReviewedAt": null,
+      "notes": "Third-party listing portal (PropertyPro/NICOM). Listings are agent-published.",
+      "blockedReason": "No human review recorded."
+    },
+    {
+      "key": "shortlethomes",
+      "host": "shortlethomes.com",
+      "displayName": "Shortlet Homes",
+      "layer": "OPERATOR_SITE",
+      "accessMethod": "PUBLIC_WEB",
+      "termsStatus": "UNREVIEWED",
+      "robots": {
+        "fetch": "UNREACHABLE",
+        "url": "https://shortlethomes.com/robots.txt",
+        "sitemaps": [],
+        "disallowCount": 0,
+        "disallowSamples": [],
+        "crawlDelay": null,
+        "notes": "UNREACHABLE (URLError: <urlopen error [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1000)>). No policy observed - this is NOT a permissive result and does not support a PERMITTED decision."
+      },
+      "termsUrl": "https://shortlethomes.com/terms",
+      "attributionRequirement": null,
+      "rateLimitPerMinute": null,
+      "reviewedBy": null,
+      "lastReviewedAt": null,
+      "notes": "An operator's own site (e.g. 1677 Mayfair Apartments). One site is one potential partner, not a source of many properties.",
+      "blockedReason": "No human review recorded."
+    }
+  ]
+}

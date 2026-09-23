@@ -348,6 +348,34 @@ def main(argv: Optional[list[str]] = None) -> int:
     registry = build_registry()
     adapter = registry.get(args.source)
 
+    # The permission gate. A source must have a recorded review before an adapter
+    # runs against it, so the crawl decision is a reviewable record rather than a
+    # list of domains someone pasted into a constant.
+    #
+    # Skipped in fixture mode, which reads bundled files and touches no network:
+    # requiring a legal review to read a local fixture would train everyone to keep
+    # the registry permissive, which is the opposite of the point.
+    if not args.fixture:
+        from compliance.source_registry import SourceNotPermitted, load_registry
+
+        source_file = load_registry()
+        try:
+            source_file.require_permitted(args.source)
+        except SourceNotPermitted as exc:
+            entry = source_file.get(args.source)
+            print(f"refusing to crawl '{args.source}': {exc}", file=sys.stderr)
+            if entry is not None:
+                print(f"  host   : {entry.host}", file=sys.stderr)
+                print(f"  layer  : {entry.layer}", file=sys.stderr)
+                print(f"  robots : {entry.robots_fetch} - {entry.robots_notes}", file=sys.stderr)
+                print(f"  terms  : {entry.terms_url}", file=sys.stderr)
+            print(
+                "  a crawl is not permitted until SourceRegistry.termsStatus is PERMITTED "
+                "with a reviewer and a date",
+                file=sys.stderr,
+            )
+            return 3
+
     if args.fixture:
         transport = FixtureTransport(FIXTURES)
     else:

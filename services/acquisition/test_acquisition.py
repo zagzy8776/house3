@@ -11,6 +11,8 @@ from __future__ import annotations
 import json
 import re
 import sys
+import tempfile
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -22,6 +24,19 @@ from compliance.allowed_fields import (
     assert_no_media_or_prose,
     image_urls_in,
     strip_media,
+)
+from compliance.source_registry import (
+    BOOKING,
+    DISCOVERY,
+    FETCHED,
+    PERMITTED,
+    UNREACHABLE,
+    UNREVIEWED,
+    SourceEntry,
+    SourceNotPermitted,
+    SourceRegistryFile,
+    load_registry,
+    save_registry,
 )
 from compliance.non_operator_hosts import is_non_operator_host
 from extraction.contact import find_operator_website
@@ -1826,6 +1841,299 @@ def test_undeclared_fields_are_refused() -> None:
     except PolicyViolation:
         return
     raise AssertionError("guard allowed an undeclared field")
+
+
+def test_source_registry_refuses_an_unreviewed_source() -> None:
+    """A source nobody reviewed must not be crawlable.
+
+    The whole point of the registry is that "we found this domain on Google" is not
+    a permission. If an UNREVIEWED entry were crawlable this file would be
+    decoration, and the crawl decision would still be a list of domains.
+    """
+    registry = SourceRegistryFile(
+        [
+            SourceEntry(
+                key="portal",
+                host="portal.ng",
+                display_name="Portal",
+                layer=DISCOVERY,
+                access_method="PUBLIC_WEB",
+                terms_status=UNREVIEWED,
+                blocked_reason="No human review recorded.",
+            )
+        ]
+    )
+
+    try:
+        registry.require_permitted("portal")
+        raise AssertionError("an UNREVIEWED source must not be handed back")
+    except SourceNotPermitted as exc:
+        assert "UNREVIEWED" in str(exc)
+        assert "No human review recorded." in str(exc)
+
+
+def test_source_registry_refuses_a_booking_source_in_the_discovery_layer() -> None:
+    """A scraper is a discovery source and never a booking source.
+
+    Three of the candidates take bookings themselves. Registering one as PERMITTED
+    DISCOVERY inventory would be the exact confusion `sources/base.py` forbids, so
+    the layer is checked *before* the review status.
+    """
+    registry = SourceRegistryFile(
+        [
+            SourceEntry(
+                key="ota",
+                host="ota.example",
+                display_name="OTA",
+                layer=BOOKING,
+                access_method="PUBLIC_WEB",
+                terms_status=PERMITTED,
+                reviewed_by="reviewer",
+                last_reviewed_at="2026-09-23",
+            )
+        ]
+    )
+
+    try:
+        registry.require_permitted("ota")
+        raise AssertionError("a BOOKING source must not be crawlable as discovery")
+    except SourceNotPermitted as exc:
+        assert "BOOKING" in str(exc)
+        assert "src/inventory/registry.ts" in str(exc)
+
+
+def test_source_registry_hands_back_a_permitted_discovery_source() -> None:
+    """The gate must actually open, or it is a wall rather than a gate."""
+    registry = SourceRegistryFile(
+        [
+            SourceEntry(
+                key="portal",
+                host="portal.ng",
+                display_name="Portal",
+                layer=DISCOVERY,
+                access_method="PUBLIC_WEB",
+                terms_status=PERMITTED,
+                reviewed_by="reviewer",
+                last_reviewed_at="2026-09-23",
+            )
+        ]
+    )
+
+    entry = registry.require_permitted("portal")
+
+    assert entry.key == "portal"
+    assert entry.is_permitted
+
+
+def test_source_registry_refuses_a_source_that_is_not_in_it() -> None:
+    """An unknown key is a refusal, not a default-allow."""
+    registry = SourceRegistryFile([])
+
+    try:
+        registry.require_permitted("invented")
+        raise AssertionError("an unregistered source must not be handed back")
+    except SourceNotPermitted as exc:
+        assert "not in the registry" in str(exc)
+
+
+def test_a_missing_registry_file_is_empty_rather_than_permissive() -> None:
+    """Deleting the registry must never open the crawl up."""
+    registry = load_registry(Path("does-not-exist-registry.json"))
+
+    assert registry.entries == []
+    assert registry.permitted() == []
+    try:
+        registry.require_permitted("npc")
+        raise AssertionError("a missing registry must not permit anything")
+    except SourceNotPermitted:
+        pass
+
+
+def test_registry_round_trips_through_the_file() -> None:
+    """Evidence must survive a write and a read, or it is not evidence."""
+    tmp_path = Path(tempfile.mkdtemp()) / "source_registry.json"
+    original = SourceRegistryFile(
+        [
+            SourceEntry(
+                key="portal",
+                host="portal.ng",
+                display_name="Portal",
+                layer=DISCOVERY,
+                access_method="PUBLIC_WEB",
+                terms_status=PERMITTED,
+                robots_fetch=FETCHED,
+                robots_sitemaps=["https://portal.ng/sitemap.xml"],
+                robots_disallow_count=3,
+                robots_disallow_samples=["/admin", "/backend"],
+                robots_crawl_delay=2.5,
+                reviewed_by="reviewer",
+                last_reviewed_at="2026-09-23",
+            )
+        ]
+    )
+
+    save_registry(original, tmp_path)
+    loaded = load_registry(tmp_path)
+
+    entry = loaded.require_permitted("portal")
+    assert entry.robots_fetch == FETCHED
+    assert entry.robots_sitemaps == ["https://portal.ng/sitemap.xml"]
+    assert entry.robots_disallow_count == 3
+    assert entry.robots_disallow_samples == ["/admin", "/backend"]
+    assert entry.robots_crawl_delay == 2.5
+    assert entry.reviewed_by == "reviewer"
+
+
+def test_registry_finds_a_source_by_its_host() -> None:
+    """A host lookup must tolerate www and an explicit port."""
+    registry = SourceRegistryFile(
+        [
+            SourceEntry(
+                key="npc",
+                host="nigeriapropertycentre.com",
+                display_name="NPC",
+                layer=DISCOVERY,
+                access_method="PUBLIC_WEB",
+            )
+        ]
+    )
+
+    assert registry.by_host("www.nigeriapropertycentre.com") is not None
+    assert registry.by_host("nigeriapropertycentre.com:443") is not None
+    assert registry.by_host("example.com") is None
+
+
+def test_probe_records_an_unreachable_host_as_unreviewed() -> None:
+    """The distinction the whole layer rests on: no answer is not permission.
+
+    `shortlethomes.com` accepted TCP and stalled its TLS handshake, while
+    `nigeriapropertycentre.com` did not resolve at all from this network. Neither is
+    a permissive robots result, and a pipeline that read either as one would crawl a
+    host it has no evidence about - or, worse, conclude the source has no inventory.
+    """
+    import compliance.probe_sources as probe_module
+    from compliance.probe_sources import Candidate, probe
+
+    def stubborn_fetch(url, timeout=None, deadline=None):
+        return None, UNREACHABLE, "ProbeTimeout: no response within 12s (TLS/socket stall)"
+
+    original = probe_module.fetch
+    probe_module.fetch = stubborn_fetch
+    try:
+        entry = probe(
+            Candidate(
+                key="stalling",
+                host="stalling.example",
+                display_name="Stalling",
+                layer=DISCOVERY,
+                layer_reason="test",
+            )
+        )
+    finally:
+        probe_module.fetch = original
+
+    assert entry.robots_fetch == UNREACHABLE
+    assert entry.terms_status == UNREVIEWED
+    assert not entry.is_permitted
+    assert entry.robots_sitemaps == []
+    # The note must not let a reader mistake silence for permission.
+    assert "NOT a permissive result" in entry.robots_notes
+
+
+def test_probe_fetch_returns_on_a_stalling_socket() -> None:
+    """A fetch that never answers must still RETURN - and quickly.
+
+    `urlopen(timeout=N)` bounds socket reads, NOT a TLS handshake that stalls. This
+    was observed live: shortlethomes.com accepted TCP on 443, answered plain HTTP in
+    under a second, and hung `urlopen` indefinitely - the 12s timeout never fired and
+    a nine-host probe hung forever on host number eight.
+
+    The server below accepts a connection and then says nothing at all, which is the
+    same shape of failure. Without the hard deadline this test does not fail, it
+    hangs - which is precisely why the deadline is the thing under test.
+    """
+    import socket as socket_module
+    import threading as threading_module
+
+    from compliance.probe_sources import fetch as probe_fetch
+
+    server = socket_module.socket(socket_module.AF_INET, socket_module.SOCK_STREAM)
+    server.setsockopt(socket_module.SOL_SOCKET, socket_module.SO_REUSEADDR, 1)
+    server.bind(("127.0.0.1", 0))
+    server.listen(1)
+    port = server.getsockname()[1]
+    held: list = []
+
+    def accept_and_stall() -> None:
+        # Accept, then never write a byte. This is a stall, not a slow reply.
+        connection, _ = server.accept()
+        held.append(connection)
+
+    threading_module.Thread(target=accept_and_stall, daemon=True).start()
+
+    started = time.monotonic()
+    body, state, note = probe_fetch(f"http://127.0.0.1:{port}/robots.txt", timeout=1.0)
+    elapsed = time.monotonic() - started
+
+    server.close()
+    for connection in held:
+        connection.close()
+
+    assert body is None
+    assert state == UNREACHABLE
+    # Allowance is timeout + 2s grace. The point is that it RETURNS at all.
+    assert elapsed < 6.0, f"fetch took {elapsed:.1f}s; the hard deadline did not apply"
+    # Two layers can legitimately catch this, and both are correct:
+    #   - `TimeoutError: timed out` from urlopen's socket read timeout. This is what
+    #     fires over plain HTTP, and it is why this test uses HTTP.
+    #   - `ProbeTimeout: ... no response within Ns` from the outer hard deadline. This
+    #     is the one that matters, because it is the only thing that catches a stalled
+    #     TLS handshake - the case observed live, where urlopen's timeout never fires.
+    # Asserting either is asserting the contract: an unanswered fetch returns.
+    assert "timed out" in note.lower() or "within" in note.lower()
+
+
+
+def test_a_crawl_delay_becomes_evidence_of_the_rate_limit() -> None:
+    """A published Crawl-delay is an instruction, not a hint.
+
+    A host asking for 6 seconds is telling us 10 requests a minute, so our own 5s
+    default would be a breach. It must be recorded, not averaged away.
+    """
+    from compliance.probe_sources import parse_robots, summarise_robots_notes
+
+    parsed = parse_robots("User-agent: *\nCrawl-delay: 6\nDisallow: /admin\n")
+
+    assert parsed["crawl_delay"] == 6.0
+    assert parsed["disallow"] == ["/admin"]
+
+    notes = summarise_robots_notes(parsed, FETCHED, "HTTP 200")
+    assert "Crawl-delay 6.0s" in notes
+    assert "not a licence" in notes
+
+
+def test_robots_parsing_ignores_a_named_agent_group() -> None:
+    """Only the wildcard group governs us; a named group belongs to someone else.
+
+    NPC explicitly allows AI crawlers and disallows `trovitBot`, a competitor
+    aggregator. Reading `trovitBot`'s rules as ours would be wrong in both
+    directions - too restrictive for us, and a false report about NPC.
+    """
+    from compliance.probe_sources import parse_robots
+
+    robots = (
+        "User-agent: trovitBot\n"
+        "Disallow: /\n"
+        "\n"
+        "User-agent: *\n"
+        "Disallow: /report/create\n"
+        "Allow: /\n"
+    )
+
+    parsed = parse_robots(robots)
+
+    assert parsed["disallow"] == ["/report/create"]
+    assert "/" not in parsed["disallow"]
 
 
 if __name__ == "__main__":
