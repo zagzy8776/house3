@@ -1033,6 +1033,40 @@ def test_list_page_url_does_not_become_the_listing_id() -> None:
     assert parsed.source_listing_id == "1043552"
 
 
+def test_a_list_page_is_not_a_listing() -> None:
+    """A degraded crawl must not invent a listing out of a search page.
+
+    When the sitemap is unreachable, discovery falls back to list pages. Parsing
+    one produced a record whose id was the last path segment ("lagos") and whose
+    URL was /for-rent/short-let/lagos?page=20. Every row on the page collapsed onto
+    that one key, so a live run reported "18 written" while the database received a
+    single junk source listing. A search page is not a place.
+    """
+    list_page = "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos?page=20"
+    html = (
+        f'<link rel="canonical" href="{list_page}" />'
+        "<h1>Short Let Apartments in Lagos</h1>"
+        '<p class="price">₦500,000 per day</p>'
+    )
+
+    assert NPC.parse(html, list_page) is None
+
+
+def test_a_listing_page_with_a_bare_reference_is_still_accepted() -> None:
+    """The guard must not reject a real listing reached from a list page.
+
+    List pages are the fallback discovery path, and the fixture's own canonical is
+    what identifies it - which is the case this must keep working.
+    """
+    html = (FIXTURES / "npc-listing-1.html").read_text(encoding="utf-8")
+    list_page = "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos"
+
+    parsed = NPC.parse(html, list_page)
+
+    assert parsed is not None
+    assert parsed.source_listing_id == "1043552"
+
+
 def test_the_reference_id_survives_a_title_change() -> None:
     """The listing's number is the key, not the words the operator can edit.
 

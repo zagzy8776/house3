@@ -229,6 +229,16 @@ class NpcAdapter:
         # page of listings into one record keyed by the state slug.
         source_url, listing_id = self._identify(html, url)
 
+        # A page that is not a listing must not become one. When the sitemap is
+        # unreachable, discovery falls back to list pages; parsing one produced a
+        # record whose id was the last path segment and whose URL was a search
+        # page, and because every row on it collapsed onto that single key a live
+        # degraded run wrote one junk source listing and reported "18 written".
+        # Refusing the page is the honest outcome: it is a search result, not a
+        # place, and the funnel counts it as unusable rather than as inventory.
+        if not self._is_listing_url(source_url):
+            return None
+
         website = find_operator_website(html, url) or None
         identity = extract_operator(html, website)
 
