@@ -9,6 +9,8 @@
 
 import { addDays, eachNight, type IsoDate } from '@/domain/dates';
 import type { UnitNightState } from '@/domain/availability';
+import { centroidForArea } from '@/domain/geo';
+import type { TitleDocument } from '@/domain/title';
 import type { ListedUnit, PartnerProfile } from './store';
 
 export const DEMO_PARTNERS: PartnerProfile[] = [
@@ -85,7 +87,12 @@ export const DEMO_PARTNERS: PartnerProfile[] = [
   }
 ];
 
-export const DEMO_UNITS: ListedUnit[] = [
+/**
+ * Seed rows carry no coordinates or title: both are added below, because
+ * coordinates should come from one authoritative lookup rather than being typed
+ * eight times, and titles should be declared in one reviewable table.
+ */
+const DEMO_UNIT_SEEDS: Omit<ListedUnit, 'latitude' | 'longitude' | 'titleDocument'>[] = [
   {
     id: 'u_lekki_2bed',
     partnerId: 'p_lekki_homes',
@@ -239,6 +246,39 @@ export const DEMO_UNITS: ListedUnit[] = [
     area: 'Ewet Housing Estate'
   }
 ];
+
+/**
+ * Declared titles. In production this arrives from the partner during
+ * onboarding, confirmed against the document they upload - never inferred. The
+ * mix here is realistic for the Nigerian market: newer Lekki and Abuja builds
+ * tend to hold a C of O, older family land often only has a Deed.
+ */
+const UNIT_TITLE_DOCUMENTS: Record<string, TitleDocument> = {
+  u_lekki_2bed: 'C_OF_O',
+  u_lekki_studio: 'C_OF_O',
+  u_ikoyi_3bed: 'GOVERNORS_CONSENT',
+  u_ajah_room: 'EXCISION_GAZETTE',
+  u_maitama_2bed: 'C_OF_O',
+  u_ibadan_1bed: 'DEED_OF_ASSIGNMENT',
+  u_owerri_2bed: 'REGISTERED_DEED',
+  u_uyo_hostel_bed: 'NOT_DISCLOSED'
+};
+
+/**
+ * Final demo inventory: coordinates resolved from the neighbourhood centroid
+ * table, titles from the table above. Units whose area has no centroid keep
+ * null coordinates, which the search code treats as "not geo-searchable" rather
+ * than silently dropping them or inventing a pin.
+ */
+export const DEMO_UNITS: ListedUnit[] = DEMO_UNIT_SEEDS.map((seed) => {
+  const centroid = centroidForArea(seed.area);
+  return {
+    ...seed,
+    latitude: centroid?.lat ?? null,
+    longitude: centroid?.lng ?? null,
+    titleDocument: UNIT_TITLE_DOCUMENTS[seed.id] ?? 'NOT_DISCLOSED'
+  };
+});
 
 /** Publishes OPEN nights with the unit's base rate for a rolling window. */
 export function seedAvailability(

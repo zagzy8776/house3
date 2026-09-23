@@ -1,17 +1,20 @@
 /**
  * GET /api/search
  *
- *   ?state=LA&area=Lekki%20Phase%201&checkIn=2026-06-01&checkOut=2026-06-03&guests=2
+ *   ?state=LA&area=Lekki%20Phase%201&checkIn=2026-06-01&checkOut=2026-06-03
+ *   &guests=2&bedrooms=2&title=C_OF_O&band=200-400k&near=6.4418,3.474&radiusKm=5
  *
- * Returns bookable units in a live state, each with the guest-facing total AND
- * the operator-facing net. Both numbers are returned on purpose: the UI must be
- * able to show the guest the full breakdown, and support must be able to answer
- * "how much did the operator get?" without opening a database.
+ * Filters compose (they intersect). Pass `near` for an explicit coordinate
+ * radius, or `area` alone and the neighbourhood centroid is used. Returns both
+ * the guest-facing total AND the operator-facing net, because support must be
+ * able to answer "how much did the operator get?" without opening the database.
  */
 
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { findState, liveStates } from '@/data/nigeria';
+import { centroidForArea, PRICE_BANDS } from '@/domain/geo';
+import { TITLE_DOCUMENTS, TITLE_DOCUMENT_LABELS, parseTitleDocuments } from '@/domain/title';
 import { getContainer } from '@/server/container';
 
 export const dynamic = 'force-dynamic';
@@ -21,7 +24,20 @@ const querySchema = z.object({
   area: z.string().min(1).optional(),
   checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  guests: z.coerce.number().int().min(1).max(20).default(2)
+  guests: z.coerce.number().int().min(1).max(20).default(2),
+  /** Minimum bedrooms. */
+  bedrooms: z.coerce.number().int().min(0).max(20).optional(),
+  /** Comma-separated TitleDocument values, e.g. "C_OF_O,GOVERNORS_CONSENT". */
+  title: z.string().max(200).optional(),
+  /** Price band id from PRICE_BANDS, e.g. "100-200k". */
+  band: z.string().max(40).optional(),
+  /** "lat,lng" for a radius search. */
+  near: z
+    .string()
+    .regex(/^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/)
+    .optional(),
+  radiusKm: z.coerce.number().positive().max(200).optional(),
+  sort: z.enum(['total-asc', 'total-desc', 'distance']).optional()
 });
 
 export async function GET(request: Request) {
@@ -31,7 +47,13 @@ export async function GET(request: Request) {
     area: url.searchParams.get('area') ?? undefined,
     checkIn: url.searchParams.get('checkIn') ?? '',
     checkOut: url.searchParams.get('checkOut') ?? '',
-    guests: url.searchParams.get('guests') ?? '2'
+    guests: url.searchParams.get('guests') ?? '2',
+    bedrooms: url.searchParams.get('bedrooms') ?? undefined,
+    title: url.searchParams.get('title') ?? undefined,
+    band: url.searchParams.get('band') ?? undefined,
+    near: url.searchParams.get('near') ?? undefined,
+    radiusKm: url.searchParams.get('radiusKm') ?? undefined,
+    sort: url.searchParams.get('sort') ?? undefined
   });
 
   if (!parsed.success) {
@@ -41,7 +63,9 @@ export async function GET(request: Request) {
     );
   }
 
-  const { state, area, checkIn, checkOut, guests } = parsed.data;
+  const { state, checkIn, checkOut, guests, bedrooms, title, band, near, radiusKm, sort } = parsed.data;
+  const area = parsed.data.area;
+
   const rolloutMode = (process.env.ROLLOUT_MODE === 'all' ? 'all' : 'phased') as 'all' | 'phased';
   const lastLiveLaunchOrder = Number(process.env.LAST_LIVE_LAUNCH_ORDER ?? '5');
 
@@ -51,9 +75,38 @@ export async function GET(request: Request) {
   }
   if (!liveStates(rolloutMode, lastLiveLaunchOrder).some((live) => live.code === state)) {
     return NextResponse.json(
-      { error: `${stateSeed.name} is not live yet`, liveStates: liveStates(rolloutMode, lastLiveLaunchOrder).map((s) => s.code) },
+      {
+        error: `${stateSeed.name} is not live yet`,
+        liveStates: liveStates(rolloutMode, lastLiveLaunchOrder).map((entry) => entry.code)
+      },
       { status: 409 }
     );
+  }
+
+  const titleDocuments = parseTitleDocuments(title);
+  if (title && titleDocuments.length === 0) {
+    return NextResponse.json(
+      { error: 'No valid title documents supplied', valid: TITLE_DOCUMENTS },
+      { status: 400 }
+    );
+  }
+
+  if (band && !PRICE_BANDS.some((entry) => entry.id === band)) {
+    return NextResponse.json(
+      { error: `Unknown price band "${band}"`, valid: PRICE_BANDS.map((entry) => entry.id) },
+      { status: 400 }
+    );
+  }
+
+  // `near` wins over `area`; `area` alone resolves to a centroid so that
+  // "near Lekki Phase 1" works straight from the search box.
+  let geoFilter: { center: { lat: number; lng: number }; radiusKm: number } | undefined;
+  if (near) {
+    const [latText, lngText] = near.split(',');
+    geoFilter = { center: { lat: Number(latText), lng: Number(lngText) }, radiusKm: radiusKm ?? 5 };
+  } else if (area) {
+    const centroid = centroidForArea(area);
+    if (centroid) geoFilter = { center: centroid, radiusKm: radiusKm ?? 5 };
   }
 
   const { service } = getContainer();
@@ -61,15 +114,30 @@ export async function GET(request: Request) {
   try {
     const outcome = service.search({
       stateCode: state,
-      area,
+      // With a radius we do NOT also pin the exact area name, otherwise
+      // "near Lekki Phase 1, 8km" would wrongly exclude Ikoyi.
+      area: geoFilter ? undefined : area,
       stay: { checkIn, checkOut },
-      guests
+      guests,
+      bedroomsMin: bedrooms,
+      titleDocuments,
+      priceBandId: band,
+      near: geoFilter,
+      sort
     });
 
     return NextResponse.json({
       state: { code: stateSeed.code, name: stateSeed.name },
       area: area ?? null,
       nights: outcome.nights,
+      filters: {
+        bedroomsMin: bedrooms ?? null,
+        titleDocuments,
+        titleLabels: titleDocuments.map((doc) => TITLE_DOCUMENT_LABELS[doc]),
+        priceBandId: band ?? null,
+        radiusKm: geoFilter?.radiusKm ?? null,
+        sort: sort ?? 'total-asc'
+      },
       results: outcome.results.map((result) => ({
         unitId: result.unit.id,
         name: result.unit.name,
@@ -78,6 +146,14 @@ export async function GET(request: Request) {
         bedrooms: result.unit.bedrooms,
         bathrooms: result.unit.bathrooms,
         maxGuests: result.unit.maxGuests,
+        // Null when not yet surveyed, rather than a guessed pin.
+        location:
+          result.unit.latitude !== null && result.unit.longitude !== null
+            ? { lat: result.unit.latitude, lng: result.unit.longitude }
+            : null,
+        distanceKm: result.distanceKm ?? null,
+        titleDocument: result.unit.titleDocument,
+        titleLabel: TITLE_DOCUMENT_LABELS[result.unit.titleDocument],
         // Named attribution: the guest always knows whose home this is.
         operator: result.partner.displayName,
         // Guest-facing money, line by line, so the fee is never hidden.

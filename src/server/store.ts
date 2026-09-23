@@ -11,6 +11,7 @@ import type { IsoDate, IsoInstant, StayRange } from '@/domain/dates';
 import type { UnitNightState } from '@/domain/availability';
 import type { BookingStatus } from '@/domain/booking';
 import type { Quote } from '@/domain/pricing';
+import type { TitleDocument } from '@/domain/title';
 
 export type PartnerStatus = 'ONBOARDING' | 'ACTIVE' | 'SUSPENDED' | 'OFFBOARDED';
 
@@ -49,6 +50,16 @@ export type ListedUnit = {
   status: 'DRAFT' | 'LISTED' | 'HIDDEN' | 'ARCHIVED';
   stateCode: string;
   area: string;
+  /**
+   * Surveyed coordinates. Null until captured at onboarding - never guessed from
+   * the area name, because a wrong pin sends a guest to the wrong street. The
+   * search box resolves an area to a centroid for the *query*, but a unit is
+   * only geo-searchable once its own position is known.
+   */
+  latitude: number | null;
+  longitude: number | null;
+  /** Property title. Filters on this are what make this a Nigerian platform. */
+  titleDocument: TitleDocument;
 };
 
 export type LedgerRecipient = 'PARTNER' | 'PLATFORM';

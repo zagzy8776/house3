@@ -173,6 +173,24 @@ model Unit {
   /// Attribution shown on the listing page, e.g. "Lekki Homes Ltd".
   partnerDisplayName         String?
   status                     UnitStatus @default(DRAFT)
+
+  /// Surveyed coordinates. Null until onboarding captures them - never inferred
+  /// from the area name, because a wrong pin sends a guest to the wrong street.
+  latitude                   Float?
+  longitude                  Float?
+  /// Latitude/longitude pair for PostGIS. Enable the extension with
+  ///   CREATE EXTENSION IF NOT EXISTS postgis;
+  /// then uncomment, backfill from latitude/longitude, and add:
+  ///   CREATE INDEX unit_geog_idx ON "Unit" USING GIST (geog);
+  /// Prisma cannot express GiST indexes, so that index lives in a migration.
+  /// Until then the two-stage bounding-box filter in src/domain/geo.ts keeps the
+  /// in-memory and Spark/SQL paths behaving identically.
+  // geog                    Unsupported("geography(Point, 4326)")?
+
+  /// Property title. Filters on this are what make this a Nigerian platform:
+  /// buyers ask about title before almost anything else.
+  titleDocument              TitleDocument @default(NOT_DISCLOSED)
+
   createdAt                  DateTime   @default(now())
   updatedAt                  DateTime   @updatedAt
 
@@ -198,6 +216,20 @@ enum UnitStatus {
   LISTED
   HIDDEN
   ARCHIVED
+}
+
+/// Mirrors src/domain/title.ts. Kept in sync by hand; the domain constants are
+/// the source of truth because the UI needs the labels and descriptions too.
+enum TitleDocument {
+  C_OF_O
+  GOVERNORS_CONSENT
+  DEED_OF_ASSIGNMENT
+  EXCISION_GAZETTE
+  RIGHT_OF_OCCUPANCY
+  FREEHOLD
+  REGISTERED_DEED
+  UNREGISTERED
+  NOT_DISCLOSED
 }
 
 model UnitNight {

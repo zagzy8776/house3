@@ -19,8 +19,11 @@
 import { checkAvailability, createHold, effectiveNightlyRateKobo, type Hold } from '@/domain/availability';
 import { assertTransition } from '@/domain/booking';
 import { nightsBetween, type StayRange } from '@/domain/dates';
+import { findPriceBand, inPriceBand, passesRadius } from '@/domain/geo';
 import { computeQuote, resolveFeePolicy, type FeePolicy, type Quote } from '@/domain/pricing';
 import { computeSplits, type FeeBearer, type ProcessorFeeModel, type SplitResult } from '@/domain/splits';
+import { TITLE_DOCUMENT_LABELS, type TitleDocument } from '@/domain/title';
+import { formatNaira } from '@/domain/money';
 import {
   type BookingRecord,
   type GuestDetails,
@@ -36,6 +39,11 @@ export class BookingError extends Error {
     super(message);
     this.name = 'BookingError';
   }
+}
+
+/** Whole-naira formatting for rejection reasons shown to a human. */
+function fmt(kobo: number): string {
+  return formatNaira(kobo, { decimals: false });
 }
 
 /** What the payment layer must provide. Swapped for a fake in tests. */
@@ -73,6 +81,8 @@ export type SellableUnit = {
   partner: PartnerProfile;
   quote: Quote;
   split: SplitResult;
+  /** Distance from the query centre, when a geo filter was applied. */
+  distanceKm?: number;
 };
 
 export type SearchOutcome = {
@@ -88,6 +98,16 @@ export type SearchQuery = {
   stay: StayRange;
   guests: number;
   limit?: number;
+  /** Minimum bedrooms. 0 or undefined means no floor. */
+  bedroomsMin?: number;
+  /** Restrict to these title documents. Empty or undefined means any. */
+  titleDocuments?: readonly TitleDocument[];
+  /** Restrict by guest-facing total. Applied after quoting, not before. */
+  priceBandId?: string;
+  /** Geographic filter. Rejects by bounding box before any trig is done. */
+  near?: { center: { lat: number; lng: number }; radiusKm: number };
+  /** Sort order for results. Price is the default. */
+  sort?: 'total-asc' | 'total-desc' | 'distance';
 };
 
 export type BookingService = {
@@ -270,6 +290,11 @@ export function createBookingService(deps: BookingServiceDeps): BookingService {
     const results: SellableUnit[] = [];
     const rejected: { unitId: string; unitName: string; reasons: string[] }[] = [];
 
+    const priceBand = query.priceBandId ? findPriceBand(query.priceBandId) : undefined;
+    if (query.priceBandId && !priceBand) {
+      throw new BookingError(`Unknown price band "${query.priceBandId}"`);
+    }
+
     const candidates = repo.listUnits({ stateCode: query.stateCode, area: query.area, status: 'LISTED' });
 
     for (const unit of candidates) {
@@ -283,6 +308,37 @@ export function createBookingService(deps: BookingServiceDeps): BookingService {
       if (nights < unit.minNights) reasons.push(`Minimum stay is ${unit.minNights} nights`);
       if (nights > unit.maxNights) reasons.push(`Maximum stay is ${unit.maxNights} nights`);
       if (!unit.bookable) reasons.push('Affiliate listing: completes on the partner site');
+
+      // ---- cheap filters first: no dates, no money, no trig ----------------
+      if (query.bedroomsMin && unit.bedrooms < query.bedroomsMin) {
+        reasons.push(`${unit.bedrooms} bedroom(s), ${query.bedroomsMin} requested`);
+      }
+      if (query.titleDocuments?.length && !query.titleDocuments.includes(unit.titleDocument)) {
+        reasons.push(`Title is ${TITLE_DOCUMENT_LABELS[unit.titleDocument]}`);
+      }
+
+      // Geo pre-filter: reject on the bounding box before any haversine runs, and
+      // before we spend a quote on a unit that is 40km away.
+      let distanceKm: number | undefined;
+      if (query.near) {
+        const positioned = unit.latitude !== null && unit.longitude !== null;
+        if (!positioned) {
+          reasons.push('Location not yet surveyed');
+        } else {
+          const proximity = passesRadius(
+            { lat: unit.latitude as number, lng: unit.longitude as number },
+            { center: query.near.center, radiusKm: query.near.radiusKm }
+          );
+          if (!proximity.passes) {
+            const away = Number.isFinite(proximity.distanceKm)
+              ? `${proximity.distanceKm.toFixed(1)}km from the search centre`
+              : 'outside the search area';
+            reasons.push(away);
+          } else {
+            distanceKm = proximity.distanceKm;
+          }
+        }
+      }
 
       if (reasons.length > 0 || !partner) {
         rejected.push({ unitId: unit.id, unitName: unit.name, reasons });
@@ -303,12 +359,33 @@ export function createBookingService(deps: BookingServiceDeps): BookingService {
         continue;
       }
 
-      results.push(buildQuote(unit, partner, query.stay, query.guests));
+      const sellable = buildQuote(unit, partner, query.stay, query.guests);
+
+      // Price band applies to the GUEST TOTAL, which includes our fee and the
+      // operator's cleaning charge - so it can only be tested after quoting.
+      // Filtering on the operator's nightly rate would hide cheaper stays.
+      if (priceBand && !inPriceBand(sellable.quote.totalKobo, priceBand)) {
+        rejected.push({
+          unitId: unit.id,
+          unitName: unit.name,
+          reasons: [`${fmt(sellable.quote.totalKobo)} is outside ${priceBand.label}`]
+        });
+        continue;
+      }
+
+      results.push(distanceKm === undefined ? sellable : { ...sellable, distanceKm });
     }
 
-    // Cheapest first: price is the primary decision driver and the display total
-    // already includes our disclosed fee.
-    results.sort((a, b) => a.quote.totalKobo - b.quote.totalKobo);
+    const sort = query.sort ?? 'total-asc';
+    results.sort((a, b) => {
+      if (sort === 'total-desc') return b.quote.totalKobo - a.quote.totalKobo;
+      if (sort === 'distance') {
+        return (a.distanceKm ?? Number.POSITIVE_INFINITY) - (b.distanceKm ?? Number.POSITIVE_INFINITY);
+      }
+      // Cheapest first: price drives the decision and the displayed total already
+      // includes our disclosed fee.
+      return a.quote.totalKobo - b.quote.totalKobo;
+    });
 
     return { results: query.limit ? results.slice(0, query.limit) : results, rejected, nights };
   }

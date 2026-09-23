@@ -482,3 +482,163 @@ describe('reference generation', () => {
     expect(buildReference('FC', 'abcd1234efgh5678')).toBe('H3-FC-EFGH5678');
   });
 });
+
+describe('title document filter', () => {
+  const stay = { checkIn: START, checkOut: addDays(START, 2) };
+
+  it('returns only units holding the requested title', () => {
+    const { service } = setup();
+    const outcome = service.search({ stateCode: 'LA', stay, guests: 2, titleDocuments: ['C_OF_O'] });
+
+    expect(outcome.results.map((result) => result.unit.id)).toEqual(['u_lekki_studio', 'u_lekki_2bed']);
+  });
+
+  it('accepts several titles at once', () => {
+    const { service } = setup();
+    const outcome = service.search({
+      stateCode: 'LA',
+      stay,
+      guests: 2,
+      titleDocuments: ['C_OF_O', 'GOVERNORS_CONSENT']
+    });
+
+    expect(outcome.results.map((result) => result.unit.id)).toEqual([
+      'u_lekki_studio',
+      'u_lekki_2bed',
+      'u_ikoyi_3bed'
+    ]);
+  });
+
+  it('explains the rejection by naming the actual title', () => {
+    const { service } = setup();
+    const outcome = service.search({ stateCode: 'LA', stay, guests: 2, titleDocuments: ['FREEHOLD'] });
+
+    expect(outcome.results).toHaveLength(0);
+    expect(outcome.rejected.some((entry) => entry.reasons.some((reason) => reason.includes('Certificate of Occupancy')))).toBe(
+      true
+    );
+  });
+});
+
+describe('bedroom filter', () => {
+  const stay = { checkIn: START, checkOut: addDays(START, 2) };
+
+  it('applies a minimum bedroom count', () => {
+    const { service } = setup();
+    const outcome = service.search({ stateCode: 'LA', stay, guests: 2, bedroomsMin: 3 });
+
+    expect(outcome.results.map((result) => result.unit.id)).toEqual(['u_ikoyi_3bed']);
+  });
+
+  it('reports how many bedrooms the unit actually has', () => {
+    const { service } = setup();
+    const outcome = service.search({ stateCode: 'LA', stay, guests: 2, bedroomsMin: 4 });
+    const studio = outcome.rejected.find((entry) => entry.unitId === 'u_lekki_studio');
+
+    expect(studio?.reasons.some((reason) => reason.includes('1 bedroom(s), 4 requested'))).toBe(true);
+  });
+});
+
+describe('price band filter', () => {
+  const stay = { checkIn: START, checkOut: addDays(START, 2) };
+
+  it('filters on the guest total, not the operator rate', () => {
+    const { service } = setup();
+    // 2 nights: studio NGN 196,950, 2-bed NGN 348,700, Ikoyi ~NGN 1,006,000.
+    const outcome = service.search({ stateCode: 'LA', stay, guests: 2, priceBandId: '200-400k' });
+
+    expect(outcome.results.map((result) => result.unit.id)).toEqual(['u_lekki_2bed']);
+  });
+
+  it('keeps cheaper stays in a low band', () => {
+    const { service } = setup();
+    const outcome = service.search({ stateCode: 'LA', stay, guests: 2, priceBandId: '100-200k' });
+
+    expect(outcome.results.map((result) => result.unit.id)).toEqual(['u_lekki_studio']);
+  });
+
+  it('rejects an unknown band rather than silently returning everything', () => {
+    const { service } = setup();
+    expect(() => service.search({ stateCode: 'LA', stay, guests: 2, priceBandId: 'free' })).toThrow(
+      /Unknown price band/
+    );
+  });
+});
+
+describe('geographic search', () => {
+  const stay = { checkIn: START, checkOut: addDays(START, 2) };
+
+  it('includes units inside the radius and reports the distance', () => {
+    const { service } = setup();
+    const outcome = service.search({
+      stateCode: 'LA',
+      stay,
+      guests: 2,
+      near: { center: { lat: 6.4418, lng: 3.474 }, radiusKm: 3 }
+    });
+
+    expect(outcome.results.map((result) => result.unit.id)).toEqual(['u_lekki_studio', 'u_lekki_2bed']);
+    for (const result of outcome.results) {
+      expect(result.distanceKm).toBeDefined();
+      expect(result.distanceKm!).toBeLessThan(3);
+    }
+  });
+
+  it('excludes a neighbouring area just outside the radius', () => {
+    const { service } = setup();
+    // Ikoyi is roughly 4.2km from Lekki Phase 1.
+    const outcome = service.search({
+      stateCode: 'LA',
+      stay,
+      guests: 2,
+      near: { center: { lat: 6.4418, lng: 3.474 }, radiusKm: 2 }
+    });
+
+    expect(outcome.results.map((result) => result.unit.id)).not.toContain('u_ikoyi_3bed');
+  });
+
+  it('sorts by distance when asked', () => {
+    const { service } = setup();
+    const outcome = service.search({
+      stateCode: 'LA',
+      stay,
+      guests: 2,
+      near: { center: { lat: 6.4541, lng: 3.4348 }, radiusKm: 8 },
+      sort: 'distance'
+    });
+
+    const distances = outcome.results.map((result) => result.distanceKm!);
+    expect(distances).toEqual([...distances].sort((a, b) => a - b));
+    // Ikoyi is the search centre, so it should now lead despite costing more.
+    expect(outcome.results[0]?.unit.id).toBe('u_ikoyi_3bed');
+  });
+
+  it('never returns a unit from another city', () => {
+    const { service } = setup();
+    const outcome = service.search({
+      stateCode: 'FC',
+      stay,
+      guests: 2,
+      near: { center: { lat: 6.4418, lng: 3.474 }, radiusKm: 50 }
+    });
+
+    expect(outcome.results).toHaveLength(0);
+  });
+});
+
+describe('combined filters', () => {
+  it('intersects title, bedrooms, price band and geography', () => {
+    const { service } = setup();
+    const outcome = service.search({
+      stateCode: 'LA',
+      stay: { checkIn: START, checkOut: addDays(START, 2) },
+      guests: 2,
+      titleDocuments: ['C_OF_O'],
+      bedroomsMin: 2,
+      priceBandId: '200-400k',
+      near: { center: { lat: 6.4418, lng: 3.474 }, radiusKm: 3 }
+    });
+
+    expect(outcome.results.map((result) => result.unit.id)).toEqual(['u_lekki_2bed']);
+  });
+});
