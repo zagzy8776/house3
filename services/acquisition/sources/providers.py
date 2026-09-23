@@ -39,12 +39,19 @@ from typing import Optional, Protocol, runtime_checkable
 from urllib.request import Request, urlopen
 
 from compliance.allowed_fields import PolicyViolation, strip_media
+from compliance.deadline import DeadlineExceeded, call_with_deadline
 from compliance.rate_limit import HostThrottle
 from compliance.robots import USER_AGENT, RobotsCache
 
 
 class ProviderError(RuntimeError):
     """Raised when a provider cannot complete a request."""
+
+
+#: Default wall-clock ceiling for one fetch, covering connect, TLS handshake and
+#: body read together. `urlopen`'s own timeout covers only the read, which is why a
+#: stalled handshake needed a wrapper at all - see `compliance/deadline.py`.
+FETCH_TIMEOUT_SECONDS = 25.0
 
 
 #: Where the bundled sample pages live, resolved relative to this file so the
@@ -75,10 +82,25 @@ class StdlibTransport:
         self.timeout_seconds = timeout_seconds
 
     def fetch(self, url: str) -> str:
+        """
+        Fetch a page, with a deadline the network cannot escape.
+
+        The read is wrapped rather than merely given a timeout, because a timeout on
+        the socket does not cover a TLS handshake that stalls - and a crawler that can
+        hang indefinitely behaves like a production outage no matter how good its
+        parser is. A stalled fetch must fail as a fetch, not hang the run.
+        """
         request = Request(url, headers={"User-Agent": USER_AGENT, "Accept-Language": "en-NG,en"})
-        with urlopen(request, timeout=self.timeout_seconds) as response:
-            charset = response.headers.get_content_charset() or "utf-8"
-            return response.read().decode(charset, errors="replace")
+
+        def read() -> str:
+            with urlopen(request, timeout=self.timeout_seconds) as response:
+                charset = response.headers.get_content_charset() or "utf-8"
+                return response.read().decode(charset, errors="replace")
+
+        try:
+            return call_with_deadline(read, self.timeout_seconds)
+        except DeadlineExceeded as exc:
+            raise ProviderError(f"{url}: {exc}") from exc
 
 
 class PlaywrightTransport:

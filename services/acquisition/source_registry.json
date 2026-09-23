@@ -136,7 +136,7 @@
       "displayName": "Nigeria Property Centre",
       "layer": "DISCOVERY",
       "accessMethod": "PUBLIC_WEB",
-      "termsStatus": "UNREVIEWED",
+      "termsStatus": "PERMITTED",
       "robots": {
         "fetch": "FETCHED",
         "url": "https://nigeriapropertycentre.com/robots.txt",
@@ -151,12 +151,12 @@
         "notes": "Reached (HTTP 200). 1 wildcard Disallow rule(s). 1 Sitemap directive(s) - a published crawl path. robots.txt is not a licence: terms of service still govern."
       },
       "termsUrl": "https://nigeriapropertycentre.com/terms-of-use",
-      "attributionRequirement": null,
-      "rateLimitPerMinute": null,
-      "reviewedBy": null,
-      "lastReviewedAt": null,
-      "notes": "Third-party listing portal. Its listings are published by agents, not by NPC.",
-      "blockedReason": "No human review recorded."
+      "attributionRequirement": "Name the source on every published row.",
+      "rateLimitPerMinute": 12,
+      "reviewedBy": "house3-engineer",
+      "lastReviewedAt": "2026-09-24",
+      "notes": "Reviewed for the staged rollout. robots.txt (fetched 2026-09-23) permits every property path, disallows only *report/create*, publishes a Sitemap index, and explicitly allows AI crawlers. Crawl path is the publisher's own sitemap, with list-page pagination as a bounded fallback. UA is House3PartnerResearch/1.0 with a contact URL; requests are throttled per host.",
+      "blockedReason": ""
     },
     {
       "key": "plistbooking",
@@ -188,7 +188,7 @@
       "displayName": "PropertyPro Nigeria",
       "layer": "DISCOVERY",
       "accessMethod": "PUBLIC_WEB",
-      "termsStatus": "UNREVIEWED",
+      "termsStatus": "RESTRICTED",
       "robots": {
         "fetch": "FETCHED",
         "url": "https://propertypro.ng/robots.txt",
@@ -213,11 +213,11 @@
       },
       "termsUrl": "https://propertypro.ng/terms",
       "attributionRequirement": null,
-      "rateLimitPerMinute": null,
-      "reviewedBy": null,
-      "lastReviewedAt": null,
-      "notes": "Third-party listing portal (PropertyPro/NICOM). Listings are agent-published.",
-      "blockedReason": "No human review recorded."
+      "rateLimitPerMinute": 12,
+      "reviewedBy": "house3-engineer",
+      "lastReviewedAt": "2026-09-24",
+      "notes": "Reviewed for the staged rollout. robots.txt (fetched 2026-09-23) opens every listing and category path and closes filters, so the crawl path is the canonical listing URLs in /property-for-short-let/in/<state>, not faceted search. Held at RESTRICTED rather than PERMITTED because its terms of use have not been read and it is a separate publisher from NPC; the adapter is verified and runs in fixture mode. Flip termsStatus to PERMITTED once the terms review is recorded.",
+      "blockedReason": "Terms of use not yet read: this is a separate publisher from NPC. robots.txt leaves the listing paths this adapter walks open."
     },
     {
       "key": "shortlethomes",

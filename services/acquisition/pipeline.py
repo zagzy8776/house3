@@ -41,6 +41,7 @@ from normalization.history import ListingHistory, Observation, detect_changes
 from publishing import build_directory
 from sources.base import AdapterRegistry, DiscoveredListing
 from sources.npc import NpcAdapter
+from sources.propertypro import PropertyproAdapter
 from sources.providers import (
     FixtureTransport,
     GuardedProvider,
@@ -63,6 +64,7 @@ class Transport:
 def build_registry() -> AdapterRegistry:
     registry = AdapterRegistry()
     registry.register(NpcAdapter())
+    registry.register(PropertyproAdapter())
     return registry
 
 
@@ -291,6 +293,15 @@ def main(argv: Optional[list[str]] = None) -> int:
         help="playwright is needed for NPC's JS-driven filters and pagination",
     )
     parser.add_argument("--fixture", action="store_true", help="run offline against bundled HTML")
+    parser.add_argument(
+        "--ingest-file",
+        metavar="PATH",
+        help=(
+            "ingest already-parsed DiscoveredListing records from JSON. Used by the "
+            "staged rollout so a long crawl can be resumed without re-fetching, and so "
+            "the database is written by this same code path."
+        ),
+    )
     parser.add_argument("--dump-html", metavar="URL", help="save a page so selectors can be verified")
     parser.add_argument(
         "--discover",
@@ -347,6 +358,13 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     registry = build_registry()
     adapter = registry.get(args.source)
+
+    # Ingest-only mode: records already parsed by a previous stage. This exists so a
+    # long staged crawl can be ingested, re-ingested and inspected without fetching
+    # anything again - and so the database is written by this same code path rather
+    # than by a second, parallel implementation that could drift from it.
+    if args.ingest_file:
+        return _run_ingest_file(args, adapter)
 
     # The permission gate. A source must have a recorded review before an adapter
     # runs against it, so the crawl decision is a reviewable record rather than a
@@ -580,6 +598,66 @@ def publish_directory(path: Path, listings: list, observed_on: str, *, attributi
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(directory, ensure_ascii=False, indent=2), encoding="utf-8")
     return directory
+
+
+def _run_ingest_file(args, adapter) -> int:
+    """
+    Ingest DiscoveredListing records from a JSON file written by a crawl stage.
+
+    The records are reconstructed into the same `DiscoveredListing` the adapter
+    produced, so the ingestor sees exactly what a live crawl would have given it -
+    including the allowlist check, which runs in `to_record()` and therefore also
+    guards anything loaded from disk.
+    """
+    from datetime import date
+
+    from ingest.postgres import PostgresIngestor, dsn_for_psycopg, write_report
+
+    path = Path(args.ingest_file)
+    if not path.exists():
+        parser_error = f"--ingest-file: {path} does not exist"
+        print(parser_error, file=sys.stderr)
+        return 2
+
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    fields = set(DiscoveredListing.__dataclass_fields__)
+    listings: list[DiscoveredListing] = []
+    unusable = 0
+    for item in raw:
+        known = {key: value for key, value in item.items() if key in fields}
+        # Records with no identity cannot be ingested: (source, sourceListingId) is
+        # the uniqueness key, so a missing id would collide with every other record
+        # that is also missing one.
+        if not known.get("source_listing_id") or not known.get("source_url"):
+            unusable += 1
+            continue
+        listings.append(DiscoveredListing(**known))
+
+    print(
+        f"ingest-file: {len(raw)} records, {len(listings)} ingestable, "
+        f"{unusable} without an identity",
+        file=sys.stderr,
+    )
+
+    database_url = os.environ.get("DATABASE_URL")
+    if not database_url and not args.dry_run:
+        print("--ingest-file requires DATABASE_URL (or use --dry-run)", file=sys.stderr)
+        return 2
+
+    ingestor = PostgresIngestor(
+        dsn_for_psycopg(database_url),
+        source=adapter.name,
+        parser_version=f"rollout-{adapter.name}",
+    )
+    report = ingestor.ingest(listings, observed_at=date.today(), dry_run=args.dry_run)
+    print(f"database ingest: {report.written} written, {report.rejected_count} rejected", file=sys.stderr)
+
+    if args.ingest_report:
+        write_report(report, args.ingest_report)
+        print(f"report={args.ingest_report}", file=sys.stderr)
+    for rejected in report.rejected[:10]:
+        print(f"  rejected: {rejected.to_dict()}", file=sys.stderr)
+    return 0
 
 
 def _run_exa_discovery(args, adapter) -> None:

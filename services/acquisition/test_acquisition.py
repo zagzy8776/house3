@@ -72,6 +72,7 @@ from publishing import (
 )
 from sources.base import AdapterRegistry, DiscoveredListing, SourceLayer
 from sources.npc import LAGOS_LOCALITIES, NpcAdapter
+from sources.propertypro import PropertyproAdapter as Propertypro
 from sources.providers import GuardedProvider, ProviderError, build_provider, offline_guard
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -596,10 +597,22 @@ def test_registry_refuses_a_booking_layer_source() -> None:
     raise AssertionError("registry accepted a BOOKING-layer source into the discovery layer")
 
 
-def test_npc_adapter_is_registered_as_a_discovery_source() -> None:
+def test_every_registered_adapter_is_a_discovery_source() -> None:
+    """The registry holds DISCOVERY adapters, and nothing else.
+
+    This assertion used to be `registry.names() == ["npc"]`, which was true when
+    there was one portal and would have failed on the day a second was added - a
+    test that pins a count rather than the invariant. What actually matters is that
+    no adapter in here is a BOOKING channel, and that each one declares the host its
+    robots rules come from.
+    """
     registry = build_registry()
-    assert registry.names() == ["npc"]
-    assert registry.get("npc").layer == SourceLayer.DISCOVERY
+
+    assert "npc" in registry.names()
+    assert "propertypro" in registry.names()
+    for adapter in registry.all():
+        assert adapter.layer == SourceLayer.DISCOVERY
+        assert adapter.host, "an adapter without a host cannot be robots-checked"
 
 
 def test_npc_list_page_urls_follow_the_observed_pattern() -> None:
@@ -1841,6 +1854,231 @@ def test_undeclared_fields_are_refused() -> None:
     except PolicyViolation:
         return
     raise AssertionError("guard allowed an undeclared field")
+
+
+# ---------------------------------------------------------------------------
+# PropertyPro - adapter #2.
+#
+# Fixtures below are reduced from live pages fetched 2026-09-23. They keep the
+# structure the parser depends on (canonical, JSON-LD Offer, address node, "|"
+# title framing) rather than the full 200 KB document.
+# ---------------------------------------------------------------------------
+
+PP_NIGHTLY = """
+<html><head>
+<title>Shortlet City View 1br With Pool &amp; Gym | Off Freedom Way in Lekki Phase 1,
+Lekki Lagos (0QFMN) | PropertyPro Nigeria</title>
+<link rel="canonical" href="https://propertypro.ng/property/1-bedroom-flat-apartment-for-shortlet-lekki-phase-1-lekki-lagos-0QFMN" />
+<script type="application/ld+json">
+{"@type": "Offer", "priceCurrency": "NGN", "price": 172500}
+</script>
+<script type="application/ld+json">
+{"@type": "SingleFamilyResidence",
+ "name": "Shortlet City View 1br With Pool &amp; Gym | Off Freedom Way in Lekki Phase 1, Lekki Lagos  (0QFMN) | PropertyPro Nigeria",
+ "description": "1 bedroom Flat / Apartment for shortlet Lekki Phase 1 Lekki Lagos",
+ "numberOfBedrooms": 1,
+ "numberOfBathroomsTotal": 1,
+ "address": {"@type": "PostalAddress", "addressCountry": "Nigeria",
+             "addressLocality": "Lagos", "addressRegion": "Lekki Phase 1",
+             "streetAddress": ""}}
+</script>
+</head><body>
+<h1>City View 1br With Pool &amp; Gym | Off Freedom Way</h1>
+<p>1 bedroom Flat / Apartment</p>
+<p>&#8358;172,500/day</p>
+<p>Address : 11b Ligali Ayorinde St, Victoria Island, Lagos, Nigeria</p>
+<a href="tel:09167296217">Call agent</a>
+</body></html>
+"""
+
+#: The trap, verbatim from a live page: a shortlet URL carrying an ANNUAL price.
+PP_ANNUAL_ON_A_SHORTLET_URL = """
+<html><head>
+<title>Rent One Bedroom Apartment in Freedom Way, Lekki Lagos (1QFMV) | PropertyPro Nigeria</title>
+<link rel="canonical" href="https://propertypro.ng/property/1-bedroom-flat-apartment-for-shortlet-lekki-lagos-1QFMV" />
+<script type="application/ld+json">
+{"@type": "Offer", "priceCurrency": "NGN", "price": 8000000}
+</script>
+<script type="application/ld+json">
+{"@type": "SingleFamilyResidence",
+ "name": "Rent One Bedroom Apartment in Freedom Way, Lekki Lagos (1QFMV) | PropertyPro Nigeria",
+ "address": {"addressLocality": "Lekki", "addressRegion": "Lagos"}}
+</script>
+</head><body>
+<h1>One Bedroom Apartment</h1>
+<p>&#8358;2,000,000 - &#8358;35,000,000</p>
+<p>&#8358;8,000,000/year. See property details on PropertyPro.ng</p>
+</body></html>
+"""
+
+PP_CATEGORY = """
+<html><head>
+<link rel="canonical" href="https://propertypro.ng/property-for-short-let/in/lagos" />
+</head><body>
+<a href="/property/1-bedroom-flat-apartment-for-shortlet-lekki-lagos-3PZWQ">one</a>
+<a href="/property/2-bedroom-flat-apartment-for-shortlet-lekki-lagos-1LSZQ">two</a>
+<a href="/property/1-bedroom-flat-apartment-for-shortlet-lekki-lagos-3PZWQ?header=1">dupe</a>
+<a href="/for-rent/flats-apartments/lagos">not a listing</a>
+<a href="https://propertypro.ng/property-for-short-let/in/lagos?page=2">next</a>
+</body></html>
+"""
+
+#: The URL the nightly fixture's canonical names, so the two stay in step.
+PP_NIGHTLY_URL = (
+    "https://propertypro.ng/property/"
+    "1-bedroom-flat-apartment-for-shortlet-lekki-phase-1-lekki-lagos-0QFMN"
+)
+
+
+def test_propertypro_reads_a_nightly_shortlet() -> None:
+    """The normal case must work before the exceptions are worth testing."""
+    parsed = Propertypro().parse(
+        PP_NIGHTLY,
+        "https://propertypro.ng/property/1-bedroom-flat-apartment-for-shortlet-lekki-phase-1-lekki-lagos-0QFMN",
+    )
+
+    assert parsed is not None
+    assert parsed.source == "propertypro"
+    assert parsed.source_listing_id == "0QFMN"
+    assert parsed.advertised_price == 172_500 * 100, "price is kobo, always"
+    assert parsed.price_basis == "PER_NIGHT"
+    assert parsed.bedrooms == 1
+    assert parsed.state == "LA"
+    assert parsed.area == "Lekki Phase 1"
+    assert parsed.property_type == "Flat / Apartment"
+
+
+def test_a_shortlet_url_with_an_annual_price_is_not_a_nightly_rate() -> None:
+    """THE regression test for this adapter.
+
+    A live PropertyPro page: the URL says `for-shortlet`, the title says "Rent One
+    Bedroom Apartment", the price says NGN 8,000,000/year, and the JSON-LD Offer
+    says 8000000. Recording that Offer as PER_NIGHT would make NGN 8,000,000 the
+    cost of ONE NIGHT - and that figure would flow into observation history and then
+    into pricing. It is the NPC `SHORTLET_PATH` bug in a new costume.
+
+    The basis must come from the number's own surrounding text, never from the URL.
+    """
+    parsed = Propertypro().parse(
+        PP_ANNUAL_ON_A_SHORTLET_URL,
+        "https://propertypro.ng/property/1-bedroom-flat-apartment-for-shortlet-lekki-lagos-1QFMV",
+    )
+
+    assert parsed is not None
+    assert parsed.price_basis == "PER_YEAR", (
+        "a /year price on a for-shortlet URL must not be recorded as nightly"
+    )
+    # ₦8,000,000 is correctly 800,000,000 kobo. The number is not the problem - the
+    # BASIS is. The same digits read as PER_NIGHT would enter observation history as
+    # a nightly rate 67x Lagos's most expensive listing, and every downstream
+    # calculation would treat it as comparable to a real one.
+    assert parsed.advertised_price == 8_000_000 * 100
+    assert parsed.price_basis != "PER_NIGHT"
+    # The price-range widget (₦2,000,000 - ₦35,000,000) must not win: the number
+    # carrying its own unit is the advertised price, and a range bound is not.
+    assert parsed.advertised_price != 2_000_000 * 100
+    assert parsed.advertised_price != 35_000_000 * 100
+
+
+def test_propertypro_refuses_a_category_page() -> None:
+    """A list page is not a property, on this portal too.
+
+    PropertyPro's category path /property-for-short-let/in/lagos would yield the id
+    "lagos" under a naive trailing-token rule - the exact collapse that put a junk
+    row into production from NPC's list page.
+    """
+    assert (
+        Propertypro().parse(PP_CATEGORY, "https://propertypro.ng/property-for-short-let/in/lagos")
+        is None
+    )
+
+
+def test_propertypro_listing_id_is_the_reference_not_the_slug() -> None:
+    """Editing a title rewrites the slug, so the slug cannot be the key."""
+    adapter = Propertypro()
+    first = adapter._listing_id(
+        "https://propertypro.ng/property/1-bedroom-flat-apartment-for-shortlet-lekki-lagos-3PZWQ"
+    )
+    renamed = adapter._listing_id(
+        "https://propertypro.ng/property/1-bedroom-apartment-for-shortlet-lekki-lagos-3PZWQ"
+    )
+
+    assert first == "3PZWQ"
+    assert renamed == first
+    # Both live reference shapes: a leading digit and a leading letter.
+    assert adapter._listing_id("https://propertypro.ng/property/x-y-0QFMN") == "0QFMN"
+    assert adapter._listing_id("https://propertypro.ng/property/x-y-7QFMS") == "7QFMS"
+    # Not listings.
+    assert adapter._listing_id("https://propertypro.ng/property-for-short-let/in/lagos") is None
+    assert adapter._listing_id("https://propertypro.ng/for-rent/flats-apartments/lagos") is None
+
+
+def test_propertypro_discovery_keeps_only_listing_urls() -> None:
+    """Discovery must not hand the crawler a filter URL or a category page."""
+
+    class OnePage:
+        name = "one-page"
+
+        def fetch(self, url: str) -> str:
+            return PP_CATEGORY
+
+    urls = list(Propertypro().discover(OnePage(), "LA"))
+
+    assert any(url.endswith("3PZWQ") for url in urls)
+    assert all("/property/" in url for url in urls)
+    assert all("?page=" not in url for url in urls)
+    assert len(urls) == len(set(urls)), "a URL seen twice must be yielded once"
+    assert not any(url.endswith("/lagos") for url in urls), (
+        "a query-string duplicate must not become a second listing"
+    )
+
+
+def test_propertypro_rejects_a_state_it_has_no_slug_for() -> None:
+    try:
+        list(Propertypro().category_urls("ZZ"))
+        raise AssertionError("an unknown state must be refused, not guessed")
+    except ValueError as exc:
+        assert "no PropertyPro slug" in str(exc)
+
+
+def test_both_adapters_declare_the_discovery_layer() -> None:
+    """Neither portal may be registered as a bookable channel."""
+    from pipeline import build_registry
+
+    registry = build_registry()
+
+    assert "npc" in registry.names()
+    assert "propertypro" in registry.names()
+    for adapter in registry.all():
+        assert adapter.layer == SourceLayer.DISCOVERY
+        assert adapter.host
+
+
+def test_propertypro_reads_a_swapped_address_by_meaning_not_by_label() -> None:
+    """PropertyPro swaps addressLocality and addressRegion.
+
+    Observed live: a Lekki Phase 1 listing publishes
+        "addressLocality": "Lagos"    <- the STATE
+        "addressRegion":   "Lekki Phase 1"   <- the LOCALITY
+    Reading those by their schema.org names would put "Lagos" in `area` and lose the
+    neighbourhood - and the neighbourhood is exactly what geocoding and the map
+    depend on.
+    """
+    parsed = Propertypro().parse(PP_NIGHTLY, PP_NIGHTLY_URL)
+
+    assert parsed is not None
+    assert parsed.state == "LA", "the state must come from whichever field names a state"
+    assert parsed.area == "Lekki Phase 1", "the neighbourhood must not be lost to the state"
+    assert parsed.city != "Lagos" or parsed.area == "Lekki Phase 1"
+
+
+def test_propertypro_reads_bedrooms_from_structured_data() -> None:
+    """Structured counts beat regexes, which match '2 bedroom' in a description."""
+    parsed = Propertypro().parse(PP_NIGHTLY, PP_NIGHTLY_URL)
+
+    assert parsed is not None
+    assert parsed.bedrooms == 1
+    assert parsed.bathrooms == 1
 
 
 def test_source_registry_refuses_an_unreviewed_source() -> None:
