@@ -32,7 +32,7 @@ VAT on service fee (7.5%)     NGN   1,350.00   -> House3
 Charged to the guest          NGN 179,350.00
 ```
 
-The guest is charged `174,350`. Paystack sends the operator their full share to their
+The guest is charged `179,350`. Paystack sends the operator their full share to their
 subaccount, keeps its own processing fee, and remits the remainder to House3. The
 platform never holds the operator's money waiting to pay it out by hand.
 
@@ -127,6 +127,7 @@ reads the environment — pricing is injected, which is why the tests are determ
 ## Documentation
 
 - `ARCHITECTURE.md` — data flow, invariants, why each layer exists
+- `IMPLEMENTATION_PLAN.md` — phased path from the current JSON directory to PostgreSQL/PostGIS inventory
 - `ROLLOUT.md` — state-by-state operating plan
 
 ## Status
