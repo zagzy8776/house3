@@ -8,6 +8,11 @@
  * radius, or `area` alone and the neighbourhood centroid is used. Returns both
  * the guest-facing total AND the operator-facing net, because support must be
  * able to answer "how much did the operator get?" without opening the database.
+ *
+ * Affiliate inventory is never returned in `results`: those units have no
+ * House3 calendar or payment path. When one matches the query it appears in
+ * `unavailable` with `distribution: "AFFILIATE"` so a client can render an
+ * authorised partner handoff without mistaking it for bookable supply.
  */
 
 import { NextResponse } from 'next/server';
@@ -170,7 +175,11 @@ export async function GET(request: Request) {
       unavailable: outcome.rejected.map((entry) => ({
         unitId: entry.unitId,
         name: entry.unitName,
-        reasons: entry.reasons
+        reasons: entry.reasons,
+        // Present only for authorised affiliate redirects; ordinary
+        // unavailability keeps its existing shape rather than borrowing the
+        // label.
+        ...(entry.distribution ? { distribution: entry.distribution } : {})
       }))
     });
   } catch (error) {

@@ -28,9 +28,21 @@
  * an agreement. Those two must never share a type, so they do not share a page.
  * Every place row offers a route to the operator, and a route to the bookable
  * inventory we do have in that area.
+ *
+ * THERE ARE TWO DIRECTORY DISTRIBUTIONS, AND NO PATH BETWEEN THEM
+ *
+ * `DIRECTORY` is observed coverage: a crawl saw a real place and a real contact
+ * channel. It may never carry an affiliate route, because discovering a
+ * `booking_url` on a public page is not affiliate authorization.
+ *
+ * `AFFILIATE` is an authorised handoff: the partner (or programme) supplied the
+ * destination, a partner name and a disclosure, and the row must route through
+ * `AFFILIATE_URL`. A crawler cannot self-promote into this state.
  */
 
-export type ContactRouteKind = 'BOOKING_URL' | 'PHONE' | 'WEBSITE' | 'EMAIL' | 'NONE';
+export type ListingDistribution = 'DIRECTORY' | 'AFFILIATE';
+
+export type ContactRouteKind = 'AFFILIATE_URL' | 'PHONE' | 'WEBSITE' | 'EMAIL' | 'NONE';
 
 export type ContactRoute = {
   kind: ContactRouteKind;
@@ -38,8 +50,18 @@ export type ContactRoute = {
   href: string | null;
 };
 
+export type AffiliateHandoff = {
+  partnerName: string;
+  /** The partner-supplied destination. Guests leave House3 to complete checkout. */
+  destinationUrl: string;
+  /** Human-readable disclosure shown beside the handoff button. */
+  disclosure: string;
+};
+
 export type DirectoryPlace = {
   id: string;
+  /** DIRECTORY is observed coverage; AFFILIATE is an authorised partner handoff. */
+  distribution: ListingDistribution;
   operatorName: string | null;
   phone: string | null;
   email: string | null;
@@ -61,6 +83,7 @@ export type DirectoryPlace = {
   firstSeenAt: string;
   lastSeenAt: string;
   contactRoute: ContactRoute;
+  affiliate: AffiliateHandoff | null;
   /** Always null. See the module comment. */
   media: null;
 };
@@ -76,7 +99,11 @@ const FORBIDDEN_PUBLIC_KEYS = [
   'property_name',
   'propertyName',
   'title_document',
-  'titleDocument'
+  'titleDocument',
+  // Crawl-only signals. A discovered booking/availability URL is not an
+  // authorised handoff, so it must never reach the public projection.
+  'booking_url',
+  'availability_url'
 ] as const;
 
 export class UnpublishablePlaceError extends Error {
@@ -109,6 +136,10 @@ export type RawDirectoryPlace = {
   attribution?: unknown;
   first_seen_at?: unknown;
   last_seen_at?: unknown;
+  distribution?: unknown;
+  affiliate_partner?: unknown;
+  affiliate_url?: unknown;
+  affiliate_disclosure?: unknown;
   contact_route?: unknown;
   media?: unknown;
   [key: string]: unknown;
@@ -157,10 +188,48 @@ export function assertPublishable(row: RawDirectoryPlace, now?: string): Directo
     }
   }
 
+  const distributionValue = text(row.distribution) ?? 'DIRECTORY';
+  if (!['DIRECTORY', 'AFFILIATE'].includes(distributionValue)) {
+    throw new UnpublishablePlaceError(
+      `Place "${id}" has unknown distribution "${distributionValue}".`
+    );
+  }
+  const distribution = distributionValue as ListingDistribution;
+
+  const affiliatePartner = text(row.affiliate_partner);
+  const affiliateUrl = text(row.affiliate_url);
+  const affiliateDisclosure = text(row.affiliate_disclosure);
+  if (distribution === 'AFFILIATE') {
+    if (!affiliatePartner || !affiliateUrl || !affiliateDisclosure) {
+      throw new UnpublishablePlaceError(
+        `Affiliate place "${id}" needs a partner, destination URL and disclosure.`
+      );
+    }
+    let destination: URL;
+    try {
+      destination = new URL(affiliateUrl);
+    } catch {
+      throw new UnpublishablePlaceError(`Affiliate place "${id}" has an invalid destination URL.`);
+    }
+    if (destination.protocol !== 'http:' && destination.protocol !== 'https:') {
+      throw new UnpublishablePlaceError(`Affiliate place "${id}" has an invalid destination URL.`);
+    }
+  } else if (affiliatePartner || affiliateUrl || affiliateDisclosure) {
+    throw new UnpublishablePlaceError(
+      `Directory place "${id}" carries affiliate fields without an authorised affiliate distribution.`
+    );
+  }
+
   const rawRoute = row.contact_route as Record<string, unknown> | null | undefined;
   const kind = text(rawRoute?.kind) ?? 'NONE';
-  if (!['BOOKING_URL', 'PHONE', 'WEBSITE', 'EMAIL', 'NONE'].includes(kind)) {
+  if (!['AFFILIATE_URL', 'PHONE', 'WEBSITE', 'EMAIL', 'NONE'].includes(kind)) {
     throw new UnpublishablePlaceError(`Place "${id}" has unknown contact route "${kind}".`);
+  }
+  if (distribution === 'AFFILIATE' && kind !== 'AFFILIATE_URL') {
+    throw new UnpublishablePlaceError(`Affiliate place "${id}" must use an affiliate route.`);
+  }
+  if (distribution === 'DIRECTORY' && kind === 'AFFILIATE_URL') {
+    throw new UnpublishablePlaceError(`Directory place "${id}" cannot use an affiliate route.`);
   }
   const href = text(rawRoute?.href);
   if (kind !== 'NONE' && !href) {
@@ -171,6 +240,7 @@ export function assertPublishable(row: RawDirectoryPlace, now?: string): Directo
 
   return {
     id,
+    distribution,
     operatorName: text(row.operator_name),
     phone: text(row.phone),
     email: text(row.email),
@@ -191,6 +261,14 @@ export function assertPublishable(row: RawDirectoryPlace, now?: string): Directo
     firstSeenAt: text(row.first_seen_at) ?? verifiedNow.slice(0, 10),
     lastSeenAt: text(row.last_seen_at) ?? verifiedNow.slice(0, 10),
     contactRoute: { kind: kind as ContactRouteKind, href },
+    affiliate:
+      distribution === 'AFFILIATE'
+        ? {
+            partnerName: affiliatePartner as string,
+            destinationUrl: affiliateUrl as string,
+            disclosure: affiliateDisclosure as string
+          }
+        : null,
     media: null
   };
 }
@@ -267,8 +345,8 @@ export function formatAdvertisedRate(
 /** The label for whatever the contact route is, for the button. */
 export function contactLabel(route: ContactRoute, pmsDetected: string | null): string {
   switch (route.kind) {
-    case 'BOOKING_URL':
-      return pmsDetected ? `Book on their site` : 'Book direct';
+    case 'AFFILIATE_URL':
+      return 'Continue on partner site';
     case 'PHONE':
       return 'Call to book';
     case 'EMAIL':
@@ -278,6 +356,19 @@ export function contactLabel(route: ContactRoute, pmsDetected: string | null): s
     default:
       return 'Details only';
   }
+}
+
+/**
+ * First-party tracking hop for an authorised affiliate handoff.
+ *
+ * DIRECTORY rows return null: they must never be routed through the affiliate
+ * endpoint, even if a caller tries to construct the URL by hand.
+ */
+export function affiliateHandoffHref(
+  place: Pick<DirectoryPlace, 'id' | 'distribution' | 'affiliate'>
+): string | null {
+  if (place.distribution !== 'AFFILIATE' || !place.affiliate) return null;
+  return `/api/affiliate/out?id=${encodeURIComponent(place.id)}`;
 }
 
 /**

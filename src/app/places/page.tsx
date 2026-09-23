@@ -26,6 +26,7 @@ export const dynamic = 'force-dynamic';
 export default async function PlacesPage() {
   const { places, rejected, generatedAt, available } = await loadDirectory();
   const groups = groupByState(places);
+  const affiliateCount = places.filter((place) => place.distribution === 'AFFILIATE').length;
 
   return (
     <main
@@ -50,8 +51,10 @@ export default async function PlacesPage() {
           style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-outfit)' }}
         >
           Shortlet operators advertising in our launch states, with the rate they published and a
-          way to reach them. These are directory entries, not bookings: we name the source of every
-          row, we do not carry their photographs, and we do not take payment for them.
+          way to reach them. Directory rows are contact-only observations; authorized partner
+          handoffs show the partner&apos;s disclosure and continue on their site. Neither is a
+          House3 booking: we name the source of every row, we do not carry their photographs, and
+          we do not take payment for them.
         </p>
 
         {!available ? (
@@ -72,6 +75,9 @@ export default async function PlacesPage() {
             >
               <span>{places.length.toLocaleString()} places</span>
               <span>{groups.length} states</span>
+              {affiliateCount > 0 ? (
+                <span>{affiliateCount.toLocaleString()} partner handoffs</span>
+              ) : null}
               {generatedAt ? <span>last crawled {generatedAt}</span> : null}
             </div>
 

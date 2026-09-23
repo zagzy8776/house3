@@ -23,6 +23,7 @@
 import { Card3D } from './primitives';
 import type { DirectoryPlace } from '@/domain/directory';
 import {
+  affiliateHandoffHref,
   bookableSearchHref,
   contactLabel,
   formatAdvertisedRate,
@@ -42,7 +43,9 @@ export function PlaceCard({
   const location = placeLocation(place, stateName);
   const rate = formatAdvertisedRate(place, (kobo) => formatNaira(kobo, { decimals: false }));
   const searchHref = bookableSearchHref(place);
-  const canContact = place.contactRoute.kind !== 'NONE' && place.contactRoute.href;
+  const isAffiliate = place.distribution === 'AFFILIATE' && place.affiliate !== null;
+  const handoffHref = affiliateHandoffHref(place) ?? place.contactRoute.href;
+  const canContact = place.contactRoute.kind !== 'NONE' && handoffHref;
   const claimHref = `mailto:partners@house3.ng?subject=${encodeURIComponent(
     `Claim listing ${place.id}`
   )}`;
@@ -70,7 +73,7 @@ export function PlaceCard({
               border: '1px solid rgba(217,124,43,0.25)'
             }}
           >
-            Directory entry
+            {isAffiliate ? 'Partner handoff' : 'Directory entry'}
           </span>
 
           <p
@@ -121,7 +124,9 @@ export function PlaceCard({
                 className="text-xs mb-0.5 m-0"
                 style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-outfit)' }}
               >
-                {rate ? `advertised, seen ${place.lastSeenAt}` : 'rate not published'}
+                {rate
+                  ? `${isAffiliate ? 'partner price' : 'advertised'}, seen ${place.lastSeenAt}`
+                  : 'rate not published'}
               </p>
               <p
                 className="font-bold text-lg m-0"
@@ -136,9 +141,9 @@ export function PlaceCard({
 
             {canContact ? (
               <a
-                href={place.contactRoute.href as string}
-                rel="nofollow noopener"
-                target={place.contactRoute.kind === 'BOOKING_URL' ? '_blank' : undefined}
+                href={handoffHref as string}
+                rel={isAffiliate ? 'nofollow noopener sponsored' : 'nofollow noopener'}
+                target={isAffiliate ? '_blank' : undefined}
                 className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:opacity-80"
                 style={{
                   background: 'var(--primary)',
@@ -152,6 +157,15 @@ export function PlaceCard({
             ) : null}
           </div>
 
+          {isAffiliate && place.affiliate ? (
+            <p
+              className="m-0 text-xs mt-3"
+              style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-outfit)' }}
+            >
+              Via {place.affiliate.partnerName}. {place.affiliate.disclosure}
+            </p>
+          ) : null}
+
           {/* Three exits, in order of what we can actually honour. */}
           <div
             className="flex flex-wrap gap-3 mt-4 pt-3 border-t text-xs"
@@ -159,7 +173,9 @@ export function PlaceCard({
           >
             {searchHref ? (
               <a href={searchHref} style={{ color: 'var(--accent)', textDecoration: 'none' }}>
-                Book a confirmed stay nearby →
+                {isAffiliate
+                  ? 'See stays we can confirm nearby →'
+                  : 'Book a confirmed stay nearby →'}
               </a>
             ) : null}
             <a href={claimHref} style={{ color: 'var(--muted-foreground)', textDecoration: 'none' }}>
@@ -171,7 +187,7 @@ export function PlaceCard({
               target="_blank"
               style={{ color: 'var(--muted-foreground)', textDecoration: 'none' }}
             >
-              Source
+              {isAffiliate ? 'Partner feed' : 'Source'}
             </a>
           </div>
         </div>

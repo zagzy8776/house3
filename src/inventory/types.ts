@@ -114,6 +114,11 @@ export type InventorySnapshot = {
   availability: AvailabilityRecord[];
   /** When the adapter produced this snapshot. */
   fetchedAt: string;
+  /**
+   * Present only when the whole snapshot is an authorised affiliate handoff.
+   * Bookable adapters omit it: their units are not directory/affiliate rows.
+   */
+  distribution?: 'AFFILIATE';
 };
 
 export type AdapterContext = {
@@ -130,6 +135,11 @@ export interface PartnerInventoryAdapter {
    * only redirects the guest to the partner to complete checkout.
    */
   readonly bookingModel: 'BOOK_AND_SETTLE' | 'REDIRECT_TO_PARTNER';
+  /**
+   * Present only on adapters whose snapshots are authorised affiliate handoffs.
+   * Bookable adapters omit it: their units are not directory/affiliate rows.
+   */
+  readonly distribution?: 'AFFILIATE';
   readonly authorization: AuthorizationRecord | null;
   fetchSnapshot(context: AdapterContext): Promise<InventorySnapshot>;
 }

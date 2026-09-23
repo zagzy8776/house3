@@ -87,8 +87,19 @@ export type SellableUnit = {
 
 export type SearchOutcome = {
   results: SellableUnit[];
-  /** Units that matched the query but are not bookable, with reasons. */
-  rejected: { unitId: string; unitName: string; reasons: string[] }[];
+  /**
+   * Units that matched the query but are not bookable, with reasons.
+   *
+   * A `distribution` of `AFFILIATE` means the unit is an authorised redirect to
+   * the partner's own checkout; it is deliberately never promoted into
+   * `results`, because there is no House3 calendar or payment path behind it.
+   */
+  rejected: {
+    unitId: string;
+    unitName: string;
+    reasons: string[];
+    distribution?: 'AFFILIATE';
+  }[];
   nights: number;
 };
 
@@ -288,7 +299,7 @@ export function createBookingService(deps: BookingServiceDeps): BookingService {
   function search(query: SearchQuery): SearchOutcome {
     const nights = nightsBetween(query.stay);
     const results: SellableUnit[] = [];
-    const rejected: { unitId: string; unitName: string; reasons: string[] }[] = [];
+    const rejected: SearchOutcome['rejected'] = [];
 
     const priceBand = query.priceBandId ? findPriceBand(query.priceBandId) : undefined;
     if (query.priceBandId && !priceBand) {
@@ -341,7 +352,15 @@ export function createBookingService(deps: BookingServiceDeps): BookingService {
       }
 
       if (reasons.length > 0 || !partner) {
-        rejected.push({ unitId: unit.id, unitName: unit.name, reasons });
+        rejected.push({
+          unitId: unit.id,
+          unitName: unit.name,
+          reasons,
+          // The repository uses `bookable: false` for redirect inventory. Keep
+          // the distribution explicit so API clients never have to infer it
+          // from prose.
+          ...(unit.bookable ? {} : { distribution: 'AFFILIATE' as const })
+        });
         continue;
       }
 

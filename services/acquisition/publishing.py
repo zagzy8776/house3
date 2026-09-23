@@ -38,6 +38,7 @@ extraction layer already cleared, and it is checked again on the way out.
 from __future__ import annotations
 
 from typing import Iterable, Optional
+from urllib.parse import urlparse
 
 from compliance.allowed_fields import PolicyViolation
 from normalization.dedupe import OperatorProfile
@@ -55,7 +56,6 @@ PUBLISHABLE_FIELDS = frozenset(
         "website",
         "instagram",
         "pms_detected",
-        "booking_url",
         # where and how big - facts about the property
         "property_type",
         "bedrooms",
@@ -72,13 +72,31 @@ PUBLISHABLE_FIELDS = frozenset(
         # provenance, required on every row
         "source",
         "source_url",
+        # public projection fields
+        "id",
+        "distribution",
+        "attribution",
+        "contact_route",
+        "affiliate_partner",
+        "affiliate_url",
+        "affiliate_disclosure",
     }
 )
 
 #: Never published, whatever else changes. `property_name` is here because it is
 #: the operator's marketing copy rather than a fact, so it stays internal for
-#: dedupe and never appears in a public row.
-NEVER_PUBLISHED = frozenset({"property_name", "title_document", "source_listing_id"})
+#: dedupe and never appears in a public row. The crawl's booking/availability
+#: URLs stay here too: observing a URL is not authorization to turn it into a
+#: bookable or affiliate route.
+NEVER_PUBLISHED = frozenset(
+    {
+        "property_name",
+        "title_document",
+        "source_listing_id",
+        "booking_url",
+        "availability_url",
+    }
+)
 
 
 def assert_publishable(record: dict) -> dict:
@@ -113,9 +131,11 @@ def contact_route(listing: DiscoveredListing) -> Optional[dict]:
     Returned as a typed route rather than a bare string so the UI cannot render a
     phone number as a link to a website, and so a row with no route at all is
     detectable rather than silently blank.
+
+    A crawled `booking_url` is deliberately ignored. Finding a booking link on a
+    public page is not the same as being authorised to send guests down it, so
+    only an explicitly authorised affiliate row may carry an `AFFILIATE_URL`.
     """
-    if listing.booking_url:
-        return {"kind": "BOOKING_URL", "href": listing.booking_url}
     if listing.phone:
         return {"kind": "PHONE", "href": f"tel:{listing.phone.replace(' ', '')}"}
     if listing.website:
@@ -139,7 +159,6 @@ def to_place_row(listing: DiscoveredListing, observed_on: str) -> dict:
         "website": listing.website,
         "instagram": listing.instagram,
         "pms_detected": listing.pms_detected,
-        "booking_url": listing.booking_url,
         "property_type": listing.property_type,
         "bedrooms": listing.bedrooms,
         "bathrooms": listing.bathrooms,
@@ -171,7 +190,12 @@ def build_directory(
     and a list page will see the same place twice, and a directory that shows a
     place twice is worse than one that shows it once.
 
-    `media` is declared null on every row rather than omitted. A guest should be
+    Crawled listings are always `DIRECTORY` rows. A `booking_url` found while
+    crawling is deliberately not promoted to a booking button: discovering a
+    URL is not affiliate authorization. Affiliate rows enter through an
+    authorized partner feed, represented separately by `to_affiliate_row()`.
+
+    `media` is declared null on every row rather than omitted. A guest should
     able to tell the difference between "this place has no photographs we may
     show" and "this page failed to load them", and the claim flow exists to
     change the first into photographs.
@@ -188,9 +212,15 @@ def build_directory(
             # below contactable rows and is a prompt to go and find a channel.
             route = {"kind": "NONE", "href": None}
 
-        row["id"] = f"{listing.source}:{listing.source_listing_id}"
-        row["contact_route"] = route
-        row["attribution"] = attribution
+        row = assert_publishable(
+            {
+                **row,
+                "id": f"{listing.source}:{listing.source_listing_id}",
+                "distribution": "DIRECTORY",
+                "contact_route": route,
+                "attribution": attribution,
+            }
+        )
         seen[listing.source_listing_id] = row
 
     places = sorted(seen.values(), key=lambda entry: (entry["contact_route"]["kind"] == "NONE",))
@@ -205,3 +235,81 @@ def build_directory(
         "media": None,
         "places": places,
     }
+
+
+def to_affiliate_row(
+    *,
+    id: str,
+    operator_name: Optional[str],
+    phone: Optional[str],
+    email: Optional[str],
+    website: Optional[str],
+    property_type: Optional[str],
+    bedrooms: Optional[int],
+    bathrooms: Optional[int],
+    state: Optional[str],
+    city: Optional[str],
+    area: Optional[str],
+    advertised_price: Optional[int],
+    currency: Optional[str],
+    source: str,
+    source_url: str,
+    attribution: str,
+    first_seen_at: str,
+    last_seen_at: str,
+    affiliate_partner: str,
+    affiliate_url: str,
+    affiliate_disclosure: str,
+) -> dict:
+    """Build one row from an authorized affiliate feed, never from a crawl.
+
+    The destination must already be the partner's approved tracking/deep link.
+    This function does not turn a public `booking_url` into an affiliate link;
+    the caller must possess the affiliate programme authorization and provide the
+    handoff explicitly.
+    """
+    if not isinstance(id, str) or not id.strip():
+        raise PolicyViolation("Affiliate row requires a non-empty id")
+    if not all(isinstance(value, str) and value.strip() for value in (source, source_url, attribution)):
+        raise PolicyViolation("Affiliate row requires source, source URL and attribution")
+    if not isinstance(affiliate_partner, str) or not affiliate_partner.strip():
+        raise PolicyViolation("Affiliate row requires a partner name")
+    if not isinstance(affiliate_disclosure, str) or not affiliate_disclosure.strip():
+        raise PolicyViolation("Affiliate row requires a price disclosure")
+    if not isinstance(first_seen_at, str) or not first_seen_at.strip():
+        raise PolicyViolation("Affiliate row requires a first-seen date")
+    if not isinstance(last_seen_at, str) or not last_seen_at.strip():
+        raise PolicyViolation("Affiliate row requires a last-seen date")
+    if not isinstance(affiliate_url, str):
+        raise PolicyViolation("Affiliate destination must be an absolute HTTP(S) URL")
+    parsed_destination = urlparse(affiliate_url)
+    if parsed_destination.scheme not in {"http", "https"} or not parsed_destination.netloc:
+        raise PolicyViolation("Affiliate destination must be an absolute HTTP(S) URL")
+
+    route = {"kind": "AFFILIATE_URL", "href": affiliate_url}
+    row = {
+        "id": id,
+        "distribution": "AFFILIATE",
+        "operator_name": operator_name,
+        "phone": phone,
+        "email": email,
+        "website": website,
+        "property_type": property_type,
+        "bedrooms": bedrooms,
+        "bathrooms": bathrooms,
+        "state": state,
+        "city": city,
+        "area": area,
+        "advertised_price": advertised_price,
+        "currency": currency,
+        "source": source,
+        "source_url": source_url,
+        "attribution": attribution,
+        "first_seen_at": first_seen_at,
+        "last_seen_at": last_seen_at,
+        "affiliate_partner": affiliate_partner,
+        "affiliate_url": affiliate_url,
+        "affiliate_disclosure": affiliate_disclosure,
+        "contact_route": route,
+    }
+    return assert_publishable({key: value for key, value in row.items() if value is not None})

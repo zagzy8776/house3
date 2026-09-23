@@ -104,14 +104,14 @@ src/data/        Nigeria rollout plan + fee policies
 services/acquisition/  the crawl: compliance, sources, extraction, normalization,
                  publishing (Python; writes leads.jsonl + directory.json)
 prisma/          production PostgreSQL schema + seed
-tests/           228 tests
+tests/           241 TypeScript tests; services/acquisition has 72 Python tests
 ```
 
 ## Quick start
 
 ```bash
 npm install
-npm test                 # 120 tests
+npm test                 # 241 TypeScript tests
 npm run typecheck
 
 # optional: real database

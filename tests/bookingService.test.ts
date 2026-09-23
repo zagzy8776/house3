@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { addDays } from '@/domain/dates';
 import type { FeePolicy } from '@/domain/pricing';
 import { allFeePolicies } from '@/data/feePolicies';
-import { InMemoryRepository } from '@/server/store';
+import { InMemoryRepository, type ListedUnit } from '@/server/store';
 import {
   buildLedgerEntries,
   buildReference,
@@ -67,11 +67,12 @@ class FakeGateway implements PaymentGateway {
   }
 }
 
-function setup(options: { policyOverride?: FeePolicy[] } = {}) {
+function setup(options: { policyOverride?: FeePolicy[]; units?: ListedUnit[] } = {}) {
+  const units = options.units ?? DEMO_UNITS;
   const repo = new InMemoryRepository({
     partners: DEMO_PARTNERS,
-    units: DEMO_UNITS,
-    availability: seedAvailability(DEMO_UNITS, {
+    units,
+    availability: seedAvailability(units, {
       from: '2026-05-01',
       days: 120,
       // The Ajah room is booked on 2026-06-05 via the partner's own channel.
@@ -150,6 +151,24 @@ describe('search', () => {
     expect(outcome.results).toHaveLength(0);
     expect(outcome.rejected[0]?.reasons).toContain('Partner has no settlement account');
     expect(outcome.rejected[0]?.reasons).toContain('Partner settlement account is not verified');
+  });
+
+  it('labels affiliate inventory as AFFILIATE instead of quoting it', () => {
+    const units = DEMO_UNITS.map((unit) =>
+      unit.id === 'u_ajah_room' ? { ...unit, bookable: false } : unit
+    );
+    const { service } = setup({ units });
+    const outcome = service.search({
+      stateCode: 'LA',
+      area: 'Ajah',
+      stay: { checkIn: START, checkOut: addDays(START, 1) },
+      guests: 1
+    });
+
+    expect(outcome.results).toHaveLength(0);
+    const affiliate = outcome.rejected.find((entry) => entry.unitId === 'u_ajah_room');
+    expect(affiliate?.distribution).toBe('AFFILIATE');
+    expect(affiliate?.reasons).toContain('Affiliate listing: completes on the partner site');
   });
 
   it('hides nights the partner closed on their own calendar', () => {

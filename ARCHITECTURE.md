@@ -212,6 +212,12 @@ throws without them. `advertisedPriceKobo` is what the operator published — it
 rendered as a bookable rate, and `bookableSearchHref()` gives each row a route to the
 inventory we can actually confirm.
 
+Rows have exactly two distributions. `DIRECTORY` is crawled coverage and may only
+offer a contact route. `AFFILIATE` is an authorised partner handoff with a named
+partner, disclosure and absolute destination, rendered through
+`/api/affiliate/out` so clicks have a first-party hop. A crawled `booking_url`
+can never become either a bookable rate or an `AFFILIATE_URL`.
+
 `media: null` on every row is a declared field, not an omission: the card renders a
 typographic panel built from the facts and offers "manage this listing". A stock
 photograph of a different apartment is the one thing this page must never show, because

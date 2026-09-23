@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import {
+  affiliateHandoffHref,
   assertPublishable,
   bookableSearchHref,
   contactLabel,
@@ -17,6 +18,7 @@ import { formatNaira } from '@/domain/money';
 function row(overrides: RawDirectoryPlace = {}): RawDirectoryPlace {
   return {
     id: 'npc:1043552',
+    distribution: 'DIRECTORY',
     operator_name: 'Adeniyi Jones Residences Ltd',
     phone: '0803 000 0000',
     property_type: 'SHORTLET',
@@ -43,7 +45,138 @@ describe('directory publication guard', () => {
     const place = assertPublishable(row());
     expect(place.operatorName).toBe('Adeniyi Jones Residences Ltd');
     expect(place.advertisedPriceKobo).toBe(20_000_000);
+    expect(place.distribution).toBe('DIRECTORY');
+    expect(place.affiliate).toBeNull();
     expect(place.media).toBeNull();
+  });
+
+  it('accepts an authorized affiliate row and maps its handoff', () => {
+    const place = assertPublishable(
+      row({
+        id: 'partner:unit-1',
+        distribution: 'AFFILIATE',
+        contact_route: {
+          kind: 'AFFILIATE_URL',
+          href: 'https://example.com/aff?ref=house3'
+        },
+        affiliate_partner: 'Example Partner',
+        affiliate_url: 'https://example.com/aff?ref=house3',
+        affiliate_disclosure: 'We may earn a commission.'
+      })
+    );
+
+    expect(place.distribution).toBe('AFFILIATE');
+    expect(place.contactRoute).toEqual({
+      kind: 'AFFILIATE_URL',
+      href: 'https://example.com/aff?ref=house3'
+    });
+    expect(place.affiliate).toEqual({
+      partnerName: 'Example Partner',
+      destinationUrl: 'https://example.com/aff?ref=house3',
+      disclosure: 'We may earn a commission.'
+    });
+  });
+
+  it('refuses an unknown distribution rather than defaulting to a route', () => {
+    expect(() => assertPublishable(row({ distribution: 'DROP_SHIPPED' }))).toThrow(
+      /unknown distribution/i
+    );
+  });
+
+  it('refuses affiliate fields on a directory row', () => {
+    expect(() =>
+      assertPublishable(
+        row({
+          affiliate_partner: 'Example Partner',
+          affiliate_url: 'https://example.com/aff',
+          affiliate_disclosure: 'We may earn a commission.'
+        })
+      )
+    ).toThrow(/without an authorised affiliate distribution/i);
+  });
+
+  it('refuses an affiliate row without complete authorization metadata', () => {
+    for (const missing of ['affiliate_partner', 'affiliate_url', 'affiliate_disclosure'] as const) {
+      expect(() =>
+        assertPublishable(
+          row({
+            id: 'partner:unit-1',
+            distribution: 'AFFILIATE',
+            contact_route: { kind: 'AFFILIATE_URL', href: 'https://example.com/aff' },
+            affiliate_partner: 'Example Partner',
+            affiliate_url: 'https://example.com/aff',
+            affiliate_disclosure: 'We may earn a commission.',
+            [missing]: undefined
+          })
+        )
+      ).toThrow(/needs a partner, destination URL and disclosure/i);
+    }
+  });
+
+  it('refuses a non-HTTP affiliate destination', () => {
+    for (const destination of ['javascript:alert(1)', 'http://']) {
+      expect(() =>
+        assertPublishable(
+          row({
+            id: 'partner:unit-1',
+            distribution: 'AFFILIATE',
+            contact_route: { kind: 'AFFILIATE_URL', href: destination },
+            affiliate_partner: 'Example Partner',
+            affiliate_url: destination,
+            affiliate_disclosure: 'We may earn a commission.'
+          })
+        )
+      ).toThrow(/invalid destination URL/i);
+    }
+  });
+
+  it('refuses route/distribution mismatches in both directions', () => {
+    expect(() =>
+      assertPublishable(
+        row({
+          id: 'partner:unit-1',
+          distribution: 'AFFILIATE',
+          contact_route: { kind: 'PHONE', href: 'tel:08030000000' },
+          affiliate_partner: 'Example Partner',
+          affiliate_url: 'https://example.com/aff',
+          affiliate_disclosure: 'We may earn a commission.'
+        })
+      )
+    ).toThrow(/must use an affiliate route/i);
+
+    expect(() =>
+      assertPublishable(
+        row({
+          contact_route: { kind: 'AFFILIATE_URL', href: 'https://example.com/aff' }
+        })
+      )
+    ).toThrow(/cannot use an affiliate route/i);
+  });
+
+  it('refuses crawl-only booking and availability URLs', () => {
+    for (const key of ['booking_url', 'availability_url'] as const) {
+      expect(() => assertPublishable(row({ [key]: 'https://x/book' }))).toThrow(
+        /non-publishable field/i
+      );
+    }
+  });
+
+  it('routes affiliate clicks through the first-party tracking hop', () => {
+    const place = assertPublishable(
+      row({
+        id: 'partner:unit-1',
+        distribution: 'AFFILIATE',
+        contact_route: { kind: 'AFFILIATE_URL', href: 'https://example.com/aff' },
+        affiliate_partner: 'Example Partner',
+        affiliate_url: 'https://example.com/aff',
+        affiliate_disclosure: 'We may earn a commission.'
+      })
+    );
+
+    expect(affiliateHandoffHref(place)).toBe(
+      `/api/affiliate/out?id=${encodeURIComponent('partner:unit-1')}`
+    );
+    expect(affiliateHandoffHref(assertPublishable(row()))).toBeNull();
   });
 
   it('refuses a row with no attribution', () => {
@@ -138,8 +271,8 @@ describe('directory display', () => {
 
   it('picks a contact label from the route', () => {
     expect(contactLabel({ kind: 'PHONE', href: 'tel:x' }, null)).toBe('Call to book');
-    expect(contactLabel({ kind: 'BOOKING_URL', href: 'https://x' }, 'smoobu')).toBe(
-      'Book on their site'
+    expect(contactLabel({ kind: 'AFFILIATE_URL', href: 'https://x' }, 'smoobu')).toBe(
+      'Continue on partner site'
     );
     expect(contactLabel({ kind: 'NONE', href: null }, null)).toBe('Details only');
   });

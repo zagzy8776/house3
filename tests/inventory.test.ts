@@ -5,6 +5,7 @@ import {
   UnsupportedChannelError,
   type AuthorizationRecord
 } from '@/inventory/types';
+import { AffiliateRedirectAdapter } from '@/inventory/affiliateAdapter';
 import { createAdapter, isSupportedChannel, SUPPORTED_CHANNELS } from '@/inventory/registry';
 import {
   blockedNightsFromEvents,
@@ -75,6 +76,94 @@ describe('adapter registry', () => {
         config: {}
       })
     ).toThrow(/granted to partner p_lekki_1/);
+  });
+});
+
+describe('affiliate redirect adapter', () => {
+  const affiliateTerms: AuthorizationRecord = {
+    kind: 'AFFILIATE_PROGRAM',
+    basis: 'AFFILIATE_PROGRAM_TERMS',
+    reference: 'publisher-house3-77',
+    grantedAt: '2026-01-05T00:00:00.000Z',
+    expiresAt: null,
+    partnerId: 'p_ota_1'
+  };
+
+  it('creates the affiliate adapter with an explicit distribution marker', () => {
+    const adapter = createAdapter({
+      partnerId: 'p_ota_1',
+      channel: 'AFFILIATE_PROGRAM',
+      authorization: affiliateTerms,
+      config: {}
+    });
+
+    expect(adapter.distribution).toBe('AFFILIATE');
+    expect(adapter.bookingModel).toBe('REDIRECT_TO_PARTNER');
+  });
+
+  it('marks every snapshot as an affiliate distribution', async () => {
+    const fetchImpl = (async () =>
+      new Response(JSON.stringify({ units: [{ externalId: 'ota-1' }] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })) as unknown as typeof fetch;
+    const adapter = new AffiliateRedirectAdapter({
+      authorization: affiliateTerms,
+      fetchImpl
+    });
+
+    const snapshot = await adapter.fetchSnapshot({
+      partnerId: 'p_ota_1',
+      config: { feedUrl: 'https://ota.example/feed' },
+      now: NOW
+    });
+
+    expect(snapshot.distribution).toBe('AFFILIATE');
+    expect(snapshot.availability).toEqual([]);
+    expect(snapshot.units[0]).toMatchObject({
+      externalId: 'ota-1',
+      partnerId: 'p_ota_1'
+    });
+  });
+
+  it('refuses to fetch or build a deep link without authorization', async () => {
+    const adapter = new AffiliateRedirectAdapter({ authorization: null });
+    await expect(
+      adapter.fetchSnapshot({
+        partnerId: 'p_ota_1',
+        config: { feedUrl: 'https://ota.example/feed' },
+        now: NOW
+      })
+    ).rejects.toThrow(UnauthorizedInventoryError);
+    expect(() =>
+      adapter.buildDeepLink({
+        baseUrl: 'https://ota.example/book',
+        unitExternalId: 'ota-1',
+        checkIn: '2026-06-01',
+        checkOut: '2026-06-03',
+        adults: 2,
+        publisherId: 'house3'
+      })
+    ).toThrow(UnauthorizedInventoryError);
+  });
+
+  it('builds a stay-specific tracked deep link', () => {
+    const adapter = new AffiliateRedirectAdapter({ authorization: affiliateTerms });
+    const link = adapter.buildDeepLink({
+      baseUrl: 'https://ota.example/book',
+      unitExternalId: 'ota-1',
+      checkIn: '2026-06-01',
+      checkOut: '2026-06-03',
+      adults: 2,
+      publisherId: 'house3'
+    });
+    const url = new URL(link);
+
+    expect(url.searchParams.get('checkin')).toBe('2026-06-01');
+    expect(url.searchParams.get('checkout')).toBe('2026-06-03');
+    expect(url.searchParams.get('adults')).toBe('2');
+    expect(url.searchParams.get('aff')).toBe('house3');
+    expect(url.searchParams.get('unit')).toBe('ota-1');
   });
 });
 

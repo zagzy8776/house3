@@ -34,6 +34,8 @@ export type AffiliateAdapterOptions = {
 export class AffiliateRedirectAdapter implements PartnerInventoryAdapter {
   readonly kind = 'AFFILIATE_PROGRAM' as const;
   readonly bookingModel = 'REDIRECT_TO_PARTNER' as const;
+  /** Every snapshot from this channel is an authorised affiliate handoff. */
+  readonly distribution = 'AFFILIATE' as const;
   readonly authorization: AuthorizationRecord | null;
 
   private readonly fetchImpl: typeof fetch;
@@ -65,7 +67,12 @@ export class AffiliateRedirectAdapter implements PartnerInventoryAdapter {
 
     // Affiliate inventory carries no calendar we can trust for instant booking;
     // the partner's own checkout decides availability.
-    return { units, availability: [], fetchedAt: context.now };
+    return {
+      units,
+      availability: [],
+      fetchedAt: context.now,
+      distribution: 'AFFILIATE'
+    };
   }
 
   buildDeepLink(input: {

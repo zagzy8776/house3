@@ -33,7 +33,13 @@ from normalization.history import Observation, detect_changes
 from normalization.names import normalise_operator_name, operator_key
 from normalization.phones import is_plausible_nigerian_mobile, normalise_phone, phone_dedupe_key
 from pipeline import FixtureTransport, build_registry, funnel
-from publishing import assert_publishable, build_directory, contact_route, to_place_row
+from publishing import (
+    assert_publishable,
+    build_directory,
+    contact_route,
+    to_affiliate_row,
+    to_place_row,
+)
 from sources.base import AdapterRegistry, DiscoveredListing, SourceLayer
 from sources.npc import LAGOS_LOCALITIES, NpcAdapter
 from sources.providers import GuardedProvider, ProviderError, build_provider, offline_guard
@@ -794,8 +800,10 @@ def test_publish_guard_rejects_undeclared_fields() -> None:
         raise AssertionError("publish guard allowed an undeclared field")
 
 
-def test_contact_route_prefers_something_bookable_over_a_phone_number() -> None:
-    assert contact_route(_listing(booking_url="https://x/book"))["kind"] == "BOOKING_URL"
+def test_contact_route_ignores_an_unauthorized_crawl_booking_url() -> None:
+    """A crawled booking link is research, not a route we may send a guest down."""
+    assert contact_route(_listing(booking_url="https://x/book"))["kind"] == "PHONE"
+    assert contact_route(_listing(phone=None, booking_url="https://x/book")) is None
     assert contact_route(_listing(phone="0803 000 0000"))["kind"] == "PHONE"
     assert contact_route(_listing(phone=None, website="https://x"))["kind"] == "WEBSITE"
     assert contact_route(_listing(phone=None, email="a@b.ng"))["kind"] == "EMAIL"
@@ -805,6 +813,81 @@ def test_contact_route_prefers_something_bookable_over_a_phone_number() -> None:
 def test_phone_route_is_a_tel_link_without_spaces() -> None:
     route = contact_route(_listing())
     assert route["href"] == "tel:08030000000"
+
+
+def test_crawled_rows_are_directory_rows_and_never_expose_booking_urls() -> None:
+    directory = build_directory(
+        [_listing(booking_url="https://x/book")],
+        "2026-09-23",
+        attribution="Nigeria Property Centre",
+    )
+
+    row = directory["places"][0]
+    assert row["distribution"] == "DIRECTORY"
+    assert "booking_url" not in row
+    assert "affiliate_url" not in row
+    assert row["contact_route"]["kind"] != "AFFILIATE_URL"
+
+
+def _affiliate_args(**overrides) -> dict:
+    args = {
+        "id": "partner:unit-1",
+        "operator_name": "Example Operator Ltd",
+        "phone": None,
+        "email": None,
+        "website": "https://example.com",
+        "property_type": "SHORTLET",
+        "bedrooms": 2,
+        "bathrooms": 2,
+        "state": "LA",
+        "city": "Lagos",
+        "area": "Ikeja",
+        "advertised_price": 15_000_000,
+        "currency": "NGN",
+        "source": "affiliate_feed",
+        "source_url": "https://example.com/feed/unit-1",
+        "attribution": "Example Partner Feed",
+        "first_seen_at": "2026-09-23",
+        "last_seen_at": "2026-09-23",
+        "affiliate_partner": "Example Partner",
+        "affiliate_url": "https://example.com/aff?ref=house3",
+        "affiliate_disclosure": "We may earn a commission.",
+    }
+    args.update(overrides)
+    return args
+
+
+def test_to_affiliate_row_requires_authorization_metadata() -> None:
+    row = to_affiliate_row(**_affiliate_args())
+
+    assert row["distribution"] == "AFFILIATE"
+    assert row["affiliate_partner"] == "Example Partner"
+    assert row["affiliate_url"] == "https://example.com/aff?ref=house3"
+    assert row["affiliate_disclosure"] == "We may earn a commission."
+    assert row["contact_route"] == {
+        "kind": "AFFILIATE_URL",
+        "href": "https://example.com/aff?ref=house3",
+    }
+    assert_publishable(row)
+
+
+def test_to_affiliate_row_rejects_invalid_authorization_metadata() -> None:
+    invalid = (
+        {"affiliate_partner": ""},
+        {"affiliate_disclosure": ""},
+        {"affiliate_url": "not-a-url"},
+        {"affiliate_url": "javascript:alert(1)"},
+        {"affiliate_url": "http://"},
+        {"first_seen_at": ""},
+        {"last_seen_at": None},
+        {"attribution": ""},
+    )
+    for overrides in invalid:
+        try:
+            to_affiliate_row(**_affiliate_args(**overrides))
+        except PolicyViolation:
+            continue
+        raise AssertionError(f"affiliate row accepted invalid metadata: {overrides}")
 
 
 def test_directory_declares_media_as_absent_rather_than_omitting_it() -> None:

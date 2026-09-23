@@ -149,6 +149,8 @@ the supply agreement is for.
 ```jsonc
 {
   "id": "npc:1043668",
+  "distribution": "DIRECTORY",          // DIRECTORY = observed coverage;
+                                        // AFFILIATE = authorised partner handoff
   "operator_name": "Adeniyi Jones Residences Ltd",
   "phone": "0803 000 0000",
   "bedrooms": 3,
@@ -161,6 +163,13 @@ the supply agreement is for.
   "media": null
 }
 ```
+
+An `AFFILIATE` row additionally requires `affiliate_partner`, an absolute
+`affiliate_url`, `affiliate_disclosure`, and an `AFFILIATE_URL` contact route.
+Those fields are mutually exclusive with `DIRECTORY`: a crawl may observe a
+`booking_url`, but it can never promote that observation into a bookable or
+affiliate route. The crawl's `booking_url`/`availability_url` are internal
+signals only and are refused by `NEVER_PUBLISHED`.
 
 `src/domain/directory.ts` validates this shape on the way in and refuses a row
 that is unattributed, that carries a photograph or a title, or that declares a
@@ -254,6 +263,8 @@ Fields extracted: `source`, `source_url`, `source_listing_id`, `property_name`,
 `property_type`, `bedrooms`, `bathrooms`, `advertised_price`, `currency`,
 `pms_detected`, `booking_url`, `availability_url`, `title_document` — with
 `first_seen_at` / `last_seen_at` provenance applied on the TypeScript side.
+`booking_url`, `availability_url`, `property_name` and `title_document` stay
+internal: publishing drops them, and the public projection refuses them again.
 
 ## What is never collected
 
