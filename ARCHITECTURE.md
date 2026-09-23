@@ -192,6 +192,37 @@ No view counts are recorded anywhere. We cannot observe how many people viewed s
 else's listing — that number is in their analytics and appears nowhere on the page — and
 inferring one from search rank would mean presenting a guess as a measurement.
 
+## The operator directory (`/places`)
+
+The second surface for the second kind of listing. `services/acquisition/publishing.py`
+writes `directory.json`; `src/domain/directory.ts` validates it; `/places` renders it.
+
+It exists so the site carries real coverage in a state before anyone there has signed.
+The line is **facts versus creative work**, not "scraped versus not":
+
+| Publishable | Not publishable |
+|---|---|
+| Operator name, phone, email, website, Instagram | Photographs |
+| Area, city, state | Written descriptions |
+| Bedrooms, bathrooms, property type | The operator's listing title |
+| The rate they advertise, dated and attributed | The rate as a price we can charge |
+
+Every row carries `attribution` and links back to `sourceUrl`; `assertPublishable()`
+throws without them. `advertisedPriceKobo` is what the operator published — it is never
+rendered as a bookable rate, and `bookableSearchHref()` gives each row a route to the
+inventory we can actually confirm.
+
+`media: null` on every row is a declared field, not an omission: the card renders a
+typographic panel built from the facts and offers "manage this listing". A stock
+photograph of a different apartment is the one thing this page must never show, because
+the guest would believe they were looking at the room they are about to call about.
+
+Three walls, in order, so no single mistake leaks creative work:
+
+1. `strip_media()` — image references removed from markup before extraction.
+2. `assert_no_media_or_prose()` — extraction records checked against `FORBIDDEN_FIELDS`.
+3. `assert_publishable()` — public rows checked against `NEVER_PUBLISHED`.
+
 ## Extension points
 
 - **Fee changes:** insert/update a `FeePolicy` row (GLOBAL / STATE / PARTNER).

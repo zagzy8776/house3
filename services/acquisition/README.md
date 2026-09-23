@@ -106,6 +106,70 @@ and appears nowhere on the page. We could infer something from search rank and
 print it as "views", and it would be invented. Presence, absence and advertised
 price are measurable, so those are what we record.
 
+## Publishing the directory
+
+`--publish directory.json` writes the rows the public site renders at `/places`.
+
+Every launch state is crawled by default:
+
+```bash
+python pipeline.py --states LA,FC,OY,IM,AK --transport firecrawl --interval 5
+```
+
+### What is publishable, and what is not
+
+This is the whole design, so it is worth being precise.
+
+**Facts are publishable.** A business's name, its address, its phone number, the
+price it advertises. Nobody owns a fact. We watched an operator advertise a
+3-bedroom in Ikeja at 220,000 a night; that is a thing that happened, and we can
+say so — as long as we say where we saw it. So every row carries `attribution`
+and links back to `source_url`, and `publishing.assert_publishable()` **fails the
+run** if either is missing.
+
+**Creative work is not.** A photograph and a written description have an owner,
+and republishing either is not made lawful by the page being reachable. That
+holds whether we fetched the page ourselves or paid an API to fetch it. Hence
+`strip_media()` at the fetch boundary, `FORBIDDEN_FIELDS` at the extraction
+boundary, and `NEVER_PUBLISHED` at the publish boundary — three walls, in order.
+
+**`property_name` is dropped too**, and not out of caution: a listing title is
+the operator's marketing copy, and "Luxury 3 Bedrooms Flats with City View" tells
+a guest nothing. "3-bedroom short-let, Ikeja, ₦200,000 advertised" is both more
+useful and unambiguously fact. No trade-off — `src/domain/directory.ts` derives
+the descriptor from the numbers.
+
+`media` is `null` on every row, declared rather than omitted, so a guest can tell
+"no photographs we may show" from "the page failed to load them". Photographs
+arrive when the operator claims the listing and sends us their own, which is what
+the supply agreement is for.
+
+### The row contract
+
+```jsonc
+{
+  "id": "npc:1043668",
+  "operator_name": "Adeniyi Jones Residences Ltd",
+  "phone": "0803 000 0000",
+  "bedrooms": 3,
+  "area": "Ikeja",
+  "advertised_price": 20000000,        // kobo. Advertised BY THEM, not a rate we can charge
+  "first_seen_at": "2026-09-23",       // a floor: it existed before we found it
+  "contact_route": { "kind": "PHONE", "href": "tel:08030000000" },
+  "attribution": "Nigeria Property Centre",
+  "source_url": "https://…/…-1043668",
+  "media": null
+}
+```
+
+`src/domain/directory.ts` validates this shape on the way in and refuses a row
+that is unattributed, that carries a photograph or a title, or that declares a
+contact route it cannot deliver. Rejections are counted and surfaced on the page,
+so a run that loses half its rows is visible rather than quietly shrunk.
+
+**`directory.json` is generated, not source** — it is gitignored. `/places`
+degrades to an empty state without it.
+
 ## Running
 
 ```bash

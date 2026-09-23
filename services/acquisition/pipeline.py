@@ -37,6 +37,7 @@ from compliance.robots import RobotsCache
 from extraction.schema import exa_summary_schema
 from normalization.dedupe import OperatorProfile, consolidate
 from normalization.history import ListingHistory, Observation, detect_changes
+from publishing import build_directory
 from sources.base import AdapterRegistry, DiscoveredListing
 from sources.npc import NpcAdapter
 from sources.providers import (
@@ -72,6 +73,7 @@ def crawl(
     max_listings: int = 500,
     interval_seconds: float = 5.0,
     enforce_policy: bool = True,
+    guard: Optional[GuardedProvider] = None,
 ) -> dict:
     """
     Run one adapter over one state and return the funnel.
@@ -79,20 +81,25 @@ def crawl(
     Every fetch passes the robots check and the throttle. A misconfigured adapter
     pointed at a host it does not own is refused rather than silently obeyed.
 
+    `guard` exists so a multi-state run can share one robots cache and one
+    throttle. Five states on one host are still one host: rebuilding the throttle
+    per state would hit NPC five times faster than the interval we promised it.
+
     `enforce_policy=False` is fixture mode only: it swaps in a robots stub and
     drops the throttle, because the fixture provider reads files and touches no
     network. It is a named parameter rather than a consequence of the transport
     type so that a real run cannot end up here by accident.
     """
-    if enforce_policy:
-        guard = GuardedProvider(
-            transport,
-            RobotsCache(),
-            HostThrottle(interval_seconds=interval_seconds),
-            min_interval_seconds=interval_seconds,
-        )
-    else:
-        guard = offline_guard(transport)
+    if guard is None:
+        if enforce_policy:
+            guard = GuardedProvider(
+                transport,
+                RobotsCache(),
+                HostThrottle(interval_seconds=interval_seconds),
+                min_interval_seconds=interval_seconds,
+            )
+        else:
+            guard = offline_guard(transport)
 
     listings: list[DiscoveredListing] = []
     stats = {
@@ -245,9 +252,27 @@ def funnel(listings: list[DiscoveredListing]) -> dict:
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="House3 partner acquisition pipeline")
     parser.add_argument("--source", default="npc", help="adapter name (see sources/)")
-    parser.add_argument("--state", default="LA", help="state code: LA, FC, OY, IM, AK")
+    parser.add_argument(
+        "--state",
+        help="one state code; overrides --states when set (LA, FC, OY, IM, AK)",
+    )
+    parser.add_argument(
+        "--states",
+        default="LA,FC,OY,IM,AK",
+        help="comma-separated state codes to crawl",
+    )
     parser.add_argument("--area", help="restrict to one neighbourhood, e.g. lekki")
     parser.add_argument("--out", default="leads.jsonl", help="prospect output path")
+    parser.add_argument(
+        "--publish",
+        default="directory.json",
+        help="publishable place rows for the public site; '-' to skip",
+    )
+    parser.add_argument(
+        "--attribution",
+        default="Nigeria Property Centre",
+        help="the source we name on every published row",
+    )
     parser.add_argument(
         "--ledger",
         default="listing-observations.jsonl",
@@ -310,22 +335,60 @@ def main(argv: Optional[list[str]] = None) -> int:
     if args.discover == "exa":
         _run_exa_discovery(args, adapter)
 
-    result = crawl(
-        adapter,
-        transport,
-        args.state,
-        args.area,
-        args.max,
-        args.interval,
-        enforce_policy=not args.fixture,
+    states = (
+        [args.state.strip().upper()]
+        if args.state
+        else [code.strip().upper() for code in args.states.split(",") if code.strip()]
     )
-    report = funnel(result["listings"])
+    if not states:
+        print("no states to crawl", file=sys.stderr)
+        return 2
+
+    # One guard for the whole run: same host across every state, so the throttle
+    # and the robots cache have to outlive the individual state loop.
+    guard = (
+        offline_guard(transport)
+        if args.fixture
+        else GuardedProvider(
+            transport,
+            RobotsCache(),
+            HostThrottle(interval_seconds=args.interval),
+            min_interval_seconds=args.interval,
+        )
+    )
+
+    listings: list[DiscoveredListing] = []
+    per_state: list[tuple[str, dict]] = []
+    for code in states:
+        result = crawl(
+            adapter,
+            transport,
+            code,
+            args.area,
+            args.max,
+            args.interval,
+            enforce_policy=not args.fixture,
+            guard=guard,
+        )
+        per_state.append((code, result["stats"]))
+        listings.extend(result["listings"])
+        print(
+            f"  {code}: {result['stats']['usable']:,} usable "
+            f"({result['stats']['skipped_robots']:,} skipped, {result['stats']['failed']:,} failed)",
+            file=sys.stderr,
+        )
+
+    # The funnel runs over every state at once: consolidation across a state
+    # boundary is still consolidation, and an operator active in Lagos and Abuja
+    # is one relationship, not two.
+    report = funnel(listings)
+    stats = _combined_stats(per_state, listings)
 
     # Change detection runs before the lead file is written, because "this
     # operator just moved their rate" changes what the call should say.
     known = load_ledger(Path(args.ledger))
     observed_on = date.today().isoformat()
-    observations = to_observations(result["listings"], observed_on)
+    observations = to_observations(listings, observed_on)
     changes = detect_changes(known, observations, today=observed_on)
 
     out_path = Path(args.out)
@@ -335,9 +398,16 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     append_ledger(Path(args.ledger), observations)
 
+    published = None
+    if args.publish and args.publish != "-":
+        published = publish_directory(
+            Path(args.publish), listings, observed_on, attribution=args.attribution
+        )
+
     print()
-    print(f"  {result['stats']['discovered']:>7,} listings discovered")
-    print(f"  {result['stats']['usable']:>7,} usable records")
+    print(f"  states crawled: {', '.join(code for code, _ in per_state)}")
+    print(f"  {stats['discovered']:>7,} listings discovered")
+    print(f"  {stats['usable']:>7,} usable records")
     print(f"  {report['unique_properties']:>7,} unique properties")
     print(f"  {report['unique_operators']:>7,} unique operators")
     print(f"  {report['multi_property_operators']:>7,} multi-property operators")
@@ -349,14 +419,53 @@ def main(argv: Optional[list[str]] = None) -> int:
     print(f"    {len(changes.delisted):>5,} gone (absent beyond the grace period)")
     print(f"    {len(changes.unchanged):>5,} unchanged")
     print()
-    print(f"  skipped by robots: {result['stats']['skipped_robots']}, failed: {result['stats']['failed']}")
+    print(f"  skipped by robots: {stats['skipped_robots']}, failed: {stats['failed']}")
     print(f"  wrote {out_path} and appended {len(observations):,} observations to {args.ledger}")
+    if published:
+        print(
+            f"  published {published['counts']['places']:,} places "
+            f"({published['counts']['contactable']:,} contactable) to {args.publish}"
+        )
 
     close = getattr(transport, "close", None)
     if callable(close):  # pragma: no cover - depends on env
         close()
 
     return 0
+
+
+def _combined_stats(per_state: list[tuple[str, dict]], listings: list) -> dict:
+    """
+    Totals across every state in the run.
+
+    Summed from the per-state counters rather than recomputed, so the summary
+    cannot disagree with what each state actually did. An earlier version
+    hardcoded the skip and failure counts to zero, which reported a clean run
+    regardless of what had happened.
+    """
+    return {
+        "discovered": sum(stats["discovered"] for _, stats in per_state),
+        "usable": len(listings),
+        "states": len(per_state),
+        "skipped_robots": sum(stats["skipped_robots"] for _, stats in per_state),
+        "failed": sum(stats["failed"] for _, stats in per_state),
+        "parse_failed": sum(stats["parse_failed"] for _, stats in per_state),
+    }
+
+
+def publish_directory(path: Path, listings: list, observed_on: str, *, attribution: str) -> dict:
+    """
+    Write the public place rows.
+
+    Separate file from the lead list on purpose. A lead has a score, an outreach
+    status and a retention clock; a published row has a rate, a location and an
+    attribution. Mixing them would mean the site could serve a field that only
+    exists for sales.
+    """
+    directory = build_directory(listings, observed_on, attribution=attribution)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(directory, ensure_ascii=False, indent=2), encoding="utf-8")
+    return directory
 
 
 def _run_exa_discovery(args, adapter) -> None:

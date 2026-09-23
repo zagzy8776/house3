@@ -1,0 +1,331 @@
+/**
+ * The operator directory.
+ *
+ * This is the surface for places we know about but cannot sell: crawled from a
+ * portal, with no agreement, no calendar and no settlement account. It is how
+ * the site carries real, useful coverage in a state before a single partner has
+ * signed there.
+ *
+ * FACTS, WITH ATTRIBUTION
+ *
+ * A directory is legal. Facts about a business - its name, its address, its
+ * phone number, the prices it publishes - are not owned by anyone. We observed
+ * a 3-bedroom in Ikeja advertised at 220,000 a night; that is a thing that
+ * happened, and we can say so, as long as we say where we saw it. So every row
+ * here carries `attribution` and links back to `sourceUrl`, and
+ * `assertPublishable()` refuses to let a row through without them.
+ *
+ * What we do not carry is the operator's title or their photographs. Both are
+ * creative work with an owner, and republishing either is not made lawful by the
+ * page being reachable. `media: null` on every row is therefore not an omission,
+ * it is a declared feature - and the claim flow is what changes it.
+ *
+ * WHY THIS IS NOT PART OF /search
+ *
+ * A directory row has no calendar. Rendering it as a bookable unit would mean
+ * the guest sees a price, clicks, and there is nothing to confirm - and it would
+ * put an unverified rate into the same list as partner rates that are backed by
+ * an agreement. Those two must never share a type, so they do not share a page.
+ * Every place row offers a route to the operator, and a route to the bookable
+ * inventory we do have in that area.
+ */
+
+export type ContactRouteKind = 'BOOKING_URL' | 'PHONE' | 'WEBSITE' | 'EMAIL' | 'NONE';
+
+export type ContactRoute = {
+  kind: ContactRouteKind;
+  /** Null only when kind is NONE. */
+  href: string | null;
+};
+
+export type DirectoryPlace = {
+  id: string;
+  operatorName: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  instagram: string | null;
+  pmsDetected: string | null;
+  propertyType: string | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  state: string | null;
+  city: string | null;
+  area: string | null;
+  /** Kobo, exactly as the operator advertised it. Never a price we can charge. */
+  advertisedPriceKobo: number | null;
+  currency: string | null;
+  source: string;
+  sourceUrl: string;
+  attribution: string;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  contactRoute: ContactRoute;
+  /** Always null. See the module comment. */
+  media: null;
+};
+
+/** Never acceptable on a public row, whatever else changes. */
+const FORBIDDEN_PUBLIC_KEYS = [
+  'description',
+  'photos',
+  'photo',
+  'images',
+  'image',
+  'gallery',
+  'property_name',
+  'propertyName',
+  'title_document',
+  'titleDocument'
+] as const;
+
+export class UnpublishablePlaceError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UnpublishablePlaceError';
+  }
+}
+
+
+/** The raw JSONL/JSON shape, before validation. Snake_case on the wire. */
+export type RawDirectoryPlace = {
+  id?: unknown;
+  operator_name?: unknown;
+  phone?: unknown;
+  email?: unknown;
+  website?: unknown;
+  instagram?: unknown;
+  pms_detected?: unknown;
+  property_type?: unknown;
+  bedrooms?: unknown;
+  bathrooms?: unknown;
+  state?: unknown;
+  city?: unknown;
+  area?: unknown;
+  advertised_price?: unknown;
+  currency?: unknown;
+  source?: unknown;
+  source_url?: unknown;
+  attribution?: unknown;
+  first_seen_at?: unknown;
+  last_seen_at?: unknown;
+  contact_route?: unknown;
+  media?: unknown;
+  [key: string]: unknown;
+};
+
+function text(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function int(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.trunc(value) : null;
+}
+
+/**
+ * Validate and convert one row.
+ *
+ * Fails loudly. A row that cannot be validated is a row we do not know how to
+ * attribute, and publishing it anyway is the one mistake here that cannot be
+ * taken back - a page that went live with someone's photograph on it has already
+ * been viewed, cached and screenshotted by the time anyone notices.
+ */
+export function assertPublishable(row: RawDirectoryPlace, now?: string): DirectoryPlace {
+  const id = text(row.id);
+  const source = text(row.source);
+  const sourceUrl = text(row.source_url);
+  const attribution = text(row.attribution);
+
+  if (!id) throw new UnpublishablePlaceError('Place row has no id.');
+  if (!source) throw new UnpublishablePlaceError(`Place "${id}" names no source.`);
+  if (!sourceUrl) {
+    throw new UnpublishablePlaceError(`Place "${id}" has no source URL to link back to.`);
+  }
+  if (!attribution) {
+    // Attribution is the whole basis for publishing a fact about someone else's
+    // business. Without it the row is unattributed, which is a different and
+    // worse thing than a directory entry.
+    throw new UnpublishablePlaceError(`Place "${id}" has no attribution.`);
+  }
+
+  for (const key of FORBIDDEN_PUBLIC_KEYS) {
+    if (row[key] !== undefined && row[key] !== null) {
+      throw new UnpublishablePlaceError(
+        `Place "${id}" carries non-publishable field "${key}". Operator titles and ` +
+          'photographs are creative work with an owner; a directory publishes facts.'
+      );
+    }
+  }
+
+  const rawRoute = row.contact_route as Record<string, unknown> | null | undefined;
+  const kind = text(rawRoute?.kind) ?? 'NONE';
+  if (!['BOOKING_URL', 'PHONE', 'WEBSITE', 'EMAIL', 'NONE'].includes(kind)) {
+    throw new UnpublishablePlaceError(`Place "${id}" has unknown contact route "${kind}".`);
+  }
+  const href = text(rawRoute?.href);
+  if (kind !== 'NONE' && !href) {
+    throw new UnpublishablePlaceError(`Place "${id}" declares contact route ${kind} with no href.`);
+  }
+
+  const verifiedNow = now ?? new Date().toISOString();
+
+  return {
+    id,
+    operatorName: text(row.operator_name),
+    phone: text(row.phone),
+    email: text(row.email),
+    website: text(row.website),
+    instagram: text(row.instagram),
+    pmsDetected: text(row.pms_detected),
+    propertyType: text(row.property_type),
+    bedrooms: int(row.bedrooms),
+    bathrooms: int(row.bathrooms),
+    state: text(row.state),
+    city: text(row.city),
+    area: text(row.area),
+    advertisedPriceKobo: int(row.advertised_price),
+    currency: text(row.currency),
+    source,
+    sourceUrl,
+    attribution,
+    firstSeenAt: text(row.first_seen_at) ?? verifiedNow.slice(0, 10),
+    lastSeenAt: text(row.last_seen_at) ?? verifiedNow.slice(0, 10),
+    contactRoute: { kind: kind as ContactRouteKind, href },
+    media: null
+  };
+}
+
+
+// ---------------------------------------------------------------------------
+// display
+// ---------------------------------------------------------------------------
+
+const TYPE_LABELS: Record<string, string> = {
+  SHORTLET: 'short-let',
+  SHORT_LET: 'short-let',
+  APARTMENT: 'apartment',
+  FLAT: 'flat',
+  SERVICED_APARTMENT: 'serviced apartment',
+  DUPLEX: 'duplex',
+  BUNGALOW: 'bungalow',
+  HOUSE: 'house',
+  VILLA: 'villa',
+  STUDIO: 'studio',
+  HOSTEL_BED: 'hostel bed'
+};
+
+function typeLabel(propertyType: string | null): string | null {
+  if (!propertyType) return null;
+  return TYPE_LABELS[propertyType.toUpperCase()] ?? propertyType.toLowerCase().replace(/_/g, ' ');
+}
+
+/**
+ * A descriptor built from facts: "3-bedroom short-let".
+ *
+ * Derived rather than copied. The operator's own listing title is their
+ * marketing copy - "Luxury 3 Bedrooms Flats with City View" - and a guest gets
+ * more from the numbers anyway.
+ */
+export function placeDescriptor(place: Pick<DirectoryPlace, 'bedrooms' | 'propertyType'>): string {
+  const kind = typeLabel(place.propertyType) ?? 'short-let';
+  if (place.bedrooms === null) return kind.charAt(0).toUpperCase() + kind.slice(1);
+  return `${place.bedrooms}-bedroom ${kind}`.replace(/^(\w)/, (first) => first.toUpperCase());
+}
+
+/**
+ * "Ikeja, Lagos". Most specific first, skipping anything we do not have, and
+ * de-duplicating - area and city are often the same word, and "Lekki, Lekki"
+ * reads like a bug.
+ *
+ * `stateName` is passed in rather than looked up here: this module stays free of
+ * the state table so it can be tested with plain strings.
+ */
+export function placeLocation(
+  place: Pick<DirectoryPlace, 'area' | 'city' | 'state'>,
+  stateName?: string | null
+): string {
+  const parts = [place.area, place.city ?? stateName ?? null, stateName ?? place.state]
+    .map((part) => part?.trim())
+    .filter((part): part is string => Boolean(part));
+
+  return parts.filter((part, index) => parts.indexOf(part) === index).join(', ');
+}
+
+/**
+ * The operator's advertised rate, formatted, or null when they did not publish
+ * one. Named "advertised" everywhere it surfaces, because it is not a price we
+ * can charge and the label is the only thing telling a guest that.
+ */
+export function formatAdvertisedRate(
+  place: Pick<DirectoryPlace, 'advertisedPriceKobo'>,
+  format: (kobo: number) => string
+): string | null {
+  if (place.advertisedPriceKobo === null || place.advertisedPriceKobo <= 0) return null;
+  return format(place.advertisedPriceKobo);
+}
+
+/** The label for whatever the contact route is, for the button. */
+export function contactLabel(route: ContactRoute, pmsDetected: string | null): string {
+  switch (route.kind) {
+    case 'BOOKING_URL':
+      return pmsDetected ? `Book on their site` : 'Book direct';
+    case 'PHONE':
+      return 'Call to book';
+    case 'EMAIL':
+      return 'Email to enquire';
+    case 'WEBSITE':
+      return 'Visit their site';
+    default:
+      return 'Details only';
+  }
+}
+
+/**
+ * Where a guest goes to book something we can actually confirm.
+ *
+ * Every place row carries this, because a directory entry with no path to
+ * inventory is a dead end: the guest found what they wanted and we had nowhere
+ * to send them. Carrying the area through means the search lands on the right
+ * neighbourhood rather than the whole state.
+ */
+export function bookableSearchHref(
+  place: Pick<DirectoryPlace, 'area' | 'state' | 'bedrooms'>
+): string | null {
+  if (!place.state) return null;
+  const params = new URLSearchParams({ state: place.state });
+  if (place.area) params.set('area', place.area);
+  if (place.bedrooms !== null && place.bedrooms > 0) params.set('bedrooms', String(place.bedrooms));
+  return `/search?${params.toString()}`;
+}
+
+/**
+ * Parse a whole directory file.
+ *
+ * A malformed row is dropped rather than failing the page, because one bad row
+ * in a crawl should not blank a directory of thousands. The drop is counted, so
+ * a run that loses half its rows is visible instead of quietly shrinking.
+ */
+export function parseDirectory(
+  payload: unknown,
+  now?: string
+): { places: DirectoryPlace[]; rejected: number; generatedAt: string | null } {
+  const body = (payload ?? {}) as Record<string, unknown>;
+  const rows = Array.isArray(body.places) ? body.places : [];
+
+  const places: DirectoryPlace[] = [];
+  let rejected = 0;
+
+  for (const row of rows) {
+    try {
+      places.push(assertPublishable(row as RawDirectoryPlace, now));
+    } catch {
+      rejected += 1;
+    }
+  }
+
+  return {
+    places,
+    rejected,
+    generatedAt: typeof body.generated_at === 'string' ? body.generated_at : null
+  };
+}

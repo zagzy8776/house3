@@ -206,7 +206,10 @@ export const SECTION_COPY = {
  */
 export const NAV_LINKS = [
   { href: '#listings', label: 'Listings' },
-  { href: '#cities', label: 'Cities' }
+  { href: '#cities', label: 'Cities' },
+  // The operator directory - every shortlet we can see, whether or not we can
+  // sell it yet. A real route rather than an anchor, since it is its own page.
+  { href: '/places', label: 'Operators' }
 ] as const;
 
 /** Search modal coverage line — matches the five launch states. */

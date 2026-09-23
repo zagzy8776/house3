@@ -33,6 +33,7 @@ from normalization.history import Observation, detect_changes
 from normalization.names import normalise_operator_name, operator_key
 from normalization.phones import is_plausible_nigerian_mobile, normalise_phone, phone_dedupe_key
 from pipeline import FixtureTransport, build_registry, funnel
+from publishing import assert_publishable, build_directory, contact_route, to_place_row
 from sources.base import AdapterRegistry, DiscoveredListing, SourceLayer
 from sources.npc import LAGOS_LOCALITIES, NpcAdapter
 from sources.providers import GuardedProvider, ProviderError, build_provider, offline_guard
@@ -726,6 +727,133 @@ def test_paid_provider_without_a_key_explains_how_to_run_instead() -> None:
         assert "FIRECRAWL_API_KEY" in str(exc)
     else:
         raise AssertionError("firecrawl built without a key")
+
+
+# ---------------------------------------------------------------------------
+# the publishable projection
+# ---------------------------------------------------------------------------
+
+
+def _listing(**overrides) -> DiscoveredListing:
+    base = {
+        "source": "npc",
+        "source_url": "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos/ikeja/x-1043552",
+        "source_listing_id": "1043552",
+        "property_name": "Luxury 3 Bedrooms Flats with City View",
+        "property_type": "SHORTLET",
+        "bedrooms": 3,
+        "bathrooms": 3,
+        "advertised_price": 20_000_000,
+        "state": "LA",
+        "city": "Lagos",
+        "area": "Ikeja",
+        "operator_name": "Adeniyi Jones Residences Ltd",
+        "phone": "0803 000 0000",
+    }
+    base.update(overrides)
+    return DiscoveredListing(**base)
+
+
+def test_published_row_carries_only_facts() -> None:
+    row = to_place_row(_listing(), "2026-09-23")
+
+    assert row["operator_name"] == "Adeniyi Jones Residences Ltd"
+    assert row["advertised_price"] == 20_000_000
+    assert row["bedrooms"] == 3
+
+
+def test_published_row_never_carries_the_operators_listing_title() -> None:
+    """
+    A listing title is the operator's marketing copy, not a fact about the
+    property, so it stays internal for dedupe and never reaches a public page.
+    """
+    row = to_place_row(_listing(), "2026-09-23")
+
+    assert "property_name" not in row
+    assert not any(
+        isinstance(value, str) and "Luxury" in value for value in row.values()
+    ), row
+
+
+def test_publish_guard_rejects_media_and_prose() -> None:
+    for leaked in ({"photos": ["a.jpg"]}, {"description": "A lovely home"}, {"image": "x.jpg"}):
+        try:
+            assert_publishable({**{"operator_name": "X"}, **leaked})
+        except PolicyViolation as exc:
+            assert list(leaked)[0] in str(exc)
+        else:
+            raise AssertionError(f"publish guard allowed {leaked}")
+
+
+def test_publish_guard_rejects_undeclared_fields() -> None:
+    try:
+        assert_publishable({"operator_name": "X", "internal_score": 9})
+    except PolicyViolation as exc:
+        assert "internal_score" in str(exc)
+    else:
+        raise AssertionError("publish guard allowed an undeclared field")
+
+
+def test_contact_route_prefers_something_bookable_over_a_phone_number() -> None:
+    assert contact_route(_listing(booking_url="https://x/book"))["kind"] == "BOOKING_URL"
+    assert contact_route(_listing(phone="0803 000 0000"))["kind"] == "PHONE"
+    assert contact_route(_listing(phone=None, website="https://x"))["kind"] == "WEBSITE"
+    assert contact_route(_listing(phone=None, email="a@b.ng"))["kind"] == "EMAIL"
+    assert contact_route(_listing(phone=None)) is None
+
+
+def test_phone_route_is_a_tel_link_without_spaces() -> None:
+    route = contact_route(_listing())
+    assert route["href"] == "tel:08030000000"
+
+
+def test_directory_declares_media_as_absent_rather_than_omitting_it() -> None:
+    """
+    A guest should be able to tell "no photographs we may show" from "the page
+    failed to load them". Declaring it null is what makes that possible.
+    """
+    directory = build_directory([_listing()], "2026-09-23", attribution="Nigeria Property Centre")
+
+    assert directory["media"] is None
+
+
+def test_directory_deduplicates_a_place_seen_twice() -> None:
+    """A sitemap walk and a list page both see the same listing."""
+    directory = build_directory(
+        [_listing(), _listing(property_name="Same place, seen again")],
+        "2026-09-23",
+        attribution="Nigeria Property Centre",
+    )
+
+    assert directory["counts"]["places"] == 1
+
+
+def test_directory_counts_how_many_places_we_can_actually_reach() -> None:
+    contactable = _listing()
+    unreachable = _listing(source_listing_id="999", phone=None)
+
+    directory = build_directory([contactable, unreachable], "2026-09-23", attribution="Source")
+
+    assert directory["counts"]["places"] == 2
+    assert directory["counts"]["contactable"] == 1
+
+
+def test_places_we_cannot_reach_are_listed_after_ones_we_can() -> None:
+    unreachable = _listing(source_listing_id="999", phone=None)
+    contactable = _listing(source_listing_id="111")
+
+    directory = build_directory([unreachable, contactable], "2026-09-23", attribution="Source")
+
+    assert directory["places"][0]["contact_route"]["kind"] != "NONE"
+    assert directory["places"][-1]["contact_route"]["kind"] == "NONE"
+
+
+def test_every_published_row_carries_its_attribution() -> None:
+    directory = build_directory(
+        [_listing(), _listing(source_listing_id="2")], "2026-09-23", attribution="Nuclear Portal"
+    )
+
+    assert all(place["attribution"] == "Nuclear Portal" for place in directory["places"])
 
 
 def test_prices_parse_and_reject_nonsense() -> None:

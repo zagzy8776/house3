@@ -44,7 +44,9 @@ difference is that it survives contact with a chargeback team.
 
 ## How inventory is sourced
 
-Only consented channels are supported (`src/inventory/`). There is no scraper module.
+Two layers, deliberately separate.
+
+### Bookable inventory — consented channels (`src/inventory/`)
 
 | Channel | Authorization basis | Booking model |
 |---|---|---|
@@ -57,11 +59,35 @@ Only consented channels are supported (`src/inventory/`). There is no scraper mo
 authorization record is missing, stale, or of the wrong basis for the channel. A
 non-consented channel name (e.g. `SCRAPER`) is rejected by the registry.
 
-Why not scrape: republishing an operator's photography and copy is copyright
-infringement, breaching their terms is tortious interference, and a scraped listing has
-no live calendar — so it cannot answer "is this room actually free tonight?" The moment
-it cannot, the platform is taking money for inventory it may not be able to deliver,
-and the chargeback ratio kills the payment account.
+### Prospects and the directory — `services/acquisition/`
+
+A crawl **cannot** produce inventory: there is no signed agreement, no settlement
+account and no live calendar, so nobody could confirm a booking made against it. What
+it produces is *coverage* — which operators exist, where, with how many units, at what
+advertised rate, and how that has moved since we started watching (`--ledger`).
+
+That splits into two outputs:
+
+- **A lead list** (`leads.jsonl`) that feeds operator outreach.
+- **The public directory** (`directory.json`) rendered at `/places`.
+
+**Publishing publishes facts, not creative work.** An operator's name, phone, area,
+bedroom count and advertised price are facts about a business, and nobody owns a fact —
+so every row carries `attribution` and links back to `sourceUrl`, and the pipeline
+**fails the run** without them. A photograph and a written description are different:
+they have an owner, and republishing either is not made lawful by the page being
+reachable — whether we fetched it ourselves or paid an API to fetch it. Those are
+stripped at the fetch boundary, refused at the extraction boundary, and refused again
+at the publish boundary.
+
+`media: null` on every directory row means "we hold no licence to show photographs of
+this place". Photographs arrive when the operator claims the listing under a supply
+agreement. The directory card therefore renders a designed panel rather than a stock
+photo of a different apartment — a guest who calls because of that photo would have
+been misled about the room.
+
+A prospect's advertised rate is never shown as a price we can charge: `assertBookable()`
+in `src/domain/provenance.ts` makes that a type error, not a policy.
 
 ---
 
@@ -69,13 +95,16 @@ and the chargeback ratio kills the payment account.
 
 ```
 src/domain/      pure, fully tested business logic (money, dates, pricing, splits,
-                 availability, booking state machine)
+                 availability, booking state machine, media licensing, provenance)
 src/inventory/   authorised supply channels + the authorization guard
 src/payments/    Paystack (subaccounts + split) and Flutterwave (split ratios)
-src/server/      booking orchestration, repository contract, in-memory store, demo data
+src/server/      booking orchestration, repository contract, in-memory store, demo data,
+                 directory loader
 src/data/        Nigeria rollout plan + fee policies
+services/acquisition/  the crawl: compliance, sources, extraction, normalization,
+                 publishing (Python; writes leads.jsonl + directory.json)
 prisma/          production PostgreSQL schema + seed
-tests/           120 tests
+tests/           228 tests
 ```
 
 ## Quick start
