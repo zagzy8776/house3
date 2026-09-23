@@ -32,6 +32,7 @@ from normalization.dedupe import consolidate, domain_of, strong_keys
 from normalization.history import Observation, detect_changes
 from normalization.names import normalise_operator_name, operator_key
 from normalization.phones import is_plausible_nigerian_mobile, normalise_phone, phone_dedupe_key
+from ingest.postgres import PostgresIngestor
 from pipeline import FixtureTransport, build_registry, funnel
 from publishing import (
     assert_publishable,
@@ -59,6 +60,86 @@ def listing(**overrides) -> DiscoveredListing:
     )
     base.update(overrides)
     return DiscoveredListing(**base)
+
+
+class RecordingCursor:
+    def __init__(self) -> None:
+        self.statements: list[tuple[str, tuple]] = []
+        self._last = ""
+
+    def execute(self, operation: str, parameters: tuple = ()) -> None:
+        self._last = operation
+        self.statements.append((operation, parameters))
+
+    def fetchone(self):
+        if '"SourceRegistry"' in self._last:
+            return ("src_fixture",)
+        if '"Operator"' in self._last:
+            return ("op_fixture",)
+        if '"Location"' in self._last:
+            return ("loc_fixture",)
+        if '"ProspectListing"' in self._last:
+            return ("listing_fixture",)
+        return None
+
+    def fetchall(self):
+        if 'SELECT "code" FROM "State"' in self._last:
+            return [("LA",)]
+        return []
+
+    def close(self) -> None:
+        pass
+
+
+class RecordingConnection:
+    def __init__(self) -> None:
+        self.cursor_instance = RecordingCursor()
+        self.commits = 0
+
+    def cursor(self):
+        return self.cursor_instance
+
+    def commit(self) -> None:
+        self.commits += 1
+
+    def rollback(self) -> None:
+        pass
+
+
+def test_database_ingest_dry_run_needs_no_connection() -> None:
+    report = PostgresIngestor(None).ingest(
+        [listing(source_listing_id="dry-run")], observed_at="2026-09-23", dry_run=True
+    )
+
+    assert report.received == 1
+    assert report.written == 1
+    assert report.rejected_count == 0
+
+
+def test_database_ingest_rejects_invalid_source_url() -> None:
+    report = PostgresIngestor(None).ingest(
+        [listing(source_url="not-a-url")], observed_at="2026-09-23", dry_run=True
+    )
+
+    assert report.written == 0
+    assert report.rejected_count == 1
+    assert report.rejected[0].reason == "source_url must be an absolute HTTP(S) URL"
+
+
+def test_database_ingest_writes_catalogue_observations_not_bookable_units() -> None:
+    connection = RecordingConnection()
+    report = PostgresIngestor(connection).ingest(
+        [listing(source_listing_id="db-write", advertised_price=12_000_000)],
+        observed_at="2026-09-23",
+    )
+    sql = "\n".join(statement for statement, _ in connection.cursor_instance.statements)
+
+    assert report.written == 1
+    assert connection.commits == 1
+    assert 'INSERT INTO "ProspectListing"' in sql
+    assert 'INSERT INTO "ProspectObservation"' in sql
+    assert 'INSERT INTO "PriceObservation"' in sql
+    assert '"Unit"' not in sql
 
 
 # ---------------------------------------------------------------------------

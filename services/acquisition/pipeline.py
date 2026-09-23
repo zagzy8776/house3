@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from dataclasses import asdict
 from datetime import date
@@ -299,7 +300,30 @@ def main(argv: Optional[list[str]] = None) -> int:
         default=[],
         help="domain to include in Exa discovery; repeatable",
     )
+    parser.add_argument(
+        "--ingest",
+        choices=["db"],
+        help="also write normalized discovery records to PostgreSQL; never creates bookable units",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="validate database-ingest records and write the ingest report without database writes",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        help="limit records sent to the database ingest stage (does not limit crawling; use --max for that)",
+    )
+    parser.add_argument(
+        "--ingest-report",
+        default="ingest-report.json",
+        help="JSON report path for database ingest counts and rejected records",
+    )
     args = parser.parse_args(argv)
+
+    if args.dry_run and args.ingest != "db":
+        parser.error("--dry-run requires --ingest db")
 
     # One guard for the whole run, so --dump-html and a real crawl are subject
     # to exactly the same robots and throttle rules.
@@ -391,6 +415,34 @@ def main(argv: Optional[list[str]] = None) -> int:
     observations = to_observations(listings, observed_on)
     changes = detect_changes(known, observations, today=observed_on)
 
+    ingest_report = None
+    if args.ingest == "db":
+        from ingest.postgres import PostgresIngestor, write_report
+
+        connection = None
+        if not args.dry_run:
+            database_url = os.environ.get("DATABASE_URL")
+            if not database_url:
+                parser.error("--ingest db requires DATABASE_URL (or use --dry-run)")
+            try:
+                import psycopg  # type: ignore[import-not-found]
+            except ImportError as exc:
+                parser.error("--ingest db requires psycopg; install it in the acquisition environment")
+                raise AssertionError from exc
+            connection = psycopg.connect(database_url)
+
+        try:
+            ingest_report = PostgresIngestor(connection).ingest(
+                listings,
+                observed_at=observed_on,
+                dry_run=args.dry_run,
+                limit=args.limit,
+            )
+            write_report(ingest_report, args.ingest_report)
+        finally:
+            if connection is not None:
+                connection.close()
+
     out_path = Path(args.out)
     with out_path.open("w", encoding="utf-8") as sink:
         for operator in report["operators"]:
@@ -421,6 +473,12 @@ def main(argv: Optional[list[str]] = None) -> int:
     print()
     print(f"  skipped by robots: {stats['skipped_robots']}, failed: {stats['failed']}")
     print(f"  wrote {out_path} and appended {len(observations):,} observations to {args.ledger}")
+    if ingest_report is not None:
+        mode = "dry-run" if ingest_report.dry_run else "database"
+        print(
+            f"  {mode} ingest: {ingest_report.written:,} written, "
+            f"{ingest_report.rejected_count:,} rejected; report={args.ingest_report}"
+        )
     if published:
         print(
             f"  published {published['counts']['places']:,} places "

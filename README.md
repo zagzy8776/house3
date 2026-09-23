@@ -116,10 +116,17 @@ npm run typecheck
 
 # optional: real database
 npm run db:up            # docker compose postgres on :5433
-npm run db:push
+npm run db:deploy        # apply committed, authoritative migrations
 npm run db:seed
 npm run db:studio
 ```
+
+The local database uses `postgis/postgis:16-3.4`. `db:push` remains available for
+throwaway experiments, but committed migrations and `db:deploy` are authoritative.
+Use `npm run db:migrate` only when developing a new migration, `npm run db:status`
+to inspect migration state, and `npm run db:reset` to recreate a local database.
+Discovery records are written with the acquisition pipeline's explicit database
+ingest mode; a crawl never becomes bookable inventory merely by being ingested.
 
 For production, set `DATABASE_URL` to the managed PostgreSQL connection string
 from the deployment secret store (Aiven/Neon/etc.) and use SSL. The managed

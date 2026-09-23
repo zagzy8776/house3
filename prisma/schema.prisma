@@ -33,9 +33,12 @@ model State {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  areas    Area[]
-  partners InventoryPartner[]
-  policies FeePolicy[]
+  areas      Area[]
+  partners   InventoryPartner[]
+  policies   FeePolicy[]
+  locations  Location[]
+  properties Property[]
+  operators  Operator[]
 
   @@index([status, launchOrder])
 }
@@ -55,12 +58,391 @@ model Area {
   rank      Int      @default(100)
   createdAt DateTime @default(now())
 
-  state State @relation(fields: [stateCode], references: [code])
+  state    State              @relation(fields: [stateCode], references: [code])
   // Areas belong to a state; partners and units point back at an Area.
   partners InventoryPartner[]
 
   @@unique([stateCode, name])
   @@index([stateCode, rank])
+}
+
+/// A normalized locality used by discovery and canonical properties. `Area` is
+/// still the rollout/search-dropdown table; Location is the durable geography
+/// identity that may later carry LGA and geocoder metadata.
+model Location {
+  id             String   @id @default(cuid())
+  stateCode      String
+  name           String
+  normalizedName String
+  city           String?
+  lga            String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  state      State           @relation(fields: [stateCode], references: [code])
+  properties Property[]
+  listings   SourceListing[]
+
+  @@unique([stateCode, normalizedName])
+  @@index([stateCode, name])
+}
+
+/// A business/operator identity, separate from a physical property. Names are
+/// intentionally not unique: two unrelated operators can use the same name.
+model Operator {
+  id              String   @id @default(cuid())
+  /// Deterministic key from the acquisition dedupe pass. Display names are not
+  /// unique, but an explicit dedupe key makes repeat ingestion idempotent.
+  operatorKey     String?  @unique
+  displayName     String?
+  normalizedName  String
+  phoneNormalized String?
+  email           String?
+  websiteDomain   String?
+  stateCode       String?
+  partnerId       String?
+  firstSeenAt     DateTime
+  lastSeenAt      DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  state      State?            @relation(fields: [stateCode], references: [code])
+  partner    InventoryPartner? @relation(fields: [partnerId], references: [id])
+  properties Property[]
+  listings   SourceListing[]
+
+  @@index([normalizedName, stateCode])
+  @@index([phoneNormalized])
+  @@index([email])
+}
+
+enum PropertyVerificationStatus {
+  DISCOVERED
+  NORMALIZED
+  GEOCODED
+  DEDUPLICATED
+  DATABASE
+  PUBLISHED
+  VERIFIED
+  BOOKABLE
+}
+
+enum LocationPrecision {
+  ROOFTOP
+  ADDRESS
+  STREET
+  NEIGHBORHOOD
+  CITY
+  STATE
+  UNKNOWN
+}
+
+/// One physical accommodation. A discovery record is not automatically made
+/// into a Property: SourceListing.propertyId remains nullable until evidence is
+/// sufficient to avoid manufacturing duplicate apartments.
+model Property {
+  id                       String                                 @id @default(cuid())
+  canonicalName            String?
+  propertyType             String?
+  bedrooms                 Int?
+  bathrooms                Int?
+  maxGuests                Int?
+  stateCode                String?
+  locationId               String?
+  addressLine              String?
+  city                     String?
+  latitude                 Float?
+  longitude                Float?
+  /// PostGIS geography(Point, 4326). Prisma cannot read/write this field;
+  /// ingestion writes it with ST_SetSRID(ST_MakePoint(...), 4326)::geography.
+  geog                     Unsupported("geography(Point, 4326)")?
+  locationPrecision        LocationPrecision?
+  geocodeConfidence        Int?
+  geocodeProvider          String?
+  geocodedAt               DateTime?
+  verificationStatus       PropertyVerificationStatus             @default(DISCOVERED)
+  canonicalSourceListingId String?
+  operatorId               String?
+  createdAt                DateTime                               @default(now())
+  updatedAt                DateTime                               @updatedAt
+
+  state          State?               @relation(fields: [stateCode], references: [code])
+  location       Location?            @relation(fields: [locationId], references: [id])
+  operator       Operator?            @relation(fields: [operatorId], references: [id])
+  sourceListings SourceListing[]
+  prices         PriceObservation[]
+  geocode        GeocodeRecord?
+  amenities      PropertyAmenity[]
+  availability   AvailabilitySignal[]
+
+  @@index([stateCode, verificationStatus])
+  @@index([locationId, verificationStatus])
+  @@index([operatorId])
+}
+
+enum SourceAccessMethod {
+  PUBLIC_WEB
+  API
+  FEED
+  MANUAL
+}
+
+enum SourceTermsStatus {
+  UNREVIEWED
+  PERMITTED
+  RESTRICTED
+  PROHIBITED
+}
+
+/// Permission and provenance registry for every discovery source.
+model SourceRegistry {
+  id                     String             @id @default(cuid())
+  key                    String             @unique
+  displayName            String
+  ownerLegalName         String?
+  regions                String[]
+  accessMethod           SourceAccessMethod
+  termsStatus            SourceTermsStatus  @default(UNREVIEWED)
+  termsUrl               String?
+  robotsPolicySnapshot   String?
+  attributionRequirement String?
+  rateLimitPerMinute     Int?
+  contactEmail           String?
+  lastReviewedAt         DateTime?
+  reviewedBy             String?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  listings SourceListing[]
+}
+
+enum PriceBasis {
+  PER_NIGHT
+  PER_STAY
+  PER_PERSON_NIGHT
+  UNKNOWN
+}
+
+/// Source-scoped crawl record. The physical table name is retained for a safe
+/// transition from the original prospect schema.
+model SourceListing {
+  id                  String     @id @default(cuid())
+  source              String
+  sourceListingId     String
+  sourceUrl           String
+  propertyId          String?
+  operatorId          String?
+  sourceRegistryId    String?
+  locationId          String?
+  city                String?
+  firstSeenAt         DateTime
+  lastSeenAt          DateTime
+  advertisedPriceKobo Int?
+  currency            String     @default("NGN")
+  priceBasis          PriceBasis @default(UNKNOWN)
+  bedrooms            Int?
+  bathrooms           Int?
+  area                String?
+  stateCode           String?
+  operatorKey         String?
+  operatorName        String?
+  rawSnapshotRef      String?
+  parserVersion       String?
+  normalizedAt        DateTime?
+  rawFacts            Json?
+  provenance          Json?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  property     Property?              @relation(fields: [propertyId], references: [id])
+  operator     Operator?              @relation(fields: [operatorId], references: [id])
+  registry     SourceRegistry?        @relation(fields: [sourceRegistryId], references: [id])
+  location     Location?              @relation(fields: [locationId], references: [id])
+  observations SourceObservation[]
+  prices       PriceObservation[]
+  amenities    SourceListingAmenity[]
+
+  @@unique([source, sourceListingId])
+  @@index([lastSeenAt])
+  @@index([propertyId])
+  @@index([operatorKey])
+  @@index([stateCode, area])
+  @@map("ProspectListing")
+}
+
+/// Append-only normalized source sighting. A rerun of one listing on one
+/// timestamp is idempotent; a later observation is a new row.
+model SourceObservation {
+  id              String   @id @default(cuid())
+  sourceListingId String
+  observedAt      DateTime
+  normalizedFacts Json
+  rawFacts        Json?
+  provenance      Json
+  createdAt       DateTime @default(now())
+
+  sourceListing SourceListing @relation(fields: [sourceListingId], references: [id])
+
+  @@unique([sourceListingId, observedAt])
+  @@index([observedAt])
+  @@map("ProspectObservation")
+}
+
+/// Append-only price history. Prices are observations of a source, not House3
+/// bookable rates.
+model PriceObservation {
+  id              String     @id @default(cuid())
+  propertyId      String?
+  sourceListingId String
+  amountKobo      Int?
+  currency        String     @default("NGN")
+  basis           PriceBasis @default(UNKNOWN)
+  nights          Int?
+  guests          Int?
+  taxesIncluded   Boolean?
+  feesIncluded    Boolean?
+  observedAt      DateTime
+  sourceUrl       String
+  createdAt       DateTime   @default(now())
+
+  property      Property?     @relation(fields: [propertyId], references: [id])
+  sourceListing SourceListing @relation(fields: [sourceListingId], references: [id])
+
+  @@unique([sourceListingId, observedAt])
+  @@index([propertyId, observedAt])
+  @@index([observedAt])
+}
+
+enum GeocodeReviewStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  NEEDS_REVIEW
+}
+
+model GeocodeRecord {
+  id            String              @id @default(cuid())
+  propertyId    String              @unique
+  provider      String
+  query         String
+  latitude      Float
+  longitude     Float
+  confidenceBps Int?
+  precision     LocationPrecision
+  reviewStatus  GeocodeReviewStatus @default(PENDING)
+  observedAt    DateTime
+  rawResponse   Json?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id])
+}
+
+enum MatchDecisionType {
+  AUTO_MERGED
+  REVIEW_APPROVED
+  REVIEW_REJECTED
+  SPLIT
+  LEFT_SEPARATE
+}
+
+model MatchDecision {
+  id                   String            @id @default(cuid())
+  leftType             String
+  leftId               String
+  rightType            String
+  rightId              String
+  strategy             String
+  ruleVersion          String
+  scoreBps             Int?
+  decision             MatchDecisionType
+  evidence             Json
+  decidedBy            String?
+  decidedAt            DateTime          @default(now())
+  reversedByDecisionId String?
+
+  @@index([leftType, leftId])
+  @@index([rightType, rightId])
+  @@index([decision, decidedAt])
+}
+
+model Amenity {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  displayName String
+  createdAt   DateTime @default(now())
+
+  aliases       AmenityAlias[]
+  propertyLinks PropertyAmenity[]
+  sourceLinks   SourceListingAmenity[]
+}
+
+model AmenityAlias {
+  id                String   @id @default(cuid())
+  amenityId         String
+  source            String?
+  sourceWording     String
+  normalizedWording String
+  mappingVersion    String
+  createdAt         DateTime @default(now())
+
+  amenity Amenity @relation(fields: [amenityId], references: [id])
+
+  @@unique([amenityId, source, normalizedWording])
+}
+
+model PropertyAmenity {
+  propertyId     String
+  amenityId      String
+  confidenceBps  Int?
+  decidedBy      String
+  mappingVersion String
+  createdAt      DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id])
+  amenity  Amenity  @relation(fields: [amenityId], references: [id])
+
+  @@id([propertyId, amenityId])
+}
+
+model SourceListingAmenity {
+  sourceListingId String
+  amenityId       String
+  sourceWording   String
+  confidenceBps   Int?
+  decidedBy       String
+  mappingVersion  String
+  createdAt       DateTime @default(now())
+
+  sourceListing SourceListing @relation(fields: [sourceListingId], references: [id])
+  amenity       Amenity       @relation(fields: [amenityId], references: [id])
+
+  @@id([sourceListingId, amenityId])
+}
+
+enum AvailabilitySignalState {
+  AVAILABLE
+  UNAVAILABLE
+  UNKNOWN
+  REQUIRES_CONFIRMATION
+}
+
+model AvailabilitySignal {
+  id            String                  @id @default(cuid())
+  propertyId    String?
+  unitId        String?
+  state         AvailabilitySignalState
+  source        String
+  observedAt    DateTime
+  expiresAt     DateTime?
+  confidenceBps Int?
+  createdAt     DateTime                @default(now())
+
+  property Property? @relation(fields: [propertyId], references: [id])
+  unit     Unit?     @relation(fields: [unitId], references: [id])
+
+  @@index([propertyId, observedAt])
+  @@index([unitId, observedAt])
 }
 
 // ---------------------------------------------------------------------------
@@ -88,13 +470,14 @@ model InventoryPartner {
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
 
-  state    State            @relation(fields: [stateCode], references: [code])
-  area     Area?            @relation(fields: [areaId], references: [id])
-  channels PartnerChannel[]
-  units    Unit[]
-  bookings Booking[]
+  state     State            @relation(fields: [stateCode], references: [code])
+  area      Area?            @relation(fields: [areaId], references: [id])
+  channels  PartnerChannel[]
+  units     Unit[]
+  bookings  Booking[]
   /// Photographs licensed to us under this partner's supply agreement.
-  media    MediaAsset[]
+  media     MediaAsset[]
+  operators Operator[]
 
   @@index([stateCode, status])
 }
@@ -108,10 +491,10 @@ enum PartnerStatus {
 
 /// One row per authorised inventory feed. `kind` mirrors InventoryChannelKind.
 model PartnerChannel {
-  id                     String               @id @default(cuid())
+  id                     String             @id @default(cuid())
   partnerId              String
   kind                   ChannelKind
-  status                 ChannelStatus        @default(ACTIVE)
+  status                 ChannelStatus      @default(ACTIVE)
   /// Contract id / affiliate publisher id / feed owner. Mandatory paper trail.
   authorizationReference String
   authorizationBasis     AuthorizationBasis
@@ -123,8 +506,8 @@ model PartnerChannel {
   secretRef              String?
   lastSyncedAt           DateTime?
   lastSyncError          String?
-  createdAt              DateTime             @default(now())
-  updatedAt              DateTime             @updatedAt
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
 
   partner InventoryPartner @relation(fields: [partnerId], references: [id])
 
@@ -152,34 +535,33 @@ enum ChannelStatus {
   REVOKED
 }
 
-
 model Unit {
-  id                         String     @id @default(cuid())
-  partnerId                  String
-  externalId                 String
-  name                       String
-  unitType                   UnitType
-  maxGuests                  Int
-  bedrooms                   Int
-  bathrooms                  Int
+  id                        String     @id @default(cuid())
+  partnerId                 String
+  externalId                String
+  name                      String
+  unitType                  UnitType
+  maxGuests                 Int
+  bedrooms                  Int
+  bathrooms                 Int
   /// The partner's OWN published nightly rate. House3 never overwrites this.
-  nightlyRateKobo            Int
-  cleaningFeeKobo            Int        @default(0)
-  extraGuestFeePerNightKobo  Int        @default(0)
-  includedGuests             Int        @default(2)
-  minNights                  Int        @default(1)
-  maxNights                  Int        @default(30)
+  nightlyRateKobo           Int
+  cleaningFeeKobo           Int        @default(0)
+  extraGuestFeePerNightKobo Int        @default(0)
+  includedGuests            Int        @default(2)
+  minNights                 Int        @default(1)
+  maxNights                 Int        @default(30)
   /// false = affiliate/redirect inventory with no instant-book calendar.
-  bookable                   Boolean    @default(true)
-  deepLinkBaseUrl            String?
+  bookable                  Boolean    @default(true)
+  deepLinkBaseUrl           String?
   /// Attribution shown on the listing page, e.g. "Lekki Homes Ltd".
-  partnerDisplayName         String?
-  status                     UnitStatus @default(DRAFT)
+  partnerDisplayName        String?
+  status                    UnitStatus @default(DRAFT)
 
   /// Surveyed coordinates. Null until onboarding captures them - never inferred
   /// from the area name, because a wrong pin sends a guest to the wrong street.
-  latitude                   Float?
-  longitude                  Float?
+  latitude  Float?
+  longitude Float?
   /// Latitude/longitude pair for PostGIS. Enable the extension with
   ///   CREATE EXTENSION IF NOT EXISTS postgis;
   /// then uncomment, backfill from latitude/longitude, and add:
@@ -191,16 +573,17 @@ model Unit {
 
   /// Property title. Filters on this are what make this a Nigerian platform:
   /// buyers ask about title before almost anything else.
-  titleDocument              TitleDocument @default(NOT_DISCLOSED)
+  titleDocument TitleDocument @default(NOT_DISCLOSED)
 
-  createdAt                  DateTime   @default(now())
-  updatedAt                  DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  partner      InventoryPartner @relation(fields: [partnerId], references: [id])
-  availability UnitNight[]
-  holds        Hold[]
-  bookings     Booking[]
-  media        MediaAsset[]
+  partner             InventoryPartner     @relation(fields: [partnerId], references: [id])
+  availability        UnitNight[]
+  holds               Hold[]
+  bookings            Booking[]
+  media               MediaAsset[]
+  availabilitySignals AvailabilitySignal[]
 
   @@unique([partnerId, externalId])
   @@index([status])
@@ -345,8 +728,8 @@ model Booking {
   guestName  String
   guestEmail String
   guestPhone String
-  adults     Int           @default(2)
-  children   Int           @default(0)
+  adults     Int    @default(2)
+  children   Int    @default(0)
 
   checkIn  DateTime @db.Date
   checkOut DateTime @db.Date
@@ -355,14 +738,14 @@ model Booking {
   // Frozen, auditable money snapshot. All integer kobo.
   policyId          String
   roomSubtotalKobo  Int
-  discountTotalKobo Int    @default(0)
+  discountTotalKobo Int        @default(0)
   serviceFeeKobo    Int
-  serviceFeeVatKobo Int    @default(0)
-  cleaningFeeKobo   Int    @default(0)
+  serviceFeeVatKobo Int        @default(0)
+  cleaningFeeKobo   Int        @default(0)
   totalKobo         Int
   partnerNetKobo    Int
   platformNetKobo   Int
-  processorFeeKobo  Int    @default(0)
+  processorFeeKobo  Int        @default(0)
   processor         Processor?
   /// The exact line items shown to the guest at checkout.
   priceBreakdown    Json
@@ -507,26 +890,26 @@ model WebhookEvent {
 /// agreeing to something: the partner uploads it under the supply agreement, we
 /// commission a shoot, or we buy a licence.
 model MediaAsset {
-  id                String       @id @default(cuid())
-  partnerId         String
+  id               String       @id @default(cuid())
+  partnerId        String
   /// Null for operator-level media such as a logo.
-  unitId            String?
-  licence           MediaLicence
+  unitId           String?
+  licence          MediaLicence
   /// The contract, commission or licence that permits this use. Required.
-  licenceRef        String
-  licenceGrantedAt  DateTime
+  licenceRef       String
+  licenceGrantedAt DateTime
   /// Null means open-ended. Required for LICENSED_FEED, which is time-limited
   /// by nature and cannot be audited without an end date.
-  licenceExpiresAt  DateTime?
+  licenceExpiresAt DateTime?
   /// Rendering order. Position 0 is the card image.
-  position          Int          @default(0)
+  position         Int          @default(0)
   /// Our own words. Never lifted from a listing page.
-  alt               String
+  alt              String
   /// Storage keys, not third-party CDN URLs: a URL we do not control is a
   /// photograph that can be withdrawn or swapped without our knowing.
-  variants          Json
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  variants         Json
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
   partner InventoryPartner @relation(fields: [partnerId], references: [id])
   unit    Unit?            @relation(fields: [unitId], references: [id])
@@ -543,63 +926,3 @@ enum MediaLicence {
   /// Bought from a portal or channel manager under a media licence.
   LICENSED_FEED
 }
-
-/// One listing seen on someone else's portal, as of one date.
-///
-/// PROSPECT DATA. This is not inventory and must never be rendered as a rate a
-/// guest can pay - see src/domain/provenance.ts, where that rule is a type rather
-/// than a convention. It exists to answer two questions honestly: which
-/// operators are active where, and how their advertised rates have moved since
-/// we started watching.
-///
-/// No media and no description is stored, in any column, by design.
-model ProspectListing {
-  id                String    @id @default(cuid())
-  source            String
-  sourceListingId   String
-  sourceUrl         String
-  /// The floor of the listing's age: it existed before we found it, by an
-  /// unknown amount, so anything derived from this is "at least".
-  firstSeenAt       DateTime
-  lastSeenAt        DateTime
-  advertisedPriceKobo Int?
-  currency          String    @default("NGN")
-  bedrooms          Int?
-  area              String?
-  stateCode         String?
-  /// Operator-level identity, resolved by the union-find consolidation in
-  /// services/acquisition/normalization/dedupe.py.
-  operatorKey       String?
-  operatorName      String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
-  observations ProspectObservation[]
-
-  @@unique([source, sourceListingId])
-  @@index([lastSeenAt])
-  @@index([operatorKey])
-  @@index([stateCode, area])
-}
-
-/// Every sighting of a prospect listing, append-only.
-///
-/// Kept as rows rather than only as the JSONL ledger so price history survives
-/// an operator delisting a page - which is exactly when the history becomes
-/// interesting, because a withdrawn listing that reappears at a lower rate is
-/// the sharpest acquisition signal we get.
-model ProspectObservation {
-  id                  String   @id @default(cuid())
-  prospectListingId   String
-  observedOn          DateTime
-  advertisedPriceKobo Int?
-  bedrooms            Int?
-  area                String?
-  createdAt           DateTime @default(now())
-
-  prospectListing ProspectListing @relation(fields: [prospectListingId], references: [id])
-
-  @@unique([prospectListingId, observedOn])
-  @@index([observedOn])
-}
-

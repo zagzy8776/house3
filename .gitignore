@@ -39,5 +39,6 @@ services/acquisition/*.jsonl
 # state without it; regenerate with:
 #   python pipeline.py --states LA,FC,OY,IM,AK --publish directory.json
 services/acquisition/directory.json
+services/acquisition/ingest-report.json
 __pycache__/
 *.pyc

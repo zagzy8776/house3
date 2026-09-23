@@ -1,0 +1,1 @@
+"""Database sinks for the discovery acquisition pipeline."""

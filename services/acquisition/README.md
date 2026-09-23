@@ -189,6 +189,15 @@ python pipeline.py --source npc --state LA --area lekki --fixture --interval 0
 
 # Tests (pytest, or the built-in runner if pytest is absent)
 python -m pytest -q
+
+# Dual-write normalized discovery records to PostgreSQL. This never creates
+# bookable Unit rows; partner authorization remains a separate path.
+python pipeline.py --source npc --state LA --fixture --interval 0 \
+  --ingest db --limit 100 --ingest-report ingest-report.json
+
+# Validate the same records without opening a database connection.
+python pipeline.py --source npc --state LA --fixture --interval 0 \
+  --ingest db --dry-run --limit 100
 ```
 
 Real crawl needs a browser, because NPC is Livewire/Alpine and paginates in JS:
@@ -197,6 +206,10 @@ Real crawl needs a browser, because NPC is Livewire/Alpine and paginates in JS:
 pip install playwright && playwright install chromium
 python pipeline.py --source npc --state LA --transport playwright --interval 5
 ```
+
+Database ingest requires a PostgreSQL DB-API driver in the acquisition runtime
+(the CLI imports `psycopg` only when `--ingest db` is used). The default crawl and
+`--dry-run` mode remain dependency-free and do not open a database connection.
 
 **Verify the regexes against real markup before trusting a large crawl:**
 
