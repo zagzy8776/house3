@@ -31,3 +31,9 @@ prisma/migrations/dev.db*
 next-env.d.ts
 next-build.log
 design/*.png
+
+# Acquisition pipeline output and caches
+services/**/*.jsonl
+services/acquisition/*.jsonl
+__pycache__/
+*.pyc

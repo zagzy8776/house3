@@ -1,0 +1,40 @@
+<!doctype html>
+<!--
+  Offline fixture for the acquisition pipeline.
+
+  Deliberately contains all three things the extractor must handle, and nothing
+  it must not:
+    - operator identity, area, phone, rate, title, and a PMS fingerprint
+    - NO meaningful body copy and NO images, because the extractor is not allowed
+      to keep either, and a fixture that contains them would hide a regression.
+
+  Run:  python pipeline.py --fixture
+-->
+<html lang="en-NG">
+  <head>
+    <meta charset="utf-8" />
+    <title>Lekki Phase 1 serviced apartment</title>
+    <!-- A booking-system reference: this operator could onboard via API/iCal. -->
+    <script src="https://app.smoobu.com/js/widget.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1 class="listing-operator">Lekki Homes Ltd</h1>
+      <span class="listing-area">Lekki Phase 1, Lagos</span>
+    </header>
+
+    <section class="facts">
+      <p class="price">NGN 150,000 per night</p>
+      <p class="title-doc">Certificate of Occupancy (C of O)</p>
+    </section>
+
+    <footer>
+      <a href="tel:+234 803 000 0000">Call</a>
+      <a href="tel:0812 345 6789">Second line</a>
+      <a href="mailto:bookings@lekkihomes.ng?subject=Enquiry">Email</a>
+      <a href="https://lekkihomes.ng/availability">Website</a>
+      <a href="https://instagram.com/lekkihomes">Instagram</a>
+      <a href="https://wa.me/2348030000000">WhatsApp</a>
+    </footer>
+  </body>
+</html>
