@@ -619,7 +619,25 @@ def _run_ingest_file(args, adapter) -> int:
         print(parser_error, file=sys.stderr)
         return 2
 
-    raw = json.loads(path.read_text(encoding="utf-8"))
+    raw: list[dict] = []
+    text = path.read_text(encoding="utf-8").strip()
+    if text.startswith("["):
+        # A JSON array.
+        raw = json.loads(text)
+    else:
+        # JSONL, one record per line. The crawl stages append line-by-line so a run
+        # that dies mid-stage still leaves every completed record behind, which a
+        # single JSON document could not do.
+        line = 0
+        for line, entry in enumerate(text.splitlines(), 1):
+            entry = entry.strip()
+            if not entry:
+                continue
+            try:
+                raw.append(json.loads(entry))
+            except json.JSONDecodeError as exc:
+                raise SystemExit(f"{path.name}: malformed JSON on line {line}: {exc}") from exc
+
     fields = set(DiscoveredListing.__dataclass_fields__)
     listings: list[DiscoveredListing] = []
     unusable = 0
@@ -644,13 +662,29 @@ def _run_ingest_file(args, adapter) -> int:
         print("--ingest-file requires DATABASE_URL (or use --dry-run)", file=sys.stderr)
         return 2
 
-    ingestor = PostgresIngestor(
-        dsn_for_psycopg(database_url),
-        source=adapter.name,
-        parser_version=f"rollout-{adapter.name}",
+    connection = None
+    if not args.dry_run:
+        try:
+            import psycopg  # type: ignore[import-not-found]
+        except ImportError:
+            print("--ingest-file requires psycopg", file=sys.stderr)
+            return 2
+        connection = psycopg.connect(dsn_for_psycopg(database_url))
+
+    try:
+        ingestor = PostgresIngestor(
+            connection,
+            parser_version=f"rollout-{adapter.name}",
+        )
+        report = ingestor.ingest(listings, observed_at=date.today(), dry_run=args.dry_run)
+    finally:
+        if connection is not None:
+            connection.close()
+
+    print(
+        f"database ingest: {report.written} written, {report.rejected_count} rejected",
+        file=sys.stderr,
     )
-    report = ingestor.ingest(listings, observed_at=date.today(), dry_run=args.dry_run)
-    print(f"database ingest: {report.written} written, {report.rejected_count} rejected", file=sys.stderr)
 
     if args.ingest_report:
         write_report(report, args.ingest_report)

@@ -42,3 +42,10 @@ services/acquisition/directory.json
 services/acquisition/ingest-report.json
 __pycache__/
 *.pyc
+
+# Staged rollout artifacts: crawl output, resume marks and per-stage ingest reports.
+records-*.jsonl
+done-*.txt
+rollout-*.json
+ingest-*.json
+*.log

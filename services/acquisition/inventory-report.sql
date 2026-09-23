@@ -88,3 +88,46 @@ SELECT "stateCode", area, count(*) AS listings,
        count(*) FILTER (WHERE "locationId" IS NOT NULL) AS located
 FROM "ProspectListing"
 GROUP BY 1, 2 ORDER BY 3 DESC;
+
+-- Junk detection. This check exists because a live degraded run wrote exactly this
+-- row: sourceListingId 'lagos' with sourceUrl /for-rent/short-let/lagos?page=20. A
+-- list page had been parsed as a listing, every row on it collapsed onto that one
+-- key, and the run reported "18 written" while the database received one junk row.
+--
+-- A real listing carries the publisher's own reference. On NPC that is six or more
+-- digits; on PropertyPro a 5-6 character alphanumeric token. Anything without one
+-- is a category page, a filter URL, or a parse that fell back to a path segment.
+\echo '--- junk: rows whose id is not a publisher reference (must be empty) ---'
+SELECT "source", "sourceListingId", "sourceUrl", count(*) AS affected_rows
+FROM "ProspectListing"
+WHERE "sourceListingId" !~ '[0-9]{5,}'
+  AND "sourceListingId" !~ '^[A-Za-z0-9]{5,8}$'
+GROUP BY 1, 2, 3 ORDER BY 4 DESC;
+
+\echo '--- junk: ids that are a bare state or area name ---'
+SELECT "source", "sourceListingId", "sourceUrl"
+FROM "ProspectListing"
+WHERE lower("sourceListingId") IN (
+  'lagos','abuja','oyo','imo','akwa-ibom','lekki','ikeja','ikoyi','ajah','lagos-island'
+);
+
+\echo '--- list/search pages accidentally ingested (query strings are a smell) ---'
+SELECT "source", "sourceListingId", "sourceUrl"
+FROM "ProspectListing"
+WHERE "sourceUrl" ~ '\?(page|type|state|area|min_price|max_price|sort|limit)='
+   OR "sourceUrl" ~ '/property-for-short-let/in/'
+   OR "sourceUrl" ~ '/for-rent/short-let/[a-z-]+$'
+LIMIT 25;
+
+\echo '--- duplicate source URLs: one URL must be exactly one listing ---'
+SELECT "source", "sourceUrl", count(*) AS rows_for_one_url
+FROM "ProspectListing"
+GROUP BY 1, 2 HAVING count(*) > 1 ORDER BY 3 DESC;
+
+\echo '--- distinctness: ids and URLs should both equal the row count ---'
+SELECT count(*) AS listings,
+       count(DISTINCT "sourceListingId") AS distinct_ids,
+       count(DISTINCT "sourceUrl")       AS distinct_urls,
+       count(*) - count(DISTINCT "sourceListingId") AS id_collisions,
+       count(*) - count(DISTINCT "sourceUrl")       AS url_collisions
+FROM "ProspectListing";
