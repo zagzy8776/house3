@@ -168,7 +168,7 @@ An `AFFILIATE` row additionally requires `affiliate_partner`, an absolute
 `affiliate_url`, `affiliate_disclosure`, and an `AFFILIATE_URL` contact route.
 Those fields are mutually exclusive with `DIRECTORY`: a crawl may observe a
 `booking_url`, but it can never promote that observation into a bookable or
-affiliate route. The crawl's `booking_url`/`availability_url` are internal
+affiliate route. The crawl's `booking_url`/`availability_hint_url` are internal
 signals only and are refused by `NEVER_PUBLISHED`.
 
 `src/domain/directory.ts` validates this shape on the way in and refuses a row
@@ -214,21 +214,28 @@ Database ingest requires a PostgreSQL DB-API driver in the acquisition runtime
 **Verify the regexes against real markup before trusting a large crawl:**
 
 ```bash
-python pipeline.py --dump-html https://www.nigeriapropertycentre.com/for-rent/short-let/lagos
+python pipeline.py --dump-html https://www.nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/lekki/lekki-phase-1/3690360-full-duplex
 ```
 
 The extraction patterns are derived from the observed structure but were not
 tuned against a full page dump. Treat a first small crawl as calibration.
+
+The first live crawl is what found the rest: an operator name inferred from a
+font CDN, then a stylesheet CDN, then a sister portal; a stray placeholder in the
+ingest SQL; and a discovery filter that treated for-sale land as short-let
+inventory. None of those were visible in the bundled fixtures, which are
+cleaner than real pages. **Run against the live site before scaling.**
 
 ## Nigeria Property Centre — reconnaissance, 2026-09-23
 
 | Finding | Detail |
 |---|---|
 | robots.txt | `User-agent: *` disallows only `*report/create*`. Every property path permitted, a Sitemap is published, AI crawlers get `Allow: /`, and `trovitBot` is blocked |
-| Sitemaps | `sitemap_listings_1..4.txt` plus `neighbourhoods`, `area_guides`, `list_pages`, `market_reports`, `demand_supply` |
-| Canonical paths | `/for-rent/short-let/{state}/{locality}` |
-| Scale | Lagos: **13,525** short-let listings across **50** localities |
-| Prices | Lagos avg **₦170K/day**, most between **₦120–240K**, max ₦700K, min ₦35K |
+| Sitemaps | `sitemap_listings_1..4.txt` plus `neighbourhoods`, `area_guides`, `list_pages`, `market_reports`, `demand_supply`. The listing shards are **plain text, one URL per line** — they have no `<loc>` elements, so a parser that only understands XML sitemaps reads zero URLs from them |
+| Canonical paths | `/for-rent/short-let/{type}/{state}/{locality}/{id}`, e.g. `/for-rent/short-let/houses/detached-duplexes/lagos/lekki/lekki-phase-1/3690360-full-duplex`. The shorter `/for-rent/short-let/{state}/{locality}` is a category landing page and publishes **no listing URLs of its own** |
+| Scale | sitemap census 2026-09-23: **172,186** listing URLs total, of which **16,322** are short-let; **13,471** of those are Lagos. Everything else is for-sale houses and land, joint ventures and annual rentals, which are not House3 prospects |
+| Reference ids | three shapes are live: reference last (`...-view-1043552`), reference first (`3690360-full-duplex`), and bare (`7654321`). Only the number is stable — the words around it are the listing's title, and a title edit rewrites the slug |
+| Prices | observed in the first live Lagos run: **₦110,000–₦500,000 per day**. NPC states the basis in text ("per day", "per annum") but we record `UNKNOWN` rather than guess, so a per-annum figure and a per-night figure are not yet distinguishable |
 | Runtime | Livewire/Alpine — filters and pagination need a real browser |
 | Listings are posted by | "an estate agent or developer you can contact directly" |
 
@@ -258,6 +265,26 @@ was wrong).
 `test_three_real_fixture_pages_consolidate_to_one_operator` proves it end to end
 through real parsing: three pages, three distinct listing ids, **one operator**.
 
+### A name is an identity only when the source states it
+
+A name is evidence when the page publishes it — JSON-LD `seller`, or a labelled
+agency block. A name **guessed from a domain** is a hint: it goes to
+`rawFacts.operator_hint`, and the listing keeps `operatorName`, `operatorKey` and
+`operatorId` `null` until entity resolution has something to weigh. That is what
+`OperatorIdentity.is_identity` gates, and `weak_keys()` returns nothing for a
+listing with no stated name, so a hint can never merge two listings.
+
+The rule exists because acting on the guess is expensive: an early Lagos crawl
+attributed every prospect to a font CDN, then a stylesheet CDN, then a sister
+portal, and merged fourteen unrelated properties in one neighbourhood into a
+single operator. NPC publishes phone numbers but no operator name, so the phone
+is the strongest operator signal that portal gives us.
+
+The call list carries the same distinction: a profile with no stated name is
+written to `leads.jsonl` with `identityStatus: UNIDENTIFIED` and
+`canonicalOperatorId: null`, because its label is a listing title rather than a
+business. `IDENTIFIED` means a source published the name.
+
 ## The funnel
 
 ```
@@ -274,9 +301,10 @@ If `unique properties == unique operators`, consolidation is not working.
 Fields extracted: `source`, `source_url`, `source_listing_id`, `property_name`,
 `operator_name`, `phone`, `email`, `website`, `state`, `city`, `area`,
 `property_type`, `bedrooms`, `bathrooms`, `advertised_price`, `currency`,
-`pms_detected`, `booking_url`, `availability_url`, `title_document` — with
+`pms_detected`, `booking_url`, `availability_hint_url`, `price_basis`,
+`title_document` — with
 `first_seen_at` / `last_seen_at` provenance applied on the TypeScript side.
-`booking_url`, `availability_url`, `property_name` and `title_document` stay
+`booking_url`, `availability_hint_url`, `property_name` and `title_document` stay
 internal: publishing drops them, and the public projection refuses them again.
 
 ## What is never collected

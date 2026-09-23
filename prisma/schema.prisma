@@ -216,8 +216,17 @@ model SourceRegistry {
   listings SourceListing[]
 }
 
+/// The unit an advertised price is quoted in. A Nigerian portal states shortlets
+/// "per day", rentals "per annum" and furnished lets "per month", so a nightly
+/// rate and an annual rent are only comparable once this is known - leaving both
+/// as UNKNOWN would put a NGN 500,000 night and a NGN 500,000 year side by side.
+/// "per day" is PER_NIGHT: one day's stay is one night, and two values for one
+/// rate would have to be reconciled by every later calculation.
 enum PriceBasis {
   PER_NIGHT
+  PER_WEEK
+  PER_MONTH
+  PER_YEAR
   PER_STAY
   PER_PERSON_NIGHT
   UNKNOWN
@@ -237,7 +246,14 @@ model SourceListing {
   city                String?
   firstSeenAt         DateTime
   lastSeenAt          DateTime
-  advertisedPriceKobo Int?
+  /// Observed advertised figure in kobo, as stated by the source. BigInt rather
+  /// than Int on purpose: this is an uncontrolled third-party number. NPC quotes
+  /// short-lets "per day" but also "per annum", and non-short-let templates quote
+  /// land in the billions, so an int4 ceiling (NGN 21,474,836) would abort a run
+  /// on one outlier. Bookable money stays Int kobo - see Unit, where the pricing
+  /// funnel guarantees the range. Discovery and bookable inventory do not share
+  /// a type, because they do not share a trust boundary.
+  advertisedPriceKobo BigInt?
   currency            String     @default("NGN")
   priceBasis          PriceBasis @default(UNKNOWN)
   bedrooms            Int?
@@ -294,7 +310,9 @@ model PriceObservation {
   id              String     @id @default(cuid())
   propertyId      String?
   sourceListingId String
-  amountKobo      Int?
+  /// Observed amount in kobo. BigInt for the same reason as
+  /// SourceListing.advertisedPriceKobo: observed, not quoted by House3.
+  amountKobo      BigInt?
   currency        String     @default("NGN")
   basis           PriceBasis @default(UNKNOWN)
   nights          Int?

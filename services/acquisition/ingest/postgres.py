@@ -18,6 +18,7 @@ from datetime import date, datetime, timezone
 from typing import Any, Iterable, Optional, Protocol
 from urllib.parse import urlparse
 
+from extraction.property import PRICE_BASES
 from normalization.addresses import canonical_area, slug
 from normalization.names import normalise_operator_name, operator_key as build_operator_key
 from normalization.phones import normalise_phone
@@ -98,6 +99,56 @@ def _website_domain(website: Optional[str]) -> Optional[str]:
     return parsed.netloc.lower().removeprefix("www.") or None
 
 
+# Query parameters Prisma's query engine accepts but libpq does not. The common
+# one is `schema`, which Prisma *requires* and psycopg rejects outright with
+# `invalid URI query parameter: "schema"` - so a DATABASE_URL copied from .env,
+# a Vercel secret, or a Prisma-managed connection string has to be translated
+# before it reaches the driver. Everything libpq understands (`sslmode`,
+# `sslrootcert`, `connect_timeout`, `application_name`, ...) is left alone.
+PRISMA_ONLY_DSN_PARAMS = frozenset(
+    {
+        "schema",
+        "connection_limit",
+        "pool_timeout",
+        "socket_timeout",
+        "pgbouncer",
+        "sslaccept",
+        "sslidentity",
+        "sslpassword",
+    }
+)
+
+
+def dsn_for_psycopg(database_url: str) -> str:
+    """Return ``database_url`` minus the parameters libpq cannot parse.
+
+    The pipeline shares one ``DATABASE_URL`` with Prisma, and Prisma's URL is not
+    a libpq URL. Translating here - rather than asking every operator to keep two
+    copies of the same credential in sync - means there is one connection string
+    in the environment and still no ambiguity about which parameters survive.
+
+    A URL with no query string, or with no Prisma-only parameters, is returned
+    unchanged, so a plain libpq URL round-trips byte for byte.
+    """
+    base, marker, query = database_url.partition("?")
+    if not marker:
+        return database_url
+
+    fragment = ""
+    if "#" in query:
+        query, _, fragment = query.partition("#")
+
+    kept = [
+        pair
+        for pair in query.split("&")
+        if pair and pair.split("=", 1)[0].lower() not in PRISMA_ONLY_DSN_PARAMS
+    ]
+    suffix = f"#{fragment}" if fragment else ""
+    if not kept:
+        return base + suffix
+    return f"{base}?{'&'.join(kept)}{suffix}"
+
+
 def _validate_listing(listing: DiscoveredListing) -> Optional[str]:
     if not listing.source.strip():
         return "source is required"
@@ -118,6 +169,18 @@ def _validate_listing(listing: DiscoveredListing) -> Optional[str]:
 def _facts(listing: DiscoveredListing) -> dict[str, Any]:
     """Return the allowlisted normalized record, including internal provenance facts."""
     return listing.to_record()
+
+
+def _price_basis(listing: DiscoveredListing) -> str:
+    """The stated unit of the advertised price, or UNKNOWN.
+
+    Checked against the enum rather than passed through: an unrecognised value
+    would surface as a PostgreSQL error part-way through a crawl, and UNKNOWN is
+    the honest answer for "the source did not say" - which is what an unmapped
+    value means.
+    """
+    basis = (listing.price_basis or "").strip().upper()
+    return basis if basis in PRICE_BASES else "UNKNOWN"
 
 
 class PostgresIngestor:
@@ -185,6 +248,11 @@ class PostgresIngestor:
                 "layer": "DISCOVERY_SOURCE",
             }
 
+            # 23 placeholders / 23 bound values. "propertyId" is deliberately NOT in
+            # the column list: a crawl never creates a canonical property, so the link
+            # stays NULL until geocoding and entity resolution decide one exists. It is
+            # also absent from the DO UPDATE, so a re-crawl cannot clobber a link that
+            # entity resolution has already made.
             cursor.execute(
                 '''
                 INSERT INTO "ProspectListing" (
@@ -195,8 +263,8 @@ class PostgresIngestor:
                   "operatorName", "parserVersion", "normalizedAt", "rawFacts",
                   "provenance", "updatedAt"
                 ) VALUES (
-                  %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'UNKNOWN',
-                  %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, NOW()
+                  %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                  %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, NOW()
                 )
                 ON CONFLICT ("source", "sourceListingId") DO UPDATE SET
                   "sourceUrl" = EXCLUDED."sourceUrl",
@@ -207,6 +275,7 @@ class PostgresIngestor:
                   "lastSeenAt" = EXCLUDED."lastSeenAt",
                   "advertisedPriceKobo" = EXCLUDED."advertisedPriceKobo",
                   "currency" = EXCLUDED."currency",
+                  "priceBasis" = EXCLUDED."priceBasis",
                   "bedrooms" = EXCLUDED."bedrooms",
                   "bathrooms" = EXCLUDED."bathrooms",
                   "area" = EXCLUDED."area",
@@ -233,6 +302,7 @@ class PostgresIngestor:
                     observed_at,
                     listing.advertised_price,
                     listing.currency or "NGN",
+                    _price_basis(listing),
                     listing.bedrooms,
                     listing.bathrooms,
                     listing.area,
@@ -277,10 +347,11 @@ class PostgresIngestor:
                     INSERT INTO "PriceObservation" (
                       "id", "sourceListingId", "amountKobo", "currency", "basis",
                       "observedAt", "sourceUrl"
-                    ) VALUES (%s, %s, %s, %s, 'UNKNOWN', %s, %s)
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT ("sourceListingId", "observedAt") DO UPDATE SET
                       "amountKobo" = EXCLUDED."amountKobo",
                       "currency" = EXCLUDED."currency",
+                      "basis" = EXCLUDED."basis",
                       "sourceUrl" = EXCLUDED."sourceUrl"
                     ''',
                     (
@@ -288,6 +359,7 @@ class PostgresIngestor:
                         source_listing_pk,
                         listing.advertised_price,
                         listing.currency or "NGN",
+                        _price_basis(listing),
                         observed_at,
                         listing.source_url,
                     ),

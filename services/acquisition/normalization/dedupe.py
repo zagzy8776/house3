@@ -33,25 +33,19 @@ from dataclasses import dataclass, field
 from typing import Callable, Iterable, Optional
 from urllib.parse import urlparse
 
+from compliance.non_operator_hosts import is_non_operator_host
 from normalization.addresses import canonical_area
 from normalization.names import normalise_operator_name, operator_key
 from normalization.phones import normalise_phone, phone_dedupe_key
 
 from sources.base import DiscoveredListing
 
-#: Domains that are never an operator identity.
-NON_OPERATOR_DOMAINS = frozenset(
-    {
-        "nigeriapropertycentre.com",
-        "propertypro.ng",
-        "jiji.ng",
-        "facebook.com",
-        "instagram.com",
-        "wa.me",
-        "whatsapp.com",
-        "google.com",
-    }
-)
+#: What a profile's `display_name` actually is. `PROPERTY_TITLE` means the name is
+#: a fallback: no source stated an operator, so the label is the listing's own
+#: title. Such a profile is a *grouping of listings*, not a canonical operator -
+#: no `Operator` row exists for it and none may be inferred from it.
+STATED_NAME = "STATED_NAME"
+PROPERTY_TITLE = "PROPERTY_TITLE"
 
 
 @dataclass
@@ -81,9 +75,16 @@ class OperatorProfile:
     property_types: list[str] = field(default_factory=list)
     prices_kobo: list[int] = field(default_factory=list)
     pms_detected: list[str] = field(default_factory=list)
-    availability_urls: list[str] = field(default_factory=list)
+    #: UNVERIFIED availability links. Observed, never trusted: a live portal page
+    #: pointed one of these at a different listing on the same portal, so it is a
+    #: discovery hint that needs validation before anything treats it as a
+    #: calendar endpoint. See `extraction/pms.py`.
+    availability_hint_urls: list[str] = field(default_factory=list)
     sources: list[str] = field(default_factory=list)
     evidence: list[MatchEvidence] = field(default_factory=list)
+    #: STATED_NAME when a source published an operator name, PROPERTY_TITLE when
+    #: `display_name` fell back to a listing title.
+    display_name_source: str = STATED_NAME
 
     @property
     def listing_count(self) -> int:
@@ -94,13 +95,33 @@ class OperatorProfile:
         return len(self.areas)
 
     @property
+    def identity_status(self) -> str:
+        """IDENTIFIED when a source stated a name, UNIDENTIFIED when it is a fallback.
+
+        An UNIDENTIFIED profile must never be read as a canonical operator. It is
+        the end of a phone number, not a business: no source published a name, so
+        the label is whichever listing happened to group first. Entity resolution
+        is what turns evidence into an `Operator` row, and it is the only thing
+        permitted to.
+        """
+        return "IDENTIFIED" if self.display_name_source == STATED_NAME else "UNIDENTIFIED"
+
+    @property
     def has_direct_booking(self) -> bool:
-        return bool(self.websites or self.availability_urls or self.pms_detected)
+        return bool(self.websites or self.availability_hint_urls or self.pms_detected)
 
     def to_lead(self) -> dict:
-        """Shape for the TypeScript lead engine, matching src/domain/lead.ts."""
+        """Shape for the TypeScript lead engine, matching src/domain/lead.ts.
+
+        `operatorId` is a lead grouping key, not `Operator.id`. `identityStatus`
+        says which it is: an UNIDENTIFIED lead has no canonical operator behind it
+        yet, and `canonicalOperatorId` stays null until entity resolution creates
+        one.
+        """
         return {
             "operatorId": self.operator_id,
+            "identityStatus": self.identity_status,
+            "canonicalOperatorId": None,
             "displayName": self.display_name,
             "listingCount": self.listing_count,
             "observedNightlyRatesKobo": sorted(set(self.prices_kobo)),
@@ -123,10 +144,17 @@ class OperatorProfile:
 
 
 def domain_of(url: Optional[str]) -> Optional[str]:
+    """The host of a URL, unless that host can never identify an operator.
+
+    The blocklist is shared with `extraction/contact.py` rather than duplicated:
+    a domain here becomes a STRONG match key, so a stale copy would fuse two
+    unrelated businesses into one call - the same class of mistake the extraction
+    layer was fixed for, but with a worse consequence.
+    """
     if not url:
         return None
     host = urlparse(url).netloc.lower().replace("www.", "")
-    if not host or any(host.endswith(bad) for bad in NON_OPERATOR_DOMAINS):
+    if not host or is_non_operator_host(host):
         return None
     return host
 
@@ -261,7 +289,8 @@ def _build_profile(members: list[DiscoveredListing], evidence: list[MatchEvidenc
 
     # Prefer a real operator name over a property name.
     named = [listing.operator_name for listing in members if listing.operator_name]
-    display_name = _best_name(named) or members[0].property_name
+    stated_name = _best_name(named)
+    display_name = stated_name or members[0].property_name
 
     areas: list[str] = []
     for listing in members:
@@ -276,6 +305,7 @@ def _build_profile(members: list[DiscoveredListing], evidence: list[MatchEvidenc
     return OperatorProfile(
         operator_id=operator_key(display_name, primary_area, primary_state),
         display_name=display_name,
+        display_name_source=STATED_NAME if stated_name else PROPERTY_TITLE,
         listing_ids=[listing.source_listing_id for listing in members],
         source_urls=[listing.source_url for listing in members],
         phones=_unique([normalise_phone(listing.phone) for listing in members if listing.phone]),
@@ -287,8 +317,8 @@ def _build_profile(members: list[DiscoveredListing], evidence: list[MatchEvidenc
         property_types=_unique([listing.property_type for listing in members if listing.property_type]),
         prices_kobo=prices,
         pms_detected=_unique([listing.pms_detected for listing in members if listing.pms_detected]),
-        availability_urls=_unique(
-            [listing.availability_url for listing in members if listing.availability_url]
+        availability_hint_urls=_unique(
+            [listing.availability_hint_url for listing in members if listing.availability_hint_url]
         ),
         sources=_unique([listing.source for listing in members]),
         evidence=[entry for entry in evidence if set(entry.listing_ids) & member_ids],

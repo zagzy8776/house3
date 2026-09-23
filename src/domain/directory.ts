@@ -102,8 +102,11 @@ const FORBIDDEN_PUBLIC_KEYS = [
   'titleDocument',
   // Crawl-only signals. A discovered booking/availability URL is not an
   // authorised handoff, so it must never reach the public projection.
+  // `availability_hint_url` is the quarantined name for a link that was observed
+  // but never validated as a calendar endpoint - it is even less publishable.
   'booking_url',
-  'availability_url'
+  'availability_url',
+  'availability_hint_url'
 ] as const;
 
 export class UnpublishablePlaceError extends Error {

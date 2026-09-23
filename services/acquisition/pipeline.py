@@ -417,7 +417,7 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     ingest_report = None
     if args.ingest == "db":
-        from ingest.postgres import PostgresIngestor, write_report
+        from ingest.postgres import PostgresIngestor, dsn_for_psycopg, write_report
 
         connection = None
         if not args.dry_run:
@@ -429,7 +429,9 @@ def main(argv: Optional[list[str]] = None) -> int:
             except ImportError as exc:
                 parser.error("--ingest db requires psycopg; install it in the acquisition environment")
                 raise AssertionError from exc
-            connection = psycopg.connect(database_url)
+            # Prisma's URL is not a libpq URL (`?schema=public` is Prisma-only),
+            # and the two stages share one environment variable.
+            connection = psycopg.connect(dsn_for_psycopg(database_url))
 
         try:
             ingest_report = PostgresIngestor(connection).ingest(

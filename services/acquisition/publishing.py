@@ -94,7 +94,7 @@ NEVER_PUBLISHED = frozenset(
         "title_document",
         "source_listing_id",
         "booking_url",
-        "availability_url",
+        "availability_hint_url",
     }
 )
 

@@ -62,13 +62,25 @@ class DiscoveredListing:
     city: Optional[str] = None
     area: Optional[str] = None
     operator_name: Optional[str] = None
+    #: A name inferred from a domain rather than stated by the source. Recorded so
+    #: entity resolution can weigh it, never used as an identity: taking a hint for
+    #: an identity is what merged unrelated businesses under one name.
+    operator_hint: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
     website: Optional[str] = None
     instagram: Optional[str] = None
     pms_detected: Optional[str] = None
     booking_url: Optional[str] = None
-    availability_url: Optional[str] = None
+    #: An availability link the page offered, and NOT a calendar endpoint.
+    #: Quarantined by name because a live portal page pointed one at a different
+    #: listing on the same portal: it is a discovery hint that Phase 6 must
+    #: validate before treating it as availability.
+    availability_hint_url: Optional[str] = None
+    #: The unit the advertised price is quoted in. A stated "per annum" and a
+    #: nightly rate are not the same number, so collapsing both into UNKNOWN
+    #: silently makes them comparable-looking. See `extraction/property.py`.
+    price_basis: Optional[str] = None
     title_document: Optional[str] = None
 
     def to_record(self) -> dict:
@@ -87,13 +99,15 @@ class DiscoveredListing:
             "city": self.city,
             "area": self.area,
             "operator_name": self.operator_name,
+            "operator_hint": self.operator_hint,
             "phone": self.phone,
             "email": self.email,
             "website": self.website,
             "instagram": self.instagram,
             "pms_detected": self.pms_detected,
             "booking_url": self.booking_url,
-            "availability_url": self.availability_url,
+            "availability_hint_url": self.availability_hint_url,
+            "price_basis": self.price_basis,
             "title_document": self.title_document,
         }
         return assert_no_media_or_prose({k: v for k, v in raw.items() if v is not None})

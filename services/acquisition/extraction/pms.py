@@ -54,10 +54,34 @@ def find_ical_feed(html: str) -> Optional[str]:
 
 
 def find_availability_url(html: str, base_url: str) -> Optional[str]:
-    from urllib.parse import urljoin
+    """A link the page offers for checking availability - UNVERIFIED.
+
+    Returns None when the link resolves onto the same host as the page being read,
+    because that is not an availability endpoint. A live NPC listing pointed one at
+    a *different listing on the same portal* - a "similar properties" row - and a
+    pipeline that took that for a calendar would have been wrong about every
+    listing that happened to carry such a link.
+
+    An external host is still only a hint, not proof of a booking engine. That is
+    why the field it lands in is `availability_hint_url` and why Phase 6 has to
+    validate before treating it as availability.
+    """
+    from urllib.parse import urljoin, urlparse
+
+    from compliance.non_operator_hosts import registrable_domain
 
     match = AVAILABILITY_HINT_RE.search(html)
-    return urljoin(base_url, match.group(1)) if match else None
+    if not match:
+        return None
+
+    candidate = urljoin(base_url, match.group(1))
+    source_host = urlparse(base_url).netloc.lower()
+    candidate_host = urlparse(candidate).netloc.lower()
+    if not candidate_host:
+        return None
+    if registrable_domain(candidate_host) == registrable_domain(source_host):
+        return None
+    return candidate
 
 
 def find_booking_url(html: str, base_url: str) -> Optional[str]:

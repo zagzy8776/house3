@@ -12,7 +12,14 @@ of signals, strongest first, and reports which one it used:
      the operator name explicitly.
   2. A markup block whose class or id names an agency/agent/company/owner.
   3. The registrable domain of the operator's own website, expanded to a readable
-     name ("lekkihomes.ng" -> "Lekki Homes"-ish, kept as a lower-confidence hint).
+     name ("lekkihomes.ng" -> "Lekkihomes"). **This is a hint, never identity.**
+     A name taken from a domain is one weak signal, and treating it as identity
+     merged unrelated businesses: every prospect in an early Lagos crawl was
+     attributed to a font CDN, a stylesheet CDN, and then a sister portal. Callers
+     must check `OperatorIdentity.is_identity` and route a hint to
+     `DiscoveredListing.operator_hint` instead of `operator_name` - it is recorded
+     and left for entity resolution to weigh, so no operator row is created until
+     there is evidence for one.
 
 Confidence is carried on the result because a name scraped from a `<h1>` and a
 name taken from a schema.org field deserve different trust. Dedupe uses the
@@ -65,6 +72,12 @@ GENERIC_LABELS = {
 
 DOMAIN_SUFFIXES = (".ng", ".com", ".com.ng", ".org", ".net", ".africa")
 
+#: Which rung of the ladder produced a name. Only the last one is too weak to be
+#: an identity, and it is named so callers cannot mistake it for the others.
+CONFIDENCE_STRUCTURED = "high"
+CONFIDENCE_MARKUP = "medium"
+CONFIDENCE_DOMAIN = "low"
+
 
 @dataclass
 class OperatorIdentity:
@@ -75,6 +88,17 @@ class OperatorIdentity:
     #: "low" = inferred from a domain.
     confidence: str
     evidence: str
+
+    @property
+    def is_identity(self) -> bool:
+        """True when the name is evidence of *who* the operator is.
+
+        A domain-derived name is a hint, not identity. It is one weak signal, and
+        acting on it is what attributed an entire crawl to a font CDN and then to
+        a sister portal. Callers record it as a hint and leave the operator empty
+        until entity resolution has something to weigh.
+        """
+        return self.confidence != CONFIDENCE_DOMAIN
 
 
 def _clean(value: str) -> str:
@@ -120,11 +144,11 @@ def extract_operator(html: str, website: Optional[str] = None) -> Optional[Opera
         if isinstance(value, dict) and isinstance(value.get("name"), str):
             candidate = _clean(value["name"])
             if _looks_like_business(candidate):
-                return OperatorIdentity(candidate, "high", f"json-ld {key}.name")
+                return OperatorIdentity(candidate, CONFIDENCE_STRUCTURED, f"json-ld {key}.name")
         if isinstance(value, str):
             candidate = _clean(value)
             if _looks_like_business(candidate):
-                return OperatorIdentity(candidate, "high", f"json-ld {key}")
+                return OperatorIdentity(candidate, CONFIDENCE_STRUCTURED, f"json-ld {key}")
 
     # 2. a labelled markup block
     for match in AGENCY_BLOCK_RE.finditer(html):
@@ -132,12 +156,12 @@ def extract_operator(html: str, website: Optional[str] = None) -> Optional[Opera
         # A block often contains the name plus a phone; take the first line.
         candidate = candidate.split("\n")[0].strip()
         if _looks_like_business(candidate):
-            return OperatorIdentity(candidate, "medium", "agency-labelled block")
+            return OperatorIdentity(candidate, CONFIDENCE_MARKUP, "agency-labelled block")
 
-    # 3. the operator's own domain
+    # 3. the operator's own domain - a hint for entity resolution, not identity
     if website:
         inferred = name_from_domain(website)
         if inferred:
-            return OperatorIdentity(inferred, "low", f"domain of {website}")
+            return OperatorIdentity(inferred, CONFIDENCE_DOMAIN, f"domain of {website}")
 
     return None

@@ -154,7 +154,11 @@ describe('directory publication guard', () => {
   });
 
   it('refuses crawl-only booking and availability URLs', () => {
-    for (const key of ['booking_url', 'availability_url'] as const) {
+    for (const key of [
+      'booking_url',
+      'availability_url',
+      'availability_hint_url'
+    ] as const) {
       expect(() => assertPublishable(row({ [key]: 'https://x/book' }))).toThrow(
         /non-publishable field/i
       );

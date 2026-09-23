@@ -16,7 +16,7 @@ CREATE TYPE "SourceAccessMethod" AS ENUM ('PUBLIC_WEB', 'API', 'FEED', 'MANUAL')
 CREATE TYPE "SourceTermsStatus" AS ENUM ('UNREVIEWED', 'PERMITTED', 'RESTRICTED', 'PROHIBITED');
 
 -- CreateEnum
-CREATE TYPE "PriceBasis" AS ENUM ('PER_NIGHT', 'PER_STAY', 'PER_PERSON_NIGHT', 'UNKNOWN');
+CREATE TYPE "PriceBasis" AS ENUM ('PER_NIGHT', 'PER_WEEK', 'PER_MONTH', 'PER_YEAR', 'PER_STAY', 'PER_PERSON_NIGHT', 'UNKNOWN');
 
 -- CreateEnum
 CREATE TYPE "GeocodeReviewStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED', 'NEEDS_REVIEW');
@@ -202,7 +202,7 @@ CREATE TABLE "ProspectListing" (
     "city" TEXT,
     "firstSeenAt" TIMESTAMP(3) NOT NULL,
     "lastSeenAt" TIMESTAMP(3) NOT NULL,
-    "advertisedPriceKobo" INTEGER,
+    "advertisedPriceKobo" BIGINT,
     "currency" TEXT NOT NULL DEFAULT 'NGN',
     "priceBasis" "PriceBasis" NOT NULL DEFAULT 'UNKNOWN',
     "bedrooms" INTEGER,
@@ -240,7 +240,7 @@ CREATE TABLE "PriceObservation" (
     "id" TEXT NOT NULL,
     "propertyId" TEXT,
     "sourceListingId" TEXT NOT NULL,
-    "amountKobo" INTEGER,
+    "amountKobo" BIGINT,
     "currency" TEXT NOT NULL DEFAULT 'NGN',
     "basis" "PriceBasis" NOT NULL DEFAULT 'UNKNOWN',
     "nights" INTEGER,

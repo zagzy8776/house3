@@ -104,7 +104,7 @@ src/data/        Nigeria rollout plan + fee policies
 services/acquisition/  the crawl: compliance, sources, extraction, normalization,
                  publishing (Python; writes leads.jsonl + directory.json)
 prisma/          production PostgreSQL schema + seed
-tests/           241 TypeScript tests; services/acquisition has 72 Python tests
+tests/           241 TypeScript tests; services/acquisition has 88 Python tests
 ```
 
 ## Quick start
@@ -137,6 +137,48 @@ edge cache without changing the source of truth.
 
 Copy `.env.example` to `.env` before touching a processor. Nothing in `src/domain`
 reads the environment — pricing is injected, which is why the tests are deterministic.
+
+### Moving the same schema to a managed PostgreSQL (Aiven)
+
+The local container and Aiven must hold the **same committed migration** — never a
+copy of local data. The local database is disposable once the migration has been
+proven against it; what travels is `prisma/migrations/**`.
+
+```bash
+# 1. point at Aiven, with SSL. Secret store only; never commit it.
+export DATABASE_URL="postgresql://avnadmin:…@pg-xxxx.aivencloud.com:12345/defaultdb?sslmode=require"
+
+# 2. the committed baseline, against an empty database
+npx prisma migrate deploy
+
+# 3. prove the schema landed, rather than that the command exited 0
+psql "$DATABASE_URL" -c "SELECT PostGIS_Version()"
+psql "$DATABASE_URL" -c "SELECT extname FROM pg_extension ORDER BY 1"
+psql "$DATABASE_URL" -c "SELECT indexname FROM pg_indexes WHERE indexname IN ('Property_geog_gist_idx','Operator_normalizedName_trgm_idx')"
+npm run db:status
+
+# 4. smoke-ingest a small slice, then read it back
+python services/acquisition/pipeline.py --source npc --state LA --interval 5 --max 25 --ingest db --limit 25
+```
+
+`CREATE EXTENSION postgis`/`pg_trgm` run inside the baseline migration, so the
+connecting role needs permission to create them. On Aiven the default admin user
+has it; if it does not, enable the extension from the Aiven console and re-run
+step 2.
+
+Expected after step 4, as counts:
+
+| Expectation | Why |
+|---|---|
+| `ProspectListing` > 0 | the crawl was persisted |
+| `Property` = 0 | discovery does not claim canonical properties |
+| `Unit` = 0 | discovery is not bookable inventory |
+| `Operator` = 0 | no operator is invented from a weak signal |
+| running step 4 twice leaves every count identical | ingest is idempotent on `(source, sourceListingId)` |
+
+`DATABASE_URL` carries Prisma's `?schema=public`, which libpq rejects outright.
+The pipeline strips Prisma-only parameters before psycopg connects, so one
+variable serves both tools.
 
 ## Documentation
 

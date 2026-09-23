@@ -15,30 +15,55 @@ from __future__ import annotations
 
 import re
 from typing import Optional
+from urllib.parse import urlparse
+
+from compliance.non_operator_hosts import is_non_operator_host
 
 TEL_RE = re.compile(r'href="tel:([^"]+)"', re.IGNORECASE)
 MAILTO_RE = re.compile(r'href="mailto:([^"?]+)', re.IGNORECASE)
 WHATSAPP_RE = re.compile(r"(?:wa\.me|api\.whatsapp\.com/send\?phone=)(\+?\d{7,15})", re.IGNORECASE)
 INSTAGRAM_RE = re.compile(r"instagram\.com/([A-Za-z0-9_.]{2,30})", re.IGNORECASE)
 
-#: Hosts that are never "the operator's own website".
-NON_OPERATOR_HOSTS = (
-    "nigeriapropertycentre.com",
-    "propertypro.ng",
-    "jiji.ng",
-    "facebook.com",
-    "twitter.com",
-    "x.com",
-    "linkedin.com",
-    "youtube.com",
-    "google.com",
-    "whatsapp.com",
-    "wa.me",
-    "instagram.com",
-    "apple.com",
-    "play.google.com",
-    "cloudflare.com",
+#: The operator's own site is an anchor a visitor can click. A resource reference
+#: is not - `<link rel=stylesheet>`, `<link rel=preconnect>`, `<script src>` - and
+#: scanning every `href` meant the operator name was taken from whatever asset
+#: host the template used. The first live Lagos ingest produced a prospect list
+#: where every lead was a business called "Fonts" (from fonts.googleapis.com),
+#: and the next produced "Ddo5o3z2xgpp2" (from ddo5o3z2xgpp2.cloudfront.net).
+#: Per-project asset hostnames cannot be enumerated, so the tag decides.
+ANCHOR_RE = re.compile(r'<a\s[^>]*href="(https?://[^"]+)"', re.IGNORECASE)
+
+#: Extensions that mark a URL as a file rather than a site a person visits.
+ASSET_EXTENSIONS = (
+    ".css",
+    ".js",
+    ".mjs",
+    ".json",
+    ".map",
+    ".xml",
+    ".ics",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".svg",
+    ".webp",
+    ".ico",
+    ".avif",
+    ".woff",
+    ".woff2",
+    ".ttf",
+    ".otf",
+    ".eot",
+    ".pdf",
+    ".zip",
 )
+
+
+def _looks_like_asset(url: str) -> bool:
+    """True when a URL points at a file rather than the operator's site."""
+    return urlparse(url).path.lower().endswith(ASSET_EXTENSIONS)
+
 
 #: Corporate-looking contact route. A gmail address is still contactable, but we
 #: record it as what it is rather than pretending it is a company address.
@@ -80,18 +105,16 @@ def find_operator_website(html: str, base_url: str) -> Optional[str]:
     """
     The operator's own site, if the listing links out to one.
 
-    Excludes the portal itself and social platforms, because those are not the
-    operator's website and a lead scored as "has its own website" on the strength
-    of a Facebook page would be misleading.
+    Excludes the portal itself, social platforms and asset hosts, because none of
+    those are the operator's website and a lead scored as "has its own website" on
+    the strength of a Facebook page or a stylesheet would be misleading.
     """
-    from urllib.parse import urlparse
-
-    for match in re.finditer(r'href="(https?://[^"]+)"', html, re.IGNORECASE):
+    for match in ANCHOR_RE.finditer(html):
         candidate = match.group(1)
         host = urlparse(candidate).netloc.lower()
-        if any(blocked in host for blocked in NON_OPERATOR_HOSTS):
+        if is_non_operator_host(host):
             continue
-        if ".ics" in candidate.lower():
+        if _looks_like_asset(candidate):
             continue
         return candidate
     return None

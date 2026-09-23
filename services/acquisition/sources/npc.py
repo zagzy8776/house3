@@ -7,8 +7,13 @@ Reconnaissance, 2026-09-23:
     explicit `Allow: /`. `trovitBot` (a competitor aggregator) is disallowed.
   - Sitemap index publishes `sitemap_listings_1..4.txt` plus `neighbourhoods`,
     `area_guides`, `list_pages`, `market_reports`, `demand_supply`.
-  - Canonical short-let paths: /for-rent/short-let/{state}/{locality}
-  - Lagos carried 13,525 short-let listings, 50 localities.
+  - Canonical short-let paths: /for-rent/short-let/{type}/{state}/{locality}/{id}
+    e.g. /for-rent/short-let/houses/detached-duplexes/lagos/lekki/lekki-phase-1/3690360-full-duplex
+    The older /for-rent/short-let/{state}/{locality} shape is only a category
+    landing page and publishes no listing URLs of its own.
+  - Sitemap census, re-verified 2026-09-23: 172,186 listing URLs total, of which
+    16,322 are short-let. The remainder are for-sale houses and land, joint
+    ventures, and annual rentals - none of which are House3 prospects.
   - The site is Livewire/Alpine (`@resize.window.debounce`, `x-data`), so filter
     and pagination interactions are JavaScript-driven. That is why the pipeline
     offers PlaywrightTransport: a plain fetch gets the first page of results, the
@@ -47,6 +52,7 @@ from extraction.property import (
     extract_property_type,
     extract_title_document,
     first_int,
+    parse_price_basis,
     parse_price_to_kobo,
     strip_tags,
 )
@@ -82,8 +88,26 @@ LAGOS_LOCALITIES: tuple[str, ...] = (
     "yaba",
 )
 
-#: Listing URLs on NPC end in a numeric id. Observed in the published sitemap.
-LISTING_ID_RE = re.compile(r"-(\d{6,})(?:/)?$")
+#: The listing's numeric reference, wherever the publisher puts it in the final
+#: path segment. Three shapes are live:
+#:
+#:   .../ikeja/luxury-3-bedrooms-flats-with-city-view-1043552   (reference last)
+#:   .../lekki-phase-1/3690360-full-duplex                      (reference first)
+#:   .../ikeja/7654321                                          (bare reference)
+#:
+#: The number is the stable part; the words around it are the listing's *title*,
+#: and editing a title rewrites the slug. Keying on the whole segment - which is
+#: what the previous regex fell through to, because it only accepted a trailing
+#: reference - would record the same listing twice after the operator renamed it.
+#: Leftmost match wins, so a leading reference is preferred.
+LISTING_ID_RE = re.compile(r"(?:^|[-/])(\d{6,})(?=[-/]|$)")
+
+#: Only short-let paths are prospects. Filtering on the state slug alone (the
+#: previous behaviour) matched every listing in the sitemap for that state, so a
+#: "Lagos" run returned terraced duplexes *for sale* at NGN 290,000,000 and flats
+#: at "NGN 10,000,000 per annum" - the wrong inventory at the wrong price basis,
+#: and the first land plot recorded an advertised price of NGN 24,000,000,000.
+SHORTLET_PATH = "/for-rent/short-let/"
 
 #: The page's own statement of what it is. Preferred over the URL we fetched,
 #: because a list page offers us the list URL for every row on it.
@@ -169,7 +193,11 @@ class NpcAdapter:
         except Exception:
             listing_urls = []
 
-        matched = [url for url in listing_urls if f"/{slug}/" in url or url.endswith(f"/{slug}")]
+        matched = [
+            url
+            for url in listing_urls
+            if SHORTLET_PATH in url and (f"/{slug}/" in url or url.endswith(f"/{slug}"))
+        ]
         if area:
             needle = f"/{slug}/{area.strip().lower().replace(' ', '-')}"
             matched = [url for url in matched if needle in url]
@@ -204,8 +232,30 @@ class NpcAdapter:
         website = find_operator_website(html, url) or None
         identity = extract_operator(html, website)
 
+        # A name the source *states* is an identity. A name inferred from a domain
+        # is a hint: it is one weak signal, and treating it as identity attributed
+        # an entire Lagos crawl to a font CDN, then a stylesheet CDN, then a sister
+        # portal - with unrelated agencies merged by neighbourhood. The hint is
+        # recorded and left for entity resolution, so this listing carries no
+        # operator until something actually establishes one.
+        operator_name = None
+        operator_hint = None
+        if identity:
+            if identity.is_identity:
+                operator_name = identity.name
+            else:
+                operator_hint = identity.name
+
         phones = find_phones(html)
         location = self._location_from_url(source_url)
+
+        # One price match, two facts: what was asked, and the unit it was asked
+        # in. The unit usually follows the figure in the title ("... - NGN 190,000
+        # per day"), so it is read from the words around the match rather than from
+        # the page as a whole.
+        price_match = PRICE_RE.search(plain)
+        advertised_price = parse_price_to_kobo(price_match.group(0) if price_match else None)
+        price_basis = parse_price_basis(plain, price_match)
 
         listing = DiscoveredListing(
             source=self.name,
@@ -215,19 +265,21 @@ class NpcAdapter:
             property_type=extract_property_type(html),
             bedrooms=first_int(BEDROOMS_RE, plain),
             bathrooms=first_int(BATHROOMS_RE, plain),
-            advertised_price=parse_price_to_kobo(PRICE_RE.search(plain).group(0) if PRICE_RE.search(plain) else None),
+            advertised_price=advertised_price,
+            price_basis=price_basis,
             currency="NGN",
             state=location.get("state"),
             city=location.get("city"),
             area=location.get("area"),
-            operator_name=identity.name if identity else None,
+            operator_name=operator_name,
+            operator_hint=operator_hint,
             phone=phones[0] if phones else None,
             email=find_email(html),
             website=website,
             instagram=find_instagram(html),
             pms_detected=detect_pms(html),
             booking_url=find_booking_url(html, url),
-            availability_url=find_availability_url(html, url),
+            availability_hint_url=find_availability_url(html, url),
             title_document=extract_title_document(plain),
         )
 
@@ -264,10 +316,26 @@ class NpcAdapter:
         canonical = CANONICAL_URL_RE.search(html) or OG_URL_RE.search(html)
         if canonical:
             candidate = canonical.group(1).strip()
-            if candidate and self._same_host(candidate):
+            if candidate and self._same_host(candidate) and self._is_listing_url(candidate):
                 return candidate, self._listing_id(candidate)
 
         return fetched_url, self._listing_id(fetched_url)
+
+    @staticmethod
+    def _is_listing_url(url: str) -> bool:
+        """True when the URL's last path segment carries a listing reference.
+
+        Some templates publish their breadcrumb toggle as the canonical - observed
+        as `/for-rent/short-let/houses/showtype`. Every page on such a template
+        would then be handed the SAME source_listing_id, and because
+        `(source, sourceListingId)` is the uniqueness key they would collapse into
+        one record, each overwriting the previous one's source_url - silently
+        merging distinct properties instead of creating duplicates. Falling back
+        to the fetched URL is always safe: that is the page we actually read.
+        """
+        path = urlparse(url).path.rstrip("/")
+        segment = path.rsplit("/", 1)[-1] if path else ""
+        return bool(LISTING_ID_RE.search(segment))
 
     def _same_host(self, candidate: str) -> bool:
         expected = self.host.replace("www.", "")

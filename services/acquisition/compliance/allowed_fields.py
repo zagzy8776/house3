@@ -40,13 +40,21 @@ ALLOWED_FIELDS = frozenset(
         "last_seen_at",
         # operator-level signals
         "operator_name",
+        # A name inferred from a domain rather than stated by the source. Declared
+        # deliberately: it is a business hint the entity-resolution step weighs, not
+        # an identity and not personal data. `agent_name` stays forbidden.
+        "operator_hint",
         "phone",
         "email",
         "website",
         "instagram",
         "pms_detected",
         "booking_url",
-        "availability_url",
+        # An availability link, explicitly unverified. Named for what it is so
+        # nothing downstream mistakes it for a calendar endpoint.
+        "availability_hint_url",
+        # The unit an advertised price is quoted in (PER_NIGHT, PER_MONTH, ...).
+        "price_basis",
         "title_document",
     }
 )

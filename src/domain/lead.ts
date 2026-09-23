@@ -83,6 +83,13 @@ export type OperatorLead = {
    * rates into our dashboard.
    */
   pmsFingerprints: string[];
+  /**
+   * Whether `displayName` is a name a source stated, or the fallback label of a
+   * group of listings. `UNIDENTIFIED` means no source published an operator name:
+   * the record is the end of a phone number, not a business, and it must not be
+   * promoted to a canonical operator until entity resolution establishes one.
+   */
+  identityStatus: 'IDENTIFIED' | 'UNIDENTIFIED';
   /** Set once a human has made contact, so nobody is cold-called twice. */
   contactedAt: string | null;
   sources: LeadSource[];

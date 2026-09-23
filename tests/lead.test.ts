@@ -38,6 +38,7 @@ function makeLead(overrides: Partial<OperatorLead> = {}): OperatorLead {
     observedNightlyRatesKobo: [15_000_000],
     claimedTitles: [],
     pmsFingerprints: [],
+    identityStatus: 'IDENTIFIED' as const,
     contactedAt: null,
     sources: [
       {
