@@ -144,31 +144,6 @@ export const SHOWCASE = [
   { image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1200&h=800&fit=crop&auto=format', label: 'Pools' }
 ];
 
-export const PRICING_COPY = {
-  headlineFirst: 'A receipt,',
-  headlineAccent: 'before you pay.',
-  body:
-    "Every booking shows a line-by-line breakdown. The operator's rate, the cleaning fee, our 12% service charge, and VAT — separately. You decide with full information."
-} as const;
-
-export const PRICING_PILLARS = [
-  {
-    n: '01',
-    head: 'One payment',
-    body: 'Pay once. The split to operator and House3 happens automatically at checkout.'
-  },
-  {
-    n: '02',
-    head: 'Direct to operator',
-    body: "The operator's share lands in their account instantly — not held, not delayed."
-  },
-  {
-    n: '03',
-    head: 'State-based fees',
-    body: 'Lagos and Abuja listings carry a 12% fee. Other states are 9%. Shown on every listing.'
-  }
-];
-
 export const CITIES: {
   city: string;
   stateCode: string;
@@ -223,10 +198,14 @@ export const SECTION_COPY = {
   ctaButton: 'Find a space'
 } as const;
 
-/** Nav anchors, in order, as designed. */
+/**
+ * Nav anchors, in order, as designed.
+ *
+ * The `#pricing` entry was removed along with the pricing section — an anchor to
+ * a section that no longer exists is a dead link.
+ */
 export const NAV_LINKS = [
   { href: '#listings', label: 'Listings' },
-  { href: '#pricing', label: 'Pricing' },
   { href: '#cities', label: 'Cities' }
 ] as const;
 

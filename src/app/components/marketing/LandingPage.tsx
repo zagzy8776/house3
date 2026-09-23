@@ -21,11 +21,9 @@ import { FloatingOrb, MOTION_KEYFRAMES } from './primitives';
 import { SearchModal } from './SearchModal';
 import { ShowcaseSection } from './sections/ShowcaseSection';
 import { ListingsSection } from './sections/ListingsSection';
-import { PricingSection } from './sections/PricingSection';
 import { CitiesSection, type CityCard } from './sections/CitiesSection';
 import { CtaAndFooter } from './sections/CtaAndFooter';
 import type { ListingCardModel } from './ListingCard';
-import type { FeePolicy } from '@/domain/pricing';
 
 export type RecentBooking = {
   unitName: string;
@@ -38,18 +36,11 @@ export type LandingPageProps = {
   listings: ListingCardModel[];
   cities: CityCard[];
   heroStats: { value: string; label: string }[];
-  breakdown: {
-    operatorName: string;
-    unitName: string;
-    nightlyRateKobo: number;
-    cleaningFeeKobo: number;
-    policy: FeePolicy;
-  };
   /** Real confirmed booking for the hero ticker, or null to omit it. */
   recentBooking: RecentBooking;
 };
 
-export function LandingPage({ listings, cities, heroStats, breakdown, recentBooking }: LandingPageProps) {
+export function LandingPage({ listings, cities, heroStats, recentBooking }: LandingPageProps) {
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
@@ -325,7 +316,6 @@ export function LandingPage({ listings, cities, heroStats, breakdown, recentBook
 
       <ShowcaseSection />
       <ListingsSection listings={listings} />
-      <PricingSection breakdown={breakdown} />
       <CitiesSection cities={cities} />
       <CtaAndFooter onSearch={() => setSearchOpen(true)} />
     </div>

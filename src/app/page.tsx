@@ -77,18 +77,6 @@ export default async function Home() {
 
   const heroStats = HERO_STATS.map((stat) => ({ value: stat.value, label: stat.label }));
 
-  // The breakdown widget demonstrates the model on the flagship Lagos listing.
-  const flagship = repo.getUnit('u_lekki_2bed');
-  const flagshipPartner = flagship ? repo.getPartner(flagship.partnerId) : undefined;
-
-  const breakdown = {
-    operatorName: flagshipPartner?.displayName ?? 'the operator',
-    unitName: flagship?.name ?? '2-Bedroom Apartment, Lekki Phase 1',
-    nightlyRateKobo: flagship?.nightlyRateKobo ?? 15_000_000,
-    cleaningFeeKobo: flagship?.cleaningFeeKobo ?? 1_000_000,
-    policy: resolveFeePolicy(policies, { stateCode: 'LA' })
-  };
-
   /**
    * Real social proof only. A confirmed booking produces this line; no bookings
    * means the card falls back to a factual statement about how payment works.
@@ -115,7 +103,6 @@ export default async function Home() {
       listings={listings}
       cities={cities}
       heroStats={heroStats}
-      breakdown={breakdown}
       recentBooking={recentBooking}
     />
   );
