@@ -1,106 +1,65 @@
 {
+  "$description": "House3 design tokens. Source of truth for both Figma (via Tokens Studio) and the app (src/app/globals.css). Names match the CSS custom properties 1:1 so Figma Variables and production cannot drift.",
+
   "color": {
-    "primitive": {
-      "green": {
-        "50": { "$type": "color", "$value": "#E9F7F0", "$description": "Tinted backgrounds, selected rows" },
-        "100": { "$type": "color", "$value": "#C9EBD9" },
-        "300": { "$type": "color", "$value": "#6FC79A", "$description": "Borders on tinted surfaces" },
-        "500": { "$type": "color", "$value": "#128A4E", "$description": "Primary action. Deliberately not the blue Airbnb/Booking own, nor Agoda purple." },
-        "700": { "$type": "color", "$value": "#0A6136", "$description": "Pressed state, accessible text on tint" },
-        "900": { "$type": "color", "$value": "#063C22", "$description": "Wordmark, headings on light" }
-      },
-      "ink": {
-        "900": { "$type": "color", "$value": "#10161A", "$description": "Primary text" },
-        "700": { "$type": "color", "$value": "#3A4750", "$description": "Secondary text" },
-        "500": { "$type": "color", "$value": "#6B7A85", "$description": "Tertiary text, labels" },
-        "300": { "$type": "color", "$value": "#AEBBC4", "$description": "Disabled, placeholder" },
-        "100": { "$type": "color", "$value": "#E4EAEE", "$description": "Borders, dividers" },
-        "50":  { "$type": "color", "$value": "#F4F7F9", "$description": "Page background" },
-        "white": { "$type": "color", "$value": "#FFFFFF" }
-      },
-      "amber": {
-        "500": { "$type": "color", "$value": "#E8A33D", "$description": "Scarcity flag, hold banner background, icon fill" },
-        "700": { "$type": "color", "$value": "#8A5A12", "$description": "Amber TEXT on light. amber.500 as text is only ~2:1 contrast, so urgent copy must use this." },
-        "50":  { "$type": "color", "$value": "#FDF3E3" }
-      },
-      "red": {
-        "500": { "$type": "color", "$value": "#C4342B", "$description": "Failure, validation, declined payment" },
-        "50":  { "$type": "color", "$value": "#FDECEA" }
-      }
+    "core": {
+      "background":           { "$type": "color", "$value": "#0E0C0A", "$description": "Warm near-black page ground. Not neutral #000 - a warm cast keeps photography from looking cut out." },
+      "foreground":           { "$type": "color", "$value": "#F5F0E8", "$description": "Primary text. Warm off-white, ~15:1 on background." },
+      "card":                 { "$type": "color", "$value": "#1A1714", "$description": "Raised surfaces. Separated by value, not by heavy shadow." },
+      "card-foreground":      { "$type": "color", "$value": "#F5F0E8" },
+      "primary":              { "$type": "color", "$value": "#D97C2B", "$description": "Brand action. Burnt orange - unclaimed in travel: Booking is blue, Airbnb coral, Agoda purple." },
+      "primary-foreground":   { "$type": "color", "$value": "#0E0C0A", "$description": "Text on primary, ~7:1." },
+      "secondary":            { "$type": "color", "$value": "#2A2420", "$description": "Inset fields, secondary buttons." },
+      "secondary-foreground": { "$type": "color", "$value": "#C8B99A", "$description": "Warm sand. Body copy on dark." },
+      "muted":                { "$type": "color", "$value": "#1F1B17" },
+      "muted-foreground":     { "$type": "color", "$value": "#8A7A68", "$description": "Tertiary text, labels, ~4.6:1 on card." },
+      "accent":               { "$type": "color", "$value": "#E8A44A", "$description": "Lighter amber. Our own fee and VAT lines, highlights, the accent word in each headline." },
+      "accent-foreground":    { "$type": "color", "$value": "#0E0C0A" },
+      "border":               { "$type": "color", "$value": "#FFFFFF14", "$description": "rgba(255,255,255,0.08). Hairline only." },
+      "ring":                 { "$type": "color", "$value": "#D97C2B" },
+      "danger":               { "$type": "color", "$value": "#E8756B", "$description": "Lightened for contrast on the dark ground. Declined payments, validation." }
     },
 
-    "semantic": {
-      "bg": {
-        "page":       { "$type": "color", "$value": "{color.primitive.ink.50}" },
-        "surface":    { "$type": "color", "$value": "{color.primitive.ink.white}" },
-        "sunken":     { "$type": "color", "$value": "{color.primitive.ink.100}" },
-        "brand-tint": { "$type": "color", "$value": "{color.primitive.green.50}" },
-        "danger-tint":{ "$type": "color", "$value": "{color.primitive.red.50}" }
-      },
-      "text": {
-        "primary":   { "$type": "color", "$value": "{color.primitive.ink.900}" },
-        "secondary": { "$type": "color", "$value": "{color.primitive.ink.700}" },
-        "tertiary":  { "$type": "color", "$value": "{color.primitive.ink.500}" },
-        "disabled":  { "$type": "color", "$value": "{color.primitive.ink.300}" },
-        "on-brand":  { "$type": "color", "$value": "{color.primitive.ink.white}" },
-        "brand":     { "$type": "color", "$value": "{color.primitive.green.700}" },
-        "danger":    { "$type": "color", "$value": "{color.primitive.red.500}" }
-      },
-      "border": {
-        "default": { "$type": "color", "$value": "{color.primitive.ink.100}" },
-        "strong":  { "$type": "color", "$value": "{color.primitive.ink.300}" },
-        "brand":   { "$type": "color", "$value": "{color.primitive.green.300}" }
-      },
-      "action": {
-        "primary-bg":         { "$type": "color", "$value": "{color.primitive.green.500}" },
-        "primary-bg-pressed": { "$type": "color", "$value": "{color.primitive.green.700}" },
-        "primary-text":       { "$type": "color", "$value": "{color.primitive.ink.white}" },
-        "secondary-bg":       { "$type": "color", "$value": "{color.primitive.ink.white}" },
-        "secondary-text":     { "$type": "color", "$value": "{color.primitive.green.700}" }
-      },
-      "money": {
-        "operator-row":    { "$type": "color", "$value": "{color.primitive.ink.900}", "$description": "What the operator charges - the anchor the guest compares against" },
-        "fee-row":         { "$type": "color", "$value": "{color.primitive.ink.900}", "$description": "Our fee. Deliberately NOT styled as a warning: we are not hiding it, so it must not read as a penalty." },
-        "tax-row":         { "$type": "color", "$value": "{color.primitive.ink.700}", "$description": "VAT. Muted, because it is the government's line, not ours." },
-        "discount-row":    { "$type": "color", "$value": "{color.primitive.green.700}" },
-        "total-row":       { "$type": "color", "$value": "{color.primitive.ink.900}" },
-        "settlement-note": { "$type": "color", "$value": "{color.primitive.ink.500}", "$description": "'Operator receives X, House3 keeps Y'" }
-      }
+    "money": {
+      "operator-row":    { "$type": "color", "$value": "{color.core.foreground}", "$description": "What the operator charges - the anchor the guest compares against" },
+      "fee-row":         { "$type": "color", "$value": "{color.core.accent}", "$description": "Our fee. Accent, not a warning colour: orange is the identity here, so it reads as 'our line' rather than a penalty." },
+      "tax-row":         { "$type": "color", "$value": "{color.core.accent}", "$description": "VAT on our fee, labelled 'to FIRS' so the guest sees it is the government's line." },
+      "discount-row":    { "$type": "color", "$value": "#6FC79A" },
+      "total-row":       { "$type": "color", "$value": "{color.core.primary}" },
+      "settlement-note": { "$type": "color", "$value": "{color.core.muted-foreground}", "$description": "'Operator receives X, House3 keeps Y'" }
+    },
+
+    "hold": {
+      "bg":   { "$type": "color", "$value": "#E8A44A1F", "$description": "rgba(232,164,74,0.12)" },
+      "icon": { "$type": "color", "$value": "{color.core.accent}", "$description": "Fills only. Never set text in this on a light surface." },
+      "text": { "$type": "color", "$value": "{color.core.accent}" }
     }
   },
 
   "typography": {
     "family": {
-      "base": {
-        "$type": "fontFamily",
-        "$value": "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-        "$description": "System stack on purpose: no webfont request. Saves data on metered Nigerian mobile plans and renders instantly on low-end Android."
-      }
+      "display": { "$type": "fontFamily", "$value": "Fraunces, Georgia, serif", "$description": "Headlines only. Variable serif with an optical-size axis; the italic carries the accent word in each headline." },
+      "sans":    { "$type": "fontFamily", "$value": "Outfit, system-ui, sans-serif", "$description": "All UI and body text." },
+      "mono":    { "$type": "fontFamily", "$value": "JetBrains Mono, ui-monospace, monospace", "$description": "Money only. Monospace beats tabular-nums here: it aligns decimals AND fixes digit widths, so a price column scans cleanly." }
     },
     "weight": {
+      "light":    { "$type": "fontWeight", "$value": 300 },
       "regular":  { "$type": "fontWeight", "$value": 400 },
       "medium":   { "$type": "fontWeight", "$value": 500 },
       "semibold": { "$type": "fontWeight", "$value": 600 },
       "bold":     { "$type": "fontWeight", "$value": 700 }
     },
     "size": {
-      "display": { "$type": "fontSize", "$value": "28px" },
-      "h1":      { "$type": "fontSize", "$value": "22px" },
-      "h2":      { "$type": "fontSize", "$value": "18px" },
-      "body":    { "$type": "fontSize", "$value": "15px" },
-      "small":   { "$type": "fontSize", "$value": "13px" },
-      "micro":   { "$type": "fontSize", "$value": "11px" },
-      "money":   { "$type": "fontSize", "$value": "15px", "$description": "Money rows never drop below body size. Misreading a price is the one error we cannot ship." }
-    },
-    "lineHeight": {
-      "tight":  { "$type": "lineHeight", "$value": "1.15" },
-      "snug":   { "$type": "lineHeight", "$value": "1.3" },
-      "normal": { "$type": "lineHeight", "$value": "1.45" }
+      "h1":    { "$type": "fontSize", "$value": "22px" },
+      "h2":    { "$type": "fontSize", "$value": "18px" },
+      "body":  { "$type": "fontSize", "$value": "15px" },
+      "small": { "$type": "fontSize", "$value": "13px" },
+      "micro": { "$type": "fontSize", "$value": "11px" },
+      "money": { "$type": "fontSize", "$value": "15px", "$description": "Money rows never drop below body size. Misreading a price is the one error we cannot ship." }
     }
   },
 
   "space": {
-    "0":  { "$type": "dimension", "$value": "0px" },
     "1":  { "$type": "dimension", "$value": "2px" },
     "2":  { "$type": "dimension", "$value": "4px" },
     "3":  { "$type": "dimension", "$value": "8px" },
@@ -117,6 +76,8 @@
     "sm":   { "$type": "dimension", "$value": "4px" },
     "md":   { "$type": "dimension", "$value": "8px" },
     "lg":   { "$type": "dimension", "$value": "12px" },
+    "xl":   { "$type": "dimension", "$value": "16px" },
+    "card": { "$type": "dimension", "$value": "24px", "$description": "rounded-3xl in Tailwind, used on cards and modals" },
     "pill": { "$type": "dimension", "$value": "999px" }
   },
 
@@ -124,17 +85,13 @@
     "touchTarget":  { "$type": "dimension", "$value": "44px", "$description": "Minimum. Thumbs on a 360px Android, one-handed." },
     "buttonHeight": { "$type": "dimension", "$value": "48px" },
     "inputHeight":  { "$type": "dimension", "$value": "44px" },
-    "viewportBase": { "$type": "dimension", "$value": "360px", "$description": "Design baseline: the most common cheap-Android width in Nigeria." },
-    "contentMax":   { "$type": "dimension", "$value": "720px" }
+    "viewportBase": { "$type": "dimension", "$value": "360px", "$description": "Design baseline: the most common cheap-Android width in Nigeria." }
   },
 
   "shadow": {
-    "sm":     { "$type": "boxShadow", "$value": { "x": "0", "y": "1px", "blur": "2px", "spread": "0", "color": "#10161A0F" }, "$description": "Subtle only. Heavy shadows wash out on low-quality screens and cost paint time." },
-    "md":     { "$type": "boxShadow", "$value": { "x": "0", "y": "4px", "blur": "12px", "spread": "0", "color": "#10161A1A" } },
-    "sticky": { "$type": "boxShadow", "$value": { "x": "0", "y": "-2px", "blur": "8px", "spread": "0", "color": "#10161A14" }, "$description": "Rising shadow for the sticky checkout bar" }
-  },
-
-  "border": {
-    "hairline": { "$type": "dimension", "$value": "1px" }
+    "sm":   { "$type": "boxShadow", "$value": { "x": "0", "y": "1px", "blur": "2px", "spread": "0", "color": "#00000080" } },
+    "md":   { "$type": "boxShadow", "$value": { "x": "0", "y": "4px", "blur": "16px", "spread": "0", "color": "#0000008C" } },
+    "hero": { "$type": "boxShadow", "$value": { "x": "0", "y": "30px", "blur": "80px", "spread": "0", "color": "#00000099" } },
+    "glow": { "$type": "boxShadow", "$value": { "x": "0", "y": "0", "blur": "40px", "spread": "0", "color": "#D97C2B66" }, "$description": "Orange halo on primary CTAs" }
   }
 }

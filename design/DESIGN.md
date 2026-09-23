@@ -7,7 +7,7 @@ Not a generic travel app. The actual conditions:
 | Reality | Design consequence |
 |---|---|
 | Bookings happen on Android phones, commonly 360px wide | 360px is the design baseline, not 375/390. Check every frame at 360 before shipping |
-| Data is metered and often 3G | **System font stack, zero webfonts, no hero images.** A 40KB Google Font request is a real cost to the user |
+| Data is metered and often 3G | Three webfonts ship with the brand, so every non-essential effect is gated: blur and 3D tilt are desktop-only, reduced-motion is honoured, and images lazy-load |
 | One-handed use, often while moving | Primary action sits in the bottom third; touch targets ≥ 44px |
 | Bank transfer and USSD are first-class payment methods, not fallbacks | The payment-pending screen is a designed screen, not a spinner |
 | Guests compare your price against the operator's own Instagram/WhatsApp post | The breakdown must make the fee *legible*, not hide it |
@@ -19,7 +19,7 @@ Not a generic travel app. The actual conditions:
 House3's differentiator is not inventory (anyone can list rooms) — it is that the guest can see exactly what they pay, to whom, and why. Every screen that shows money shows the full itemisation. `MoneyTable` is the only component that renders price, and it has no "hide the fee" prop.
 
 **2. Never style the fee as a penalty.**
-The fee row is ink-coloured, same weight as the operator row. If it were amber or red, the layout would be telling the guest "you are being charged extra" while the copy says "we are being transparent". Those contradict, and the guest believes the colour. VAT is *muted* for the opposite reason: it is the government's line, not ours, and muting it makes the fee look smaller and fairer.
+The fee row takes the brand accent (`--accent`), as the Figma design specifies. That works because orange *is* the identity here, not a warning colour — the row reads as "our line" rather than a surcharge. The rule this protects is unchanged: the fee is never hidden, never struck through, and never styled to look like a punishment. VAT is labelled "to FIRS" so the guest can see it is the government's line, not ours.
 
 **3. Attribution beats anonymity.**
 Every listing names the operator. "Operated by Lekki Homes Ltd" with a verified mark. An anonymous listing is what turns a booking platform into something that feels like a scam, and it destroys operator trust in one screenshot.
@@ -27,36 +27,46 @@ Every listing names the operator. "Operated by Lekki Homes Ltd" with a verified 
 **4. Show real states, including the bad ones.**
 The availability engine returns *reasons* (`src/domain/availability.ts`), not just a boolean. That exists so the UI can say "booked on the 11th" instead of "unavailable". Design for: no results, partial results, held-by-someone-else, payment declined, amount mismatch, hold expired.
 
-**5. Data before decoration.**
-No carousels, no parallax, no animation beyond a 150ms press state. Every paint on a low-end Android over 3G is a reason to abandon.
+**5. Motion is optional, always.**
+The brand carries a floating hero, an auto-rotating showcase and a pointer-tracked 3D tilt. All of it is behind `prefers-reduced-motion`, the tilt is skipped on coarse pointers, and the heaviest blur is desktop-only. Nothing that helps someone book depends on an animation running.
 
 ## Colour
 
+Ported from the Figma Make design. Dark warm ground, burnt-orange brand.
+
 | Role | Token | Value | Why |
 |---|---|---|---|
-| Brand / primary action | `green.500` | `#128A4E` | Green is unclaimed in travel: Booking is blue, Airbnb coral, Agoda purple, Expedia blue/yellow. It also reads Nigerian without resorting to flag pastiche |
-| Wordmark | `green.900` | `#063C22` | Deep enough to pass contrast on the light page background |
-| Page background | `ink.50` | `#F4F7F9` | Off-white, not pure white — pure white on OLED Androids is harsh outdoors in Lagos sun |
-| Surface | `ink.white` | `#FFFFFF` | Cards float above the page background by value, not by heavy shadow |
-| Primary text | `ink.900` | `#10161A` | Near-black with a blue cast; softer than #000 on cheap screens |
-| Secondary text | `ink.700` | `#3A4750` | Operator attribution, VAT label |
-| Tertiary text | `ink.500` | `#6B7A85` | Metadata, settlement note |
-| Scarcity flag | `amber.500` | `#E8A33D` | **Only ever driven by real calendar data.** Never fake "2 rooms left" — that is the exact dark pattern this product is positioned against |
-| Failure | `red.500` | `#C4342B` | Declined payment, amount mismatch, validation |
+| Page background | `background` | `#0E0C0A` | Warm near-black, not neutral `#000`. The warm cast stops photography looking cut out against it |
+| Surface | `card` | `#1A1714` | Raised surfaces separate by **value**, not by heavy shadow — which also keeps it cheap to paint |
+| Brand / primary action | `primary` | `#D97C2B` | Burnt orange. Unclaimed in travel: Booking is blue, Airbnb coral, Agoda purple, Expedia blue/yellow. Reads hospitality, not fintech |
+| Our fee + VAT lines | `accent` | `#E8A44A` | Lighter amber, used for the fee/VAT rows so our lines are identifiable without reading the label |
+| Primary text | `foreground` | `#F5F0E8` | Warm off-white, ~15:1 on background |
+| Body copy on dark | `secondary-foreground` | `#C8B99A` | Warm sand. Used for the longer descriptive paragraphs |
+| Tertiary text | `muted-foreground` | `#8A7A68` | Labels, metadata, settlement note, ~4.6:1 on card |
+| Border | `border` | `rgba(255,255,255,0.08)` | Hairline only. A visible border on a dark ground reads as a box |
+| Failure | `danger` | `#E8756B` | Lightened from the consumer-side red so it clears contrast on the dark ground |
+| Scarcity flag | `amber` | `#E8A33D` | **Only ever driven by real calendar data.** Never fake "2 rooms left" |
 
-Contrast: `ink.900` on `ink.50` is ~16:1, `ink.500` on white ~4.9:1, white on `green.500` ~4.6:1. All pass WCAG AA for their size. `green.700` is used for any green *text* on light backgrounds so it clears 4.5:1.
+Contrast on this palette: `foreground` on `background` ~15:1, `muted-foreground` on `card` ~4.6:1, `primary-foreground` on `primary` ~7:1. All pass WCAG AA for their size.
+
+**Known trade-off:** a dark UI is harder to read in direct Lagos sunlight than a light one. This was a deliberate brand decision, not an oversight. If outdoor conversion data ever shows a problem, the fix is a light mode on the *transaction* screens only — the semantic token layer (`--h3-*`) makes that a one-file change, because no component references a raw hex.
 
 ## Type
 
-System stack, deliberately. `system-ui, -apple-system, 'Segoe UI', Roboto, ...`
+Three families, each with a narrow job:
 
-- Zero bytes downloaded for fonts, which matters on metered plans.
-- Renders Roboto on Android — already installed, already hinted for cheap DPI.
-- No FOUT, so the price never reflows after the guest has read it. A price that moves is a price that gets mistrusted.
+| Family | Used for | Why |
+|---|---|---|
+| **Fraunces** (variable serif) | Headlines only | Gives the brand its editorial, hospitality feel. The italic carries the accent word in each headline ("*across Nigeria*", "*before you pay*") |
+| **Outfit** | All UI and body | Clean geometric sans that pairs with Fraunces without competing |
+| **JetBrains Mono** | Money only | Monospace is better than `tabular-nums` for price columns: it aligns decimals **and** fixes digit widths |
 
-Scale: display 28 / h1 22 / h2 18 / body 15 / small 13 / micro 11.
+Scale: h1 22 / h2 18 / body 15 / small 13 / micro 11.
 
 **Money never drops below 15px.** Meta-information can be 11px. The amount someone is about to pay cannot.
+
+**Load cost, and what was done about it.** Three families is a real download on a metered plan. Mitigations: only the weights actually used are requested, the hero image lazy-loads below the fold, and no effect that depends on the fonts is load-bearing. If this ever needs to shrink, the order to cut is Fraunces first (it is decorative), then JetBrains Mono (fall back to `tabular-nums`). Outfit stays — it is the interface.
+
 
 ## The money table
 
