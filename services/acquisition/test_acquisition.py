@@ -2081,6 +2081,47 @@ def test_propertypro_reads_bedrooms_from_structured_data() -> None:
     assert parsed.bathrooms == 1
 
 
+def test_a_non_shortlet_listing_url_is_refused() -> None:
+    """A shortlet list page publishes links to OTHER categories. Those are not ours.
+
+    Verified live on /for-rent/short-let/lagos/lekki: 79 /for-rent/ links, of which 15
+    pointed outside short-let, including /for-rent/flats-apartments/lagos/lekki/showtype
+    and /for-rent/houses/lagos/ikoyi/showtype - both of which carry a listing-shaped
+    tail and so passed the reference check alone.
+
+    A 500-listing stage recorded one of these as NGN 2,500,000 PER_MONTH: correct as
+    an annual rent, meaningless as shortlet inventory. `discover` filtered the sitemap
+    path on SHORTLET_PATH but the list-page fallback went unfiltered, so the check now
+    lives in `_is_listing_url`, which every path into `parse` passes through.
+    """
+    assert not NPC._is_listing_url(
+        "https://nigeriapropertycentre.com/for-rent/flats-apartments/lagos/lekki/showtype"
+    )
+    assert not NPC._is_listing_url(
+        "https://nigeriapropertycentre.com/for-rent/houses/lagos/ikoyi/showtype"
+    )
+    assert not NPC._is_listing_url(
+        "https://nigeriapropertycentre.com/for-rent/flats-apartments/lagos/lekki/"
+        "lekki-phase-1/3688063-newly-launched-2-bedroom-apartment"
+    )
+    # The same reference, in a short-let path, IS ours.
+    assert NPC._is_listing_url(
+        "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/"
+        "lekki/lekki-phase-1/3688063-newly-launched-2-bedroom-apartment"
+    )
+
+
+def test_a_shortlet_list_page_is_still_refused() -> None:
+    """Filtering by path must not re-admit the category page itself."""
+    assert not NPC._is_listing_url(
+        "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos?page=20"
+    )
+    assert not NPC._is_listing_url("https://www.nigeriapropertycentre.com/for-rent/short-let/lagos")
+    assert not NPC._is_listing_url(
+        "https://www.nigeriapropertycentre.com/for-rent/short-let/houses/showtype"
+    )
+
+
 def test_a_listing_url_resolves_to_the_same_identity_on_either_host() -> None:
     """The sitemap and the list-page fallback use different hosts for one listing.
 

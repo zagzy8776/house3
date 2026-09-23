@@ -333,18 +333,32 @@ class NpcAdapter:
 
     @staticmethod
     def _is_listing_url(url: str) -> bool:
-        """True when the URL's last path segment carries a listing reference.
+        """True when the URL is a SHORT-LET listing carrying its own reference.
 
-        Some templates publish their breadcrumb toggle as the canonical - observed
-        as `/for-rent/short-let/houses/showtype`. Every page on such a template
-        would then be handed the SAME source_listing_id, and because
-        `(source, sourceListingId)` is the uniqueness key they would collapse into
-        one record, each overwriting the previous one's source_url - silently
-        merging distinct properties instead of creating duplicates. Falling back
-        to the fetched URL is always safe: that is the page we actually read.
+        Two conditions, and both are load-bearing.
+
+        1. A reference in the last path segment. Some templates publish their
+           breadcrumb toggle as the canonical - observed as
+           `/for-rent/short-let/houses/showtype`. Every page on such a template would
+           be handed the SAME source_listing_id, and because
+           `(source, sourceListingId)` is the uniqueness key they would collapse into
+           one record, each overwriting the previous one's source_url - silently
+           merging distinct properties instead of creating duplicates.
+
+        2. `SHORTLET_PATH`. This was missing, and a live 500-listing stage proved why
+           it matters: a shortlet list page publishes links to OTHER categories, and
+           15 of the 79 links on `/for-rent/short-let/lagos/lekki` pointed outside
+           short-let - including `/for-rent/flats-apartments/lagos/lekki/showtype`,
+           which satisfied condition 1. Records entered the crawl at PER_MONTH with
+           prices like NGN 2,500,000/year, which as an annual rent is correct and as
+           shortlet inventory is meaningless. Filtering only the sitemap (which
+           `discover` does) leaves the list-page fallback unfiltered, so the check
+           belongs here, where every path into `parse` passes through it.
         """
-        path = urlparse(url).path.rstrip("/")
-        segment = path.rsplit("/", 1)[-1] if path else ""
+        path = urlparse(url).path
+        if SHORTLET_PATH not in path:
+            return False
+        segment = path.rstrip("/").rsplit("/", 1)[-1]
         return bool(LISTING_ID_RE.search(segment))
 
     def _same_host(self, candidate: str) -> bool:
