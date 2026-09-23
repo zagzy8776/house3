@@ -1,0 +1,33 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+coverage/
+
+.env
+.env.local
+.env*.local
+
+*.log
+install.log
+install.err.log
+
+.DS_Store
+Thumbs.db
+
+# Prisma
+prisma/migrations/dev.db*
+*.db
+*.db-journal
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+next-build.log
+design/*.png

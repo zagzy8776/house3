@@ -1,0 +1,40 @@
+{
+  "name": "house3",
+  "version": "0.1.0",
+  "private": true,
+  "description": "House3 - shortlet & hostel booking platform for Nigeria (disclosed service-fee aggregator)",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "next": "^15.5.26",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "zod": "3.24.1"
+  },
+  "devDependencies": {
+    "@prisma/client": "6.3.0",
+    "@types/node": "22.10.7",
+    "@types/react": "19.0.7",
+    "@types/react-dom": "19.0.3",
+    "prisma": "6.3.0",
+    "tsx": "4.19.2",
+    "typescript": "5.7.3",
+    "vitest": "3.0.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

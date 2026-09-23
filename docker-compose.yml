@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: house3-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: house3
+      POSTGRES_PASSWORD: house3
+      POSTGRES_DB: house3
+    ports:
+      - '5433:5432'
+    volumes:
+      - house3-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U house3 -d house3']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  house3-pgdata:

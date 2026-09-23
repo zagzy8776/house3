@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  House3 — Checkout with live hold (mobile 360x900).
+
+  The hold banner is not decoration. `startCheckout` really does place a
+  15-minute inventory hold and `cancelExpiredHolds()` really does release it, so
+  the timer can be stated calmly. A calm timer is more believable than a
+  shouting one, and it is the difference between urgency and a dark pattern.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="900" viewBox="0 0 360 900"
+     font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <rect width="360" height="900" fill="#F4F7F9"/>
+
+  <!-- top bar -->
+  <path d="M24 36 L16 44 L24 52" stroke="#10161A" stroke-width="2" fill="none"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="44" y="50" font-size="18" font-weight="600" fill="#10161A">Checkout</text>
+  <text x="344" y="50" font-size="13" fill="#6B7A85" text-anchor="end">Step 1 of 2</text>
+
+  <!-- hold banner -->
+  <rect x="16" y="72" width="328" height="80" rx="12" fill="#FDF3E3"/>
+  <circle cx="46" cy="102" r="12" fill="#E8A33D"/>
+  <path d="M46 95 L46 102 L51 105" stroke="#FFFFFF" stroke-width="2" fill="none"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="68" y="98" font-size="15" font-weight="600" fill="#10161A">Held for you · 14:32 left</text>
+  <text x="68" y="118" font-size="13" fill="#3A4750">Nobody else can book these dates while you pay.</text>
+  <text x="68" y="136" font-size="13" fill="#8A5A12">If you don&#8217;t finish, the hold is released.</text>
+
+  <!-- what is being held -->
+  <rect x="16" y="168" width="328" height="104" rx="12" fill="#FFFFFF" stroke="#E4EAEE" stroke-width="1"/>
+  <text x="32" y="200" font-size="18" font-weight="600" fill="#10161A">2-Bedroom Apartment,</text>
+  <text x="32" y="222" font-size="18" font-weight="600" fill="#10161A">Lekki Phase 1</text>
+  <text x="32" y="248" font-size="13" fill="#6B7A85">25 Sep &#8211; 27 Sep 2026 · 2 guests · 2 nights</text>
+
+  <!-- guest details -->
+  <text x="16" y="308" font-size="18" font-weight="600" fill="#10161A">Your details</text>
+  <text x="16" y="330" font-size="13" fill="#3A4750">Full name</text>
+  <rect x="16" y="338" width="328" height="44" rx="8" fill="#FFFFFF" stroke="#E4EAEE" stroke-width="1"/>
+  <text x="30" y="366" font-size="15" fill="#10161A">Ada Obi</text>
+
+  <text x="16" y="406" font-size="13" fill="#3A4750">Email</text>
+  <rect x="16" y="414" width="328" height="44" rx="8" fill="#FFFFFF" stroke="#E4EAEE" stroke-width="1"/>
+  <text x="30" y="442" font-size="15" fill="#10161A">ada@example.com</text>
+
+  <text x="16" y="482" font-size="13" fill="#3A4750">Phone</text>
+  <rect x="16" y="490" width="328" height="44" rx="8" fill="#FFFFFF" stroke="#E4EAEE" stroke-width="1"/>
+  <text x="30" y="518" font-size="15" fill="#10161A">0803 000 0000</text>
+
+  <!-- money table -->
+  <rect x="16" y="554" width="328" height="228" rx="12" fill="#FFFFFF" stroke="#E4EAEE" stroke-width="1"/>
+  <text x="32" y="586" font-size="15" fill="#10161A">2 nights × ₦150,000</text>
+  <text x="328" y="586" font-size="15" fill="#10161A" text-anchor="end">₦300,000.00</text>
+  <text x="32" y="610" font-size="15" fill="#10161A">Cleaning &amp; turnover</text>
+  <text x="328" y="610" font-size="15" fill="#10161A" text-anchor="end">₦10,000.00</text>
+  <text x="32" y="634" font-size="15" fill="#10161A">House3 service fee (12%)</text>
+  <text x="328" y="634" font-size="15" fill="#10161A" text-anchor="end">₦36,000.00</text>
+  <text x="32" y="657" font-size="13" fill="#3A4750">VAT on service fee (7.5%)</text>
+  <text x="328" y="657" font-size="13" fill="#3A4750" text-anchor="end">₦2,700.00</text>
+  <line x1="32" y1="670" x2="328" y2="670" stroke="#AEBBC4" stroke-width="1"/>
+  <text x="32" y="694" font-size="15" font-weight="600" fill="#10161A">Total to pay now</text>
+  <text x="328" y="694" font-size="15" font-weight="600" fill="#10161A" text-anchor="end">₦348,700.00</text>
+  <text x="32" y="718" font-size="11" fill="#6B7A85">Paid once. Lekki Homes Ltd is paid their full ₦310,000</text>
+  <text x="32" y="732" font-size="11" fill="#6B7A85">directly — House3 never holds their money.</text>
+
+  <!-- reassurance above the sticky bar -->
+  <text x="16" y="802" font-size="11" fill="#6B7A85">You will pay on Paystack&#8217;s secure page. Card, bank transfer or USSD.</text>
+
+  <!-- sticky action bar -->
+  <rect x="0" y="820" width="360" height="80" fill="#FFFFFF"/>
+  <line x1="0" y1="820" x2="360" y2="820" stroke="#E4EAEE" stroke-width="1"/>
+  <text x="16" y="846" font-size="11" fill="#6B7A85">Total</text>
+  <text x="16" y="872" font-size="15" font-weight="600" fill="#10161A">₦348,700.00</text>
+  <rect x="176" y="836" width="168" height="48" rx="8" fill="#128A4E"/>
+  <text x="260" y="866" font-size="15" font-weight="600" fill="#FFFFFF" text-anchor="middle">Continue to payment</text>
+</svg>

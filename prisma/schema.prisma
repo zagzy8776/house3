@@ -1,0 +1,464 @@
+// House3 production data model.
+//
+// Design notes:
+//  * All money columns are Int, denominated in KOBO. Never Float.
+//  * `partnerNetKobo` / `platformNetKobo` / `processorFeeKobo` are stored on the
+//    booking itself so the split is reproducible years later, even if fee
+//    policies change. Quotes are frozen at checkout time.
+//  * PartnerChannel.authorizationReference + expiresAt is what makes an
+//    inventory source legal: no authorization row, no sync.
+//  * InventoryPartner is always named in the customer UI. There is deliberately
+//    no "anonymous supplier" concept in this schema.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Geography & rollout
+// ---------------------------------------------------------------------------
+
+model State {
+  code        String      @id // "LA", "FC", "OY", "IM", "AK"
+  name        String
+  phase       Int
+  launchOrder Int         @unique
+  status      StateStatus @default(PENDING)
+  primaryCity String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  areas    Area[]
+  partners InventoryPartner[]
+  policies FeePolicy[]
+
+  @@index([status, launchOrder])
+}
+
+enum StateStatus {
+  PENDING
+  SUPPLY_ONBOARDING
+  LIVE
+  PAUSED
+}
+
+model Area {
+  id        String   @id @default(cuid())
+  stateCode String
+  name      String
+  /// Sort order for the search dropdown; demand-weighted, not alphabetical.
+  rank      Int      @default(100)
+  createdAt DateTime @default(now())
+
+  state State @relation(fields: [stateCode], references: [code])
+  // Areas belong to a state; partners and units point back at an Area.
+  partners InventoryPartner[]
+
+  @@unique([stateCode, name])
+  @@index([stateCode, rank])
+}
+
+// ---------------------------------------------------------------------------
+// Supply side
+// ---------------------------------------------------------------------------
+
+model InventoryPartner {
+  id                      String        @id @default(cuid())
+  stateCode               String
+  areaId                  String?
+  legalName               String
+  displayName             String
+  contactEmail            String
+  contactPhone            String
+  status                  PartnerStatus @default(ONBOARDING)
+  /// The partner signed the supply agreement: our fee is disclosed and the
+  /// partner is named on the listing. Without this, nothing is listed.
+  supplyAgreementRef      String?
+  supplyAgreementSignedAt DateTime?
+  paystackSubaccountCode  String?       @unique
+  flutterwaveSubaccountId String?
+  settlementBankName      String?
+  settlementAccountName   String?
+  settlementAccountNumber String?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  state    State            @relation(fields: [stateCode], references: [code])
+  area     Area?            @relation(fields: [areaId], references: [id])
+  channels PartnerChannel[]
+  units    Unit[]
+  bookings Booking[]
+
+  @@index([stateCode, status])
+}
+
+enum PartnerStatus {
+  ONBOARDING
+  ACTIVE
+  SUSPENDED
+  OFFBOARDED
+}
+
+/// One row per authorised inventory feed. `kind` mirrors InventoryChannelKind.
+model PartnerChannel {
+  id                     String               @id @default(cuid())
+  partnerId              String
+  kind                   ChannelKind
+  status                 ChannelStatus        @default(ACTIVE)
+  /// Contract id / affiliate publisher id / feed owner. Mandatory paper trail.
+  authorizationReference String
+  authorizationBasis     AuthorizationBasis
+  authorizationGrantedAt DateTime
+  authorizationExpiresAt DateTime?
+  /// Non-secret config (base URLs, paths, declared origin). Secrets live in a
+  /// managed secret store and are referenced by name, never stored here.
+  config                 Json
+  secretRef              String?
+  lastSyncedAt           DateTime?
+  lastSyncError          String?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+
+  partner InventoryPartner @relation(fields: [partnerId], references: [id])
+
+  @@unique([partnerId, kind])
+  @@index([status, lastSyncedAt])
+}
+
+enum ChannelKind {
+  PARTNER_API
+  ICAL_FEED
+  PARTNER_DASHBOARD
+  AFFILIATE_PROGRAM
+}
+
+enum AuthorizationBasis {
+  SIGNED_SUPPLY_AGREEMENT
+  API_CREDENTIALS_ISSUED
+  PARTNER_PUBLISHED_FEED
+  AFFILIATE_PROGRAM_TERMS
+}
+
+enum ChannelStatus {
+  ACTIVE
+  PAUSED
+  REVOKED
+}
+
+
+model Unit {
+  id                         String     @id @default(cuid())
+  partnerId                  String
+  externalId                 String
+  name                       String
+  unitType                   UnitType
+  maxGuests                  Int
+  bedrooms                   Int
+  bathrooms                  Int
+  /// The partner's OWN published nightly rate. House3 never overwrites this.
+  nightlyRateKobo            Int
+  cleaningFeeKobo            Int        @default(0)
+  extraGuestFeePerNightKobo  Int        @default(0)
+  includedGuests             Int        @default(2)
+  minNights                  Int        @default(1)
+  maxNights                  Int        @default(30)
+  /// false = affiliate/redirect inventory with no instant-book calendar.
+  bookable                   Boolean    @default(true)
+  deepLinkBaseUrl            String?
+  /// Attribution shown on the listing page, e.g. "Lekki Homes Ltd".
+  partnerDisplayName         String?
+  status                     UnitStatus @default(DRAFT)
+  createdAt                  DateTime   @default(now())
+  updatedAt                  DateTime   @updatedAt
+
+  partner      InventoryPartner @relation(fields: [partnerId], references: [id])
+  availability UnitNight[]
+  holds        Hold[]
+  bookings     Booking[]
+
+  @@unique([partnerId, externalId])
+  @@index([status])
+}
+
+enum UnitType {
+  APARTMENT
+  STUDIO
+  ROOM
+  HOSTEL_BED
+  VILLA
+}
+
+enum UnitStatus {
+  DRAFT
+  LISTED
+  HIDDEN
+  ARCHIVED
+}
+
+model UnitNight {
+  id              String      @id @default(cuid())
+  unitId          String
+  night           DateTime    @db.Date
+  state           NightState
+  nightlyRateKobo Int?
+  source          NightSource
+  syncedAt        DateTime    @default(now())
+
+  unit Unit @relation(fields: [unitId], references: [id])
+
+  @@unique([unitId, night])
+  @@index([night, state])
+}
+
+enum NightState {
+  OPEN
+  CLOSED
+  ON_REQUEST
+}
+
+enum NightSource {
+  PARTNER_API
+  ICAL_FEED
+  PARTNER_DASHBOARD
+  BOOKING
+}
+
+// ---------------------------------------------------------------------------
+// Pricing configuration
+// ---------------------------------------------------------------------------
+
+model FeePolicy {
+  id                String      @id @default(cuid())
+  scope             PolicyScope
+  /// State code for STATE scope, partner id for PARTNER scope, null for GLOBAL.
+  subjectId         String?
+  stateCode         String?
+  rateBps           Int
+  minFeeKobo        Int
+  maxFeeKobo        Int?
+  minNightlyFeeKobo Int?
+  vatRateBps        Int         @default(750)
+  roundingStepKobo  Int         @default(5000)
+  active            Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  state State? @relation(fields: [stateCode], references: [code])
+
+  @@index([scope, subjectId, active])
+}
+
+enum PolicyScope {
+  GLOBAL
+  STATE
+  PARTNER
+}
+
+model LengthOfStayDiscountRule {
+  id          String  @id @default(cuid())
+  unitId      String?
+  partnerId   String?
+  stateCode   String?
+  label       String
+  minNights   Int
+  discountBps Int
+
+  @@index([unitId])
+  @@index([partnerId])
+  @@index([stateCode])
+}
+
+// ---------------------------------------------------------------------------
+// Booking & money movement
+// ---------------------------------------------------------------------------
+
+model Hold {
+  id        String     @id @default(cuid())
+  unitId    String
+  checkIn   DateTime   @db.Date
+  checkOut  DateTime   @db.Date
+  status    HoldStatus @default(ACTIVE)
+  expiresAt DateTime
+  bookingId String?
+  createdAt DateTime   @default(now())
+
+  unit Unit @relation(fields: [unitId], references: [id])
+
+  @@index([unitId, status, expiresAt])
+}
+
+enum HoldStatus {
+  ACTIVE
+  CONVERTED
+  EXPIRED
+  RELEASED
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  reference String        @unique
+  status    BookingStatus @default(DRAFT)
+  partnerId String
+  unitId    String
+  stateCode String
+
+  guestName  String
+  guestEmail String
+  guestPhone String
+  adults     Int           @default(2)
+  children   Int           @default(0)
+
+  checkIn  DateTime @db.Date
+  checkOut DateTime @db.Date
+  nights   Int
+
+  // Frozen, auditable money snapshot. All integer kobo.
+  policyId          String
+  roomSubtotalKobo  Int
+  discountTotalKobo Int    @default(0)
+  serviceFeeKobo    Int
+  serviceFeeVatKobo Int    @default(0)
+  cleaningFeeKobo   Int    @default(0)
+  totalKobo         Int
+  partnerNetKobo    Int
+  platformNetKobo   Int
+  processorFeeKobo  Int    @default(0)
+  processor         Processor?
+  /// The exact line items shown to the guest at checkout.
+  priceBreakdown    Json
+
+  holdExpiresAt DateTime?
+  confirmedAt   DateTime?
+  cancelledAt   DateTime?
+  cancelReason  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  partner  InventoryPartner @relation(fields: [partnerId], references: [id])
+  unit     Unit             @relation(fields: [unitId], references: [id])
+  payments Payment[]
+  ledger   LedgerEntry[]
+  events   BookingEvent[]
+
+  @@index([status, createdAt])
+  @@index([guestEmail])
+  @@index([unitId, checkIn, checkOut])
+  @@index([stateCode, createdAt])
+}
+
+enum BookingStatus {
+  DRAFT
+  HELD
+  AWAITING_PAYMENT
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  EXPIRED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum Processor {
+  PAYSTACK
+  FLUTTERWAVE
+}
+
+model Payment {
+  id           String        @id @default(cuid())
+  bookingId    String
+  processor    Processor
+  processorRef String        @unique
+  amountKobo   Int
+  status       PaymentStatus @default(PENDING)
+  /// Raw webhook payload, kept as dispute evidence.
+  rawPayload   Json?
+  verifiedAt   DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId, status])
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REVERSED
+}
+
+/// One row per recipient per booking: the audit trail for "who got what".
+model LedgerEntry {
+  id            String          @id @default(cuid())
+  bookingId     String
+  recipient     LedgerRecipient
+  kind          LedgerKind
+  amountKobo    Int
+  status        LedgerStatus    @default(PENDING)
+  /// Paystack/Flutterwave settlement or transfer reference.
+  settlementRef String?
+  settledAt     DateTime?
+  createdAt     DateTime        @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@index([recipient, status])
+  @@index([bookingId])
+}
+
+enum LedgerRecipient {
+  PARTNER
+  PLATFORM
+}
+
+enum LedgerKind {
+  ROOM_REVENUE
+  CLEANING_PASSTHROUGH
+  SERVICE_FEE
+  SERVICE_FEE_VAT
+  PROCESSOR_FEE
+  REFUND
+}
+
+enum LedgerStatus {
+  PENDING
+  SETTLED
+  REVERSED
+}
+
+model BookingEvent {
+  id         String         @id @default(cuid())
+  bookingId  String
+  fromStatus BookingStatus?
+  toStatus   BookingStatus
+  actor      String
+  note       String?
+  createdAt  DateTime       @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId, createdAt])
+}
+
+/// Replay protection: a signed webhook is stored once, keyed by its signature.
+model WebhookEvent {
+  id          String    @id @default(cuid())
+  processor   Processor
+  eventType   String
+  signature   String
+  rawBody     String
+  processedAt DateTime?
+  error       String?
+  createdAt   DateTime  @default(now())
+
+  @@unique([processor, signature])
+  @@index([processedAt])
+}
