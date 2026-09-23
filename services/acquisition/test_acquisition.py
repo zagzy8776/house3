@@ -2081,6 +2081,48 @@ def test_propertypro_reads_bedrooms_from_structured_data() -> None:
     assert parsed.bathrooms == 1
 
 
+def test_a_listing_url_resolves_to_the_same_identity_on_either_host() -> None:
+    """The sitemap and the list-page fallback use different hosts for one listing.
+
+    Observed: the sitemap index lives on `nigeriapropertycentre.com` and publishes
+    no-www listing URLs, while the list-page fallback builds `www.` URLs. Both hosts
+    serve the page, and BOTH name the same canonical:
+
+        nigeriapropertycentre.com/.../3690250-luxury-three-bedroom-apartment
+        www.nigeriapropertycentre.com/.../3690250-luxury-three-bedroom-apartment
+          -> canonical: https://nigeriapropertycentre.com/.../3690250-...
+
+    So the recorded URL does not depend on which discovery path found it. If the
+    adapter keyed on the fetched URL instead of the canonical, the same listing would
+    enter the ledger twice and every duplicate check would read zero while it did.
+    """
+    listing = (
+        "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/"
+        "lagos/ikeja/3690250-luxury-three-bedroom-apartment"
+    )
+
+    assert NPC._listing_id(listing) == "3690250"
+    assert NPC._listing_id(listing.replace("//nigeriapropertycentre", "//www.nigeriapropertycentre")) == (
+        "3690250"
+    )
+    # The identity is the reference, not the slug, so a retitled listing is one row.
+    retitled = listing.replace("luxury-three-bedroom-apartment", "renovated-3-bedroom-flat")
+    assert NPC._listing_id(retitled) == "3690250"
+
+
+def test_the_host_attribute_does_not_change_a_listing_identity() -> None:
+    """A canonical on a sibling host is still this adapter's listing.
+
+    `_same_host` compares with `www.` stripped on both sides, so a page served from
+    either host is accepted - which is what makes the host flip harmless rather than
+    a source of silently dropped rows.
+    """
+    assert NPC._same_host("https://nigeriapropertycentre.com/for-rent/short-let/lagos")
+    assert NPC._same_host("https://www.nigeriapropertycentre.com/for-rent/short-let/lagos")
+    # A genuinely different host is still refused.
+    assert not NPC._same_host("https://propertypro.ng/property/x-0QFMN")
+
+
 def test_source_registry_refuses_an_unreviewed_source() -> None:
     """A source nobody reviewed must not be crawlable.
 
