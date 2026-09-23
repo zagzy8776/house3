@@ -31,7 +31,7 @@
   <text x="328" y="150" font-size="13" font-weight="600" fill="#0A6136" text-anchor="end">Change</text>
 
   <!-- ==== result card 1 ==== -->
-  <rect x="16" y="176" width="328" height="364" rx="12" fill="#FFFFFF" stroke="#E4EAEE" stroke-width="1"/>
+  <rect x="16" y="176" width="328" height="340" rx="12" fill="#FFFFFF" stroke="#E4EAEE" stroke-width="1"/>
 
   <text x="32" y="208" font-size="18" font-weight="600" fill="#10161A">2-Bedroom Apartment,</text>
   <text x="32" y="230" font-size="18" font-weight="600" fill="#10161A">Lekki Phase 1</text>
@@ -63,12 +63,8 @@
   <text x="32" y="430" font-size="15" font-weight="600" fill="#10161A">Total to pay now</text>
   <text x="328" y="430" font-size="15" font-weight="600" fill="#10161A" text-anchor="end">₦348,700.00</text>
 
-  <!-- radical transparency line -->
-  <text x="32" y="452" font-size="11" fill="#6B7A85">Lekki Homes Ltd receives ₦310,000 · House3 keeps</text>
-  <text x="32" y="466" font-size="11" fill="#6B7A85">₦36,700 after payment processing</text>
-
-  <rect x="32" y="480" width="296" height="48" rx="8" fill="#128A4E"/>
-  <text x="180" y="510" font-size="15" font-weight="600" fill="#FFFFFF" text-anchor="middle">Reserve for 15 min</text>
+  <rect x="32" y="452" width="296" height="48" rx="8" fill="#128A4E"/>
+  <text x="180" y="482" font-size="15" font-weight="600" fill="#FFFFFF" text-anchor="middle">Reserve for 15 min</text>
 
   <!-- ==== result card 2 (partially scrolled into view) ==== -->
   <rect x="16" y="556" width="328" height="236" rx="12" fill="#FFFFFF" stroke="#E4EAEE" stroke-width="1"/>

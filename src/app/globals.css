@@ -112,7 +112,6 @@
   --h3-money-tax: var(--accent);
   --h3-money-discount: #6fc79a;
   --h3-money-total: var(--primary);
-  --h3-money-settlement: var(--muted-foreground);
 
   /* typography */
   --h3-font-base: var(--font-outfit);
@@ -448,14 +447,6 @@ a {
   font-weight: var(--h3-weight-bold);
   font-size: 1.25rem;
   padding-top: var(--h3-space-4);
-}
-
-.h3-settlement {
-  font-family: var(--h3-font-outfit, var(--h3-font-base));
-  font-size: var(--h3-text-micro);
-  line-height: var(--h3-leading-snug);
-  color: var(--h3-money-settlement);
-  margin: var(--h3-space-3) 0 0;
 }
 
 /* Total callout block, mirroring the design's highlighted "You pay" row. */

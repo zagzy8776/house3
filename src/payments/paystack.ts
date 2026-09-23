@@ -8,8 +8,8 @@
  *   2. We initialise ONE charge for the full displayed total, passing
  *      `subaccount` + `transaction_charge` (flat kobo to the partner) and
  *      `bearer` (who eats the Paystack fee).
- *   3. Paystack splits on settlement: the partner gets their share, House3 keeps
- *      the service fee + VAT.
+ *   3. Paystack splits on settlement: the partner's share settles into their own
+ *      account and the platform retains its service fee + VAT.
  *
  * The guest never sees two payments, and we never hold the partner's money in
  * our own account waiting to pay out manually.

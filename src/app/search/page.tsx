@@ -137,15 +137,7 @@ function ResultCard({ result }: { result: SellableUnit }) {
         </div>
 
         <div className="h3-card__price">
-          <MoneyTable
-            lines={result.quote.lines}
-            totalKobo={result.quote.totalKobo}
-            settlement={{
-              operatorName: result.partner.displayName,
-              operatorKobo: result.split.partnerShareKobo,
-              platformKobo: result.split.platformShareKobo
-            }}
-          />
+          <MoneyTable lines={result.quote.lines} totalKobo={result.quote.totalKobo} />
         </div>
       </div>
     </li>

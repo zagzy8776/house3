@@ -307,7 +307,7 @@ describe('payment confirmation', () => {
     const vatLeg = ledger.find((entry) => entry.kind === 'SERVICE_FEE_VAT')!;
     const costLeg = ledger.find((entry) => entry.kind === 'PROCESSOR_FEE')!;
 
-    // The operator receives their NGN 150,000 rate plus their NGN 10,000
+    // The partner's ledger leg is their NGN 150,000 rate plus their NGN 10,000
     // cleaning passthrough: the passthrough is their money, not ours.
     expect(partnerLeg.amountKobo).toBe(16_000_000);
     expect(feeLeg.amountKobo).toBe(1_800_000);

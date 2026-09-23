@@ -25,8 +25,7 @@
       "fee-row":         { "$type": "color", "$value": "{color.core.accent}", "$description": "Our fee. Accent, not a warning colour: orange is the identity here, so it reads as 'our line' rather than a penalty." },
       "tax-row":         { "$type": "color", "$value": "{color.core.accent}", "$description": "VAT on our fee, labelled 'to FIRS' so the guest sees it is the government's line." },
       "discount-row":    { "$type": "color", "$value": "#6FC79A" },
-      "total-row":       { "$type": "color", "$value": "{color.core.primary}" },
-      "settlement-note": { "$type": "color", "$value": "{color.core.muted-foreground}", "$description": "'Operator receives X, House3 keeps Y'" }
+      "total-row":       { "$type": "color", "$value": "{color.core.primary}" }
     },
 
     "hold": {

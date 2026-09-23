@@ -63,7 +63,7 @@ Akwa Ibom sit at 9% to stay competitive with direct booking. All of it lives in
 
 `bearer` decides who eats the processor fee:
 
-| bearer | partner receives | platform keeps |
+| bearer | partner payout | platform margin |
 |---|---|---|
 | `platform` | full partner net | fee + VAT − processor fee |
 | `partner` | partner net − processor fee | fee + VAT |

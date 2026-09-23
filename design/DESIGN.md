@@ -16,7 +16,7 @@ Not a generic travel app. The actual conditions:
 ## Principles
 
 **1. The price breakdown is the product.**
-House3's differentiator is not inventory (anyone can list rooms) — it is that the guest can see exactly what they pay, to whom, and why. Every screen that shows money shows the full itemisation. `MoneyTable` is the only component that renders price, and it has no "hide the fee" prop.
+House3's differentiator is not inventory (anyone can list rooms) — it is that the guest can see exactly what they pay and what each line is for. Every screen that shows money shows the full itemisation. `MoneyTable` is the only component that renders price, and it has no "hide the fee" prop.
 
 **2. Never style the fee as a penalty.**
 The fee row takes the brand accent (`--accent`), as the Figma design specifies. That works because orange *is* the identity here, not a warning colour — the row reads as "our line" rather than a surcharge. The rule this protects is unchanged: the fee is never hidden, never struck through, and never styled to look like a punishment. VAT is labelled "to FIRS" so the guest can see it is the government's line, not ours.
@@ -42,7 +42,7 @@ Ported from the Figma Make design. Dark warm ground, burnt-orange brand.
 | Our fee + VAT lines | `accent` | `#E8A44A` | Lighter amber, used for the fee/VAT rows so our lines are identifiable without reading the label |
 | Primary text | `foreground` | `#F5F0E8` | Warm off-white, ~15:1 on background |
 | Body copy on dark | `secondary-foreground` | `#C8B99A` | Warm sand. Used for the longer descriptive paragraphs |
-| Tertiary text | `muted-foreground` | `#8A7A68` | Labels, metadata, settlement note, ~4.6:1 on card |
+| Tertiary text | `muted-foreground` | `#8A7A68` | Labels, metadata, helper copy, ~4.6:1 on card |
 | Border | `border` | `rgba(255,255,255,0.08)` | Hairline only. A visible border on a dark ground reads as a box |
 | Failure | `danger` | `#E8756B` | Lightened from the consumer-side red so it clears contrast on the dark ground |
 | Scarcity flag | `amber` | `#E8A33D` | **Only ever driven by real calendar data.** Never fake "2 rooms left" |
@@ -86,11 +86,13 @@ Row order is fixed and comes from the pricing engine, not from the screen:
 4. **Tax** — "VAT on service fee (7.5%)", muted 13px.
 5. **Total** — the only bold row, above a stronger divider.
 
-Then the transparency line, 11px:
+The table ends at the total. An earlier version also printed the internal
+operator/platform split beneath it, and that line was removed. The guest sees what
+they pay and what each line is for, but not how the money is divided afterwards.
 
-> Lekki Homes Ltd receives ₦310,000 · House3 keeps ₦36,700 after payment processing
-
-This line is why the fee tier can be 12% instead of feeling like 12% is a trick.
+The operator/platform split still exists and is still auditable by us; it lives in
+the ledger (`src/server/bookingService.ts`, `LedgerEntry`) and in the Paystack
+subaccount split. It is simply not guest-facing, so `MoneyTable` has no prop for it.
 
 
 ## Screen inventory
@@ -140,10 +142,14 @@ succeed or time out with no reliable client callback.
 - Poll with backoff. A guest on 3G must not spend their data on retries.
 
 ### 6. Confirmation — `[SVG]` `05-confirmation.svg`
-Three questions answered at a glance: what did I pay, what did the operator get,
-what did House3 keep. The two cards balance (`310,000 + 38,700 = 348,700`) and
-the card processing fee is stated separately as a cost House3 absorbs. If the
-guest has to work out who paid for processing, they will assume they did.
+Answers one question properly: **what did I pay, and what was each line for.** The
+itemisation is repeated in full, the total is stated once, and the reference is
+shown for quoting over the phone.
+
+The design originally split this into two cards — "what you were charged" and
+"where the money went", the second showing the operator's and House3's shares.
+That second card has been removed. A guest does not need our internal split, and
+publishing it invites a conversation about margin instead of about the stay.
 
 Also drawn: a reference readable over the phone (`H3-LA-303785EA`) and a
 secondary action to message the operator.
@@ -174,7 +180,7 @@ one-to-one. `MoneyTable` is the only component that may render a price.
 |---|---|---|
 | `Money / Table` | `.h3-money` | `discount=yes/no` |
 | `Money / Row` | `.h3-money__row--{kind}` | `kind=room, passthrough, fee, tax, discount, total` |
-| `Money / Settlement Note` | `.h3-settlement` | — |
+| `Money / Total Box` | `.h3-total-box` | — |
 | `Card / Listing` | `.h3-card` | `state=default, held, unavailable` |
 | `Button / Primary` | `.h3-btn--primary` | `state=default, pressed, disabled, loading` |
 | `Button / Secondary` | `.h3-btn` + border | same |

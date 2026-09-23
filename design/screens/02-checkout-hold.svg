@@ -59,8 +59,6 @@
   <line x1="32" y1="670" x2="328" y2="670" stroke="#AEBBC4" stroke-width="1"/>
   <text x="32" y="694" font-size="15" font-weight="600" fill="#10161A">Total to pay now</text>
   <text x="328" y="694" font-size="15" font-weight="600" fill="#10161A" text-anchor="end">₦348,700.00</text>
-  <text x="32" y="718" font-size="11" fill="#6B7A85">Paid once. Lekki Homes Ltd is paid their full ₦310,000</text>
-  <text x="32" y="732" font-size="11" fill="#6B7A85">directly — House3 never holds their money.</text>
 
   <!-- reassurance above the sticky bar -->
   <text x="16" y="802" font-size="11" fill="#6B7A85">You will pay on Paystack&#8217;s secure page. Card, bank transfer or USSD.</text>

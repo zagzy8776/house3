@@ -1,11 +1,12 @@
 /**
  * Where the guest lands after paying.
  *
- * Shows the confirmed booking, the split that was posted, and what the operator
- * receives — the same numbers a support agent needs if the guest calls.
+ * Shows the confirmed booking and the itemisation of what they were charged.
+ * It deliberately does NOT show the internal split: how much the operator
+ * received and how much House3 kept is available to the ledger
+ * (`repo.listLedger`) for support and reconciliation, but it is not guest-facing.
  */
 
-import { formatNaira } from '@/domain/money';
 import { getContainer } from '@/server/container';
 import { MoneyTable } from '../../components/MoneyTable';
 
@@ -40,8 +41,7 @@ export default async function CheckoutReturn({
   }
 
   const partner = repo.getPartner(booking.partnerId);
-  const ledger = repo.listLedger(booking.id);
-  const operatorName = partner?.displayName ?? 'Your host';
+  const hostName = partner?.displayName ?? 'Your host';
 
   return (
     <main className="h3-page">
@@ -49,7 +49,7 @@ export default async function CheckoutReturn({
       <p className="h3-summary">
         Reference <strong>{booking.reference}</strong> · {booking.nights} night
         {booking.nights === 1 ? '' : 's'} · {booking.stay.checkIn} to {booking.stay.checkOut} ·{' '}
-        {operatorName}
+        {hostName}
       </p>
 
       <h2>What you were charged</h2>
@@ -57,25 +57,11 @@ export default async function CheckoutReturn({
         lines={booking.quote.lines}
         totalKobo={booking.quote.totalKobo}
         totalLabel="Total charged"
-        settlement={{
-          operatorName,
-          operatorKobo: booking.partnerShareKobo,
-          platformKobo: booking.platformShareKobo
-        }}
       />
 
-      <h2 style={{ marginTop: 'var(--h3-space-7)' }}>Settlement legs</h2>
-      {ledger.length === 0 ? (
-        <p className="h3-note">No ledger entries yet — the payment has not been confirmed.</p>
-      ) : (
-        <ul className="h3-ledger">
-          {ledger.map((entry) => (
-            <li key={entry.id}>
-              {entry.recipient} · {entry.kind} · {formatNaira(entry.amountKobo)} ({entry.status})
-            </li>
-          ))}
-        </ul>
-      )}
+      <p className="h3-note" style={{ marginTop: 'var(--h3-space-6)' }}>
+        Need help with this booking? Quote reference <strong>{booking.reference}</strong>.
+      </p>
     </main>
   );
 }

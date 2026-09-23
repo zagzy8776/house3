@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  House3 — Booking confirmation (mobile 360x752).
+  House3 — Booking confirmation (mobile 360x552).
 
-  This screen is the trust artifact of the whole product. It answers three
-  questions in one glance:
-    1. What did I pay?            NGN 348,700
-    2. What did the operator get? NGN 310,000
-    3. What did House3 keep?      NGN 38,700 (fee + VAT)
+  Answers one question properly: what did I pay, and what was each line for. The
+  itemisation is repeated in full, the total is stated once, and the reference is
+  shown for quoting over the phone.
 
-  Note how it balances: 310,000 + 38,700 = 348,700. The card processing fee is
-  shown separately as a cost House3 absorbs out of its own fee, so the guest
-  never has to work out whose money paid for it.
+  A previous version had a second card — "Where the money went" — showing the
+  operator's share and House3's share. It has been removed: the guest does not
+  need our internal split, and showing it invites a conversation about margin
+  instead of about the stay. The split still happens; it is just not displayed.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" width="360" height="752" viewBox="0 0 360 752"
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="552" viewBox="0 0 360 552"
      font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
-  <rect width="360" height="752" fill="#F4F7F9"/>
+  <rect width="360" height="552" fill="#F4F7F9"/>
 
   <!-- confirmed mark -->
   <circle cx="180" cy="88" r="30" fill="#E9F7F0"/>
@@ -43,28 +42,10 @@
   <text x="32" y="386" font-size="15" font-weight="600" fill="#10161A">Total charged</text>
   <text x="328" y="386" font-size="15" font-weight="600" fill="#10161A" text-anchor="end">₦348,700.00</text>
 
-  <text x="32" y="410" font-size="11" fill="#6B7A85">Paid once by card. Lekki Homes Ltd is paid their full</text>
-  <text x="32" y="424" font-size="11" fill="#6B7A85">amount directly — House3 never holds it.</text>
-
-  <!-- ==== where the money went ==== -->
-  <rect x="16" y="452" width="328" height="206" rx="12" fill="#FFFFFF" stroke="#E4EAEE" stroke-width="1"/>
-  <text x="32" y="484" font-size="18" font-weight="600" fill="#10161A">Where the money went</text>
-
-  <text x="32" y="516" font-size="15" fill="#10161A">Lekki Homes Ltd · room &amp; cleaning</text>
-  <text x="328" y="516" font-size="15" fill="#10161A" text-anchor="end">₦310,000.00</text>
-  <text x="32" y="542" font-size="15" fill="#10161A">House3 service fee</text>
-  <text x="328" y="542" font-size="15" fill="#10161A" text-anchor="end">₦36,000.00</text>
-  <text x="32" y="568" font-size="15" fill="#10161A">VAT on service fee (to FIRS)</text>
-  <text x="328" y="568" font-size="15" fill="#10161A" text-anchor="end">₦2,700.00</text>
-
-  <line x1="32" y1="582" x2="328" y2="582" stroke="#AEBBC4" stroke-width="1"/>
-  <text x="32" y="606" font-size="15" font-weight="600" fill="#10161A">Your total</text>
-  <text x="328" y="606" font-size="15" font-weight="600" fill="#10161A" text-anchor="end">₦348,700.00</text>
-
-  <text x="32" y="628" font-size="11" fill="#6B7A85">House3 also pays ₦2,000 in card processing out of its</text>
-  <text x="32" y="642" font-size="11" fill="#6B7A85">own fee — never out of the operator&#8217;s share.</text>
+  <text x="32" y="410" font-size="11" fill="#6B7A85">One payment, taken once. Your host is settled</text>
+  <text x="32" y="424" font-size="11" fill="#6B7A85">directly — House3 does not hold their money.</text>
 
   <!-- secondary action -->
-  <rect x="16" y="682" width="328" height="48" rx="8" fill="#FFFFFF" stroke="#128A4E" stroke-width="1"/>
-  <text x="180" y="712" font-size="15" font-weight="600" fill="#0A6136" text-anchor="middle">Message Lekki Homes Ltd</text>
+  <rect x="16" y="462" width="328" height="48" rx="8" fill="#FFFFFF" stroke="#128A4E" stroke-width="1"/>
+  <text x="180" y="492" font-size="15" font-weight="600" fill="#0A6136" text-anchor="middle">Message your host</text>
 </svg>
