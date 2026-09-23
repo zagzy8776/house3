@@ -93,6 +93,8 @@ model InventoryPartner {
   channels PartnerChannel[]
   units    Unit[]
   bookings Booking[]
+  /// Photographs licensed to us under this partner's supply agreement.
+  media    MediaAsset[]
 
   @@index([stateCode, status])
 }
@@ -198,6 +200,7 @@ model Unit {
   availability UnitNight[]
   holds        Hold[]
   bookings     Booking[]
+  media        MediaAsset[]
 
   @@unique([partnerId, externalId])
   @@index([status])
@@ -494,3 +497,109 @@ model WebhookEvent {
   @@unique([processor, signature])
   @@index([processedAt])
 }
+
+/// A photograph we are licensed to display.
+///
+/// There is no such thing as an asset without a licence reference. Photographs
+/// on another operator's listing belong to them or to their photographer, and
+/// permission to crawl a page is not permission to republish the pictures on it.
+/// Media reaches this table one of three ways, and all three involve a person
+/// agreeing to something: the partner uploads it under the supply agreement, we
+/// commission a shoot, or we buy a licence.
+model MediaAsset {
+  id                String       @id @default(cuid())
+  partnerId         String
+  /// Null for operator-level media such as a logo.
+  unitId            String?
+  licence           MediaLicence
+  /// The contract, commission or licence that permits this use. Required.
+  licenceRef        String
+  licenceGrantedAt  DateTime
+  /// Null means open-ended. Required for LICENSED_FEED, which is time-limited
+  /// by nature and cannot be audited without an end date.
+  licenceExpiresAt  DateTime?
+  /// Rendering order. Position 0 is the card image.
+  position          Int          @default(0)
+  /// Our own words. Never lifted from a listing page.
+  alt               String
+  /// Storage keys, not third-party CDN URLs: a URL we do not control is a
+  /// photograph that can be withdrawn or swapped without our knowing.
+  variants          Json
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  partner InventoryPartner @relation(fields: [partnerId], references: [id])
+  unit    Unit?            @relation(fields: [unitId], references: [id])
+
+  @@index([unitId, position])
+  @@index([partnerId, licenceExpiresAt])
+}
+
+enum MediaLicence {
+  /// The operator uploaded it; the supply agreement covers the use.
+  PARTNER_SUPPLIED
+  /// We paid a photographer.
+  HOUSE3_COMMISSIONED
+  /// Bought from a portal or channel manager under a media licence.
+  LICENSED_FEED
+}
+
+/// One listing seen on someone else's portal, as of one date.
+///
+/// PROSPECT DATA. This is not inventory and must never be rendered as a rate a
+/// guest can pay - see src/domain/provenance.ts, where that rule is a type rather
+/// than a convention. It exists to answer two questions honestly: which
+/// operators are active where, and how their advertised rates have moved since
+/// we started watching.
+///
+/// No media and no description is stored, in any column, by design.
+model ProspectListing {
+  id                String    @id @default(cuid())
+  source            String
+  sourceListingId   String
+  sourceUrl         String
+  /// The floor of the listing's age: it existed before we found it, by an
+  /// unknown amount, so anything derived from this is "at least".
+  firstSeenAt       DateTime
+  lastSeenAt        DateTime
+  advertisedPriceKobo Int?
+  currency          String    @default("NGN")
+  bedrooms          Int?
+  area              String?
+  stateCode         String?
+  /// Operator-level identity, resolved by the union-find consolidation in
+  /// services/acquisition/normalization/dedupe.py.
+  operatorKey       String?
+  operatorName      String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  observations ProspectObservation[]
+
+  @@unique([source, sourceListingId])
+  @@index([lastSeenAt])
+  @@index([operatorKey])
+  @@index([stateCode, area])
+}
+
+/// Every sighting of a prospect listing, append-only.
+///
+/// Kept as rows rather than only as the JSONL ledger so price history survives
+/// an operator delisting a page - which is exactly when the history becomes
+/// interesting, because a withdrawn listing that reappears at a lower rate is
+/// the sharpest acquisition signal we get.
+model ProspectObservation {
+  id                  String   @id @default(cuid())
+  prospectListingId   String
+  observedOn          DateTime
+  advertisedPriceKobo Int?
+  bedrooms            Int?
+  area                String?
+  createdAt           DateTime @default(now())
+
+  prospectListing ProspectListing @relation(fields: [prospectListingId], references: [id])
+
+  @@unique([prospectListingId, observedOn])
+  @@index([observedOn])
+}
+

@@ -13,16 +13,29 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from compliance.allowed_fields import FORBIDDEN_FIELDS, PolicyViolation, assert_no_media_or_prose
+from compliance.allowed_fields import (
+    FORBIDDEN_FIELDS,
+    PolicyViolation,
+    assert_no_media_or_prose,
+    image_urls_in,
+    strip_media,
+)
 from extraction.operator import extract_operator, name_from_domain
 from extraction.property import extract_property_name, parse_price_to_kobo
+from extraction.schema import (
+    EXA_SUMMARY_FIELDS,
+    assert_schema_is_clean,
+    exa_summary_schema,
+)
 from normalization.addresses import canonical_area, is_known_area
 from normalization.dedupe import consolidate, domain_of, strong_keys
+from normalization.history import Observation, detect_changes
 from normalization.names import normalise_operator_name, operator_key
 from normalization.phones import is_plausible_nigerian_mobile, normalise_phone, phone_dedupe_key
 from pipeline import FixtureTransport, build_registry, funnel
 from sources.base import AdapterRegistry, DiscoveredListing, SourceLayer
 from sources.npc import LAGOS_LOCALITIES, NpcAdapter
+from sources.providers import GuardedProvider, ProviderError, build_provider, offline_guard
 
 FIXTURES = Path(__file__).parent / "fixtures"
 NPC = NpcAdapter()
@@ -110,7 +123,12 @@ def test_parses_the_npc_fixture() -> None:
     assert parsed.state == "LA"
     assert parsed.city == "Lagos"
     assert parsed.area == "Ikeja"
-    assert parsed.source_listing_id == "7654321"
+
+    # The page's canonical wins over the URL we happened to fetch, which is the
+    # documented preference order. `7654321` was the URL's id; the fixture
+    # declares its own, and the fixture is the more authoritative statement.
+    assert parsed.source_listing_id == "1043552"
+    assert parsed.source_url.endswith("-1043552")
 
     # booking infrastructure - the highest-value field
     assert parsed.pms_detected == "smoobu"
@@ -298,6 +316,416 @@ def test_area_aliases_collapse_to_one_canonical_name() -> None:
 
 def test_unknown_area_is_kept_rather_than_dropped() -> None:
     assert canonical_area("Brand New Estate") == "Brand New Estate"
+
+
+# ---------------------------------------------------------------------------
+# page identity: canonical URL beats the URL we fetched
+# ---------------------------------------------------------------------------
+
+
+def test_list_page_url_does_not_become_the_listing_id() -> None:
+    """
+    Regression test for a real bug the fixture run surfaced.
+
+    Discovery yields list pages as a fallback when the sitemap is unavailable.
+    Every row on /for-rent/short-let/lagos was therefore keyed by the *state
+    slug*, collapsing a whole page of listings into one record - which silently
+    broke both the funnel's "unique properties" count and change detection,
+    because every observation shared a key.
+    """
+    html = (FIXTURES / "npc-listing-1.html").read_text(encoding="utf-8")
+    list_page = "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos"
+    parsed = NPC.parse(html, list_page)
+
+    assert parsed is not None
+    assert parsed.source_listing_id != "lagos"
+    assert parsed.source_listing_id == "1043552"
+
+
+def test_canonical_on_another_host_is_ignored() -> None:
+    """
+    A canonical pointing off-host is a syndicated copy or a publisher mistake.
+    Adopting it would make our provenance point at someone else's page.
+    """
+    html = (
+        "<html><head>"
+        '<link rel="canonical" href="https://scraper.example/listing/9999999" />'
+        '<meta property="og:title" content="Somewhere Else Apartments" />'
+        "</head><body><h1>Somewhere Else Apartments</h1>"
+        '<p class="price">₦150,000</p></body></html>'
+    )
+    url = "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos/ikeja/7654321"
+    parsed = NPC.parse(html, url)
+
+    assert parsed is not None
+    assert parsed.source_listing_id == "7654321"
+    assert parsed.source_url == url
+
+
+def test_each_fixture_is_a_distinct_property_from_one_operator() -> None:
+    """
+    Fixture mode exists to demonstrate consolidation through real parsing. If it
+    ever collapses to one property again, this fails.
+    """
+    registry = build_registry()
+    adapter = registry.get("npc")
+
+    listings = [
+        adapter.parse((FIXTURES / name).read_text(encoding="utf-8"), url)
+        for name, url in (
+            ("npc-listing-1.html", "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos"),
+            ("npc-listing-2.html", "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos"),
+            ("npc-listing-3.html", "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos"),
+        )
+    ]
+    usable = [listing for listing in listings if listing is not None]
+
+    report = funnel(usable)
+    assert report["unique_properties"] == 3
+    # One operator across three units is exactly the acquisition signal we want.
+    assert report["unique_operators"] == 1
+    assert report["unique_properties"] != report["unique_operators"]
+
+
+# ---------------------------------------------------------------------------
+# media stripping
+# ---------------------------------------------------------------------------
+
+
+def test_strip_media_removes_every_route_to_a_photograph() -> None:
+    """
+    The guard has to hold for any way a developer can reference a file, not just
+    the <img> tag we thought of first.
+    """
+    html = """
+    <div class="gallery">
+      <img src="https://cdn.nigeriapropertycentre.com/listing/1043552/1.jpg" alt="Living room" />
+      <picture><source srcset="https://cdn.x/2.webp 1x, https://cdn.x/3.webp 2x" /></picture>
+      <figure><img data-lazy-src="/media/4.JPEG" /><figcaption>Ensuite</figcaption></figure>
+      <div style="background-image: url('/media/5.png')"></div>
+      <a href="https://cdn.x/6.gif?w=800">gallery</a>
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==" />
+      <script>var photos = ["https://cdn.x/7.avif"];</script>
+    </div>
+    <p class="price">₦240,000 /day</p>
+    <a href="tel:+2348030000000">Call agent</a>
+    """
+
+    stripped = strip_media(html)
+
+    # Every image extension is gone, including the uppercase one and the
+    # one buried in a JSON blob.
+    for leftover in (".jpg", ".jpeg", ".JPEG", ".webp", ".png", ".gif", ".avif"):
+        assert leftover.lower() not in stripped.lower()
+
+    # Container elements go whole, so no orphaned caption survives to suggest
+    # there was a photograph.
+    assert "<img" not in stripped
+    assert "<picture" not in stripped
+    assert "<figure" not in stripped
+    assert "Living room" not in stripped
+    assert "Ensuite" not in stripped
+
+    # The operator's own alt text is prose about the property, so it leaves too.
+    assert "alt=" not in stripped
+
+    # Facts we are allowed to keep are untouched. This is the important half:
+    # a guard that ate the price would be worse than no guard.
+    assert "₦240,000" in stripped
+    assert "+2348030000000" in stripped
+
+
+def test_image_urls_in_reports_what_would_be_removed() -> None:
+    html = '<img src="https://cdn.x/a.jpg"><img src="/b.png">'
+    assert len(image_urls_in(html)) == 2
+
+
+def test_strip_media_is_safe_on_ordinary_markup() -> None:
+    html = "<html><body><h1>Flat</h1></body></html>"
+    assert strip_media(html) == html
+
+
+# ---------------------------------------------------------------------------
+# structured-output schema is derived from the allowlist
+# ---------------------------------------------------------------------------
+
+
+def test_exa_schema_only_requests_allowlisted_fields() -> None:
+    from compliance.allowed_fields import ALLOWED_FIELDS
+
+    schema = exa_summary_schema()
+    requested = set(schema["properties"])
+    assert requested == set(EXA_SUMMARY_FIELDS)
+    assert requested <= ALLOWED_FIELDS
+
+
+def test_exa_schema_cannot_be_built_with_a_forbidden_field() -> None:
+    """
+    The dangerous hole in a vendor API is that you can ask it for arbitrary
+    text. Asking for a description or an image would launder collection through
+    a third party, so it raises instead.
+    """
+    for forbidden in ("description", "images", "agent_name"):
+        try:
+            exa_summary_schema(frozenset({"operator_name", forbidden}))
+        except PolicyViolation as exc:
+            assert forbidden in str(exc)
+        else:
+            raise AssertionError(f"schema accepted forbidden field {forbidden!r}")
+
+
+def test_exa_schema_rejects_undeclared_fields() -> None:
+    try:
+        exa_summary_schema(frozenset({"operator_name", "carpet_colour"}))
+    except PolicyViolation as exc:
+        assert "carpet_colour" in str(exc)
+    else:
+        raise AssertionError("schema accepted an undeclared field")
+
+
+def test_assert_schema_is_clean_checks_a_hand_built_schema() -> None:
+    ok = {"properties": {"operator_name": {"type": "string"}}}
+    assert assert_schema_is_clean(ok) is ok
+
+    dirty = {"properties": {"operator_name": {"type": "string"}, "photos": {"type": "array"}}}
+    try:
+        assert_schema_is_clean(dirty)
+    except PolicyViolation:
+        pass
+    else:
+        raise AssertionError("dirty schema passed")
+
+
+# ---------------------------------------------------------------------------
+# listing history and change detection
+# ---------------------------------------------------------------------------
+
+
+def _observation(listing_id: str, day: str, price: int | None = 200_000) -> Observation:
+    return Observation(
+        source="npc",
+        source_listing_id=listing_id,
+        observed_on=day,
+        advertised_price=price,
+        bedrooms=3,
+        area="Lekki Phase 1",
+    )
+
+
+def _history(previous: list[tuple[str, str, int]]) -> list:
+    """Build histories from (listing_id, day, price) tuples."""
+    from normalization.history import ListingHistory
+
+    histories: dict[str, ListingHistory] = {}
+    for listing_id, day, price in previous:
+        history = histories.setdefault(
+            listing_id, ListingHistory(source="npc", source_listing_id=listing_id)
+        )
+        history.add(_observation(listing_id, day, price))
+    return list(histories.values())
+
+
+def test_first_run_reports_everything_as_new() -> None:
+    changes = detect_changes([], [_observation("1", "2026-09-01")], today="2026-09-01")
+    assert len(changes.new_listings) == 1
+    assert changes.price_changes == []
+    assert changes.delisted == []
+
+
+def test_unchanged_listing_is_not_reported_as_new() -> None:
+    known = _history([("1", "2026-09-01", 200_000)])
+    changes = detect_changes(known, [_observation("1", "2026-09-02", 200_000)], today="2026-09-02")
+
+    assert changes.new_listings == []
+    assert len(changes.unchanged) == 1
+    assert changes.price_changes == []
+
+
+def test_price_change_is_detected_with_direction_and_percent() -> None:
+    known = _history([("1", "2026-09-01", 200_000)])
+    changes = detect_changes(known, [_observation("1", "2026-09-08", 170_000)], today="2026-09-08")
+
+    assert len(changes.price_changes) == 1
+    change = changes.price_changes[0]
+    assert change.previous == 200_000
+    assert change.current == 170_000
+    assert change.delta == -30_000
+    assert change.direction == "cut"
+    assert change.percent() == -15.0
+
+
+def test_price_rise_is_labelled_a_rise() -> None:
+    known = _history([("1", "2026-09-01", 100_000)])
+    changes = detect_changes(known, [_observation("1", "2026-09-05", 125_000)], today="2026-09-05")
+    assert changes.price_changes[0].direction == "rise"
+    assert changes.price_changes[0].percent() == 25.0
+
+
+def test_same_day_rerun_does_not_invent_a_price_change() -> None:
+    """
+    A crawl re-run inside a day must not look like new inventory or a rate
+    movement. Without this, running twice in an afternoon would inflate both.
+    """
+    known = _history([("1", "2026-09-01", 200_000)])
+    changes = detect_changes(known, [_observation("1", "2026-09-01", 200_000)], today="2026-09-01")
+
+    assert changes.new_listings == []
+    assert changes.price_changes == []
+    assert len(changes.unchanged) == 1
+
+
+def test_delisting_waits_for_the_grace_period() -> None:
+    """
+    Portals reorder, and a crawl that stopped early looks exactly like a listing
+    being withdrawn. A single miss is not evidence.
+    """
+    known = _history([("1", "2026-09-01", 200_000)])
+
+    inside = detect_changes(known, [], today="2026-09-04")
+    assert inside.delisted == []
+
+    outside = detect_changes(known, [], today="2026-09-20")
+    assert len(outside.delisted) == 1
+    assert outside.delisted[0].source_listing_id == "1"
+
+
+def test_days_on_market_is_a_floor_not_an_exact_age() -> None:
+    from normalization.history import ListingHistory
+
+    history = ListingHistory(source="npc", source_listing_id="1")
+    history.add(_observation("1", "2026-09-01"))
+    history.add(_observation("1", "2026-09-11"))
+
+    assert history.first_seen == "2026-09-01"
+    assert history.last_seen == "2026-09-11"
+    assert history.days_on_market(today="2026-09-21") == 20
+
+
+def test_a_listing_with_no_price_reports_no_price_change() -> None:
+    known = _history([("1", "2026-09-01", None)])
+    changes = detect_changes(known, [_observation("1", "2026-09-05", 200_000)], today="2026-09-05")
+
+    assert changes.price_changes == []
+    assert len(changes.unchanged) == 1
+
+
+# ---------------------------------------------------------------------------
+# providers
+# ---------------------------------------------------------------------------
+
+
+class _RecordingProvider:
+    """A provider that returns fixed HTML and counts how often it was called."""
+
+    name = "recording"
+
+    def __init__(self, html: str) -> None:
+        self.html = html
+        self.calls: list[str] = []
+
+    def fetch(self, url: str) -> str:
+        self.calls.append(url)
+        return self.html
+
+
+class _DenyAll:
+    def allowed(self, url: str) -> bool:
+        return False
+
+    def crawl_delay(self, url: str) -> float | None:
+        return None
+
+    def sitemaps(self, url: str) -> list[str]:
+        return []
+
+
+class _AllowAll:
+    def __init__(self, delay: float | None = None) -> None:
+        self.delay = delay
+
+    def allowed(self, url: str) -> bool:
+        return True
+
+    def crawl_delay(self, url: str) -> float | None:
+        return self.delay
+
+    def sitemaps(self, url: str) -> list[str]:
+        return []
+
+
+def test_guard_refuses_to_fetch_when_robots_disallows() -> None:
+    """
+    The whole point of the wrapper: a disallowed URL is never requested, however
+    it reached the pipeline. This is what a paid crawl provider cannot be
+    trusted to enforce for us.
+    """
+    from compliance.rate_limit import HostThrottle
+
+    inner = _RecordingProvider("<html></html>")
+    guard = GuardedProvider(inner, _DenyAll(), HostThrottle(interval_seconds=0.0), 0.0)
+
+    try:
+        guard.fetch("https://example.com/secret")
+    except PolicyViolation:
+        pass
+    else:
+        raise AssertionError("guard fetched a disallowed URL")
+
+    assert inner.calls == [], "the inner provider was called despite a robots refusal"
+
+
+def test_guard_strips_media_from_provider_output() -> None:
+    """
+    Media stripping runs on whatever a provider returns, so swapping the stdlib
+    transport for a managed service does not open the door to photographs.
+    """
+    from compliance.rate_limit import HostThrottle
+
+    inner = _RecordingProvider('<html><img src="https://cdn.x/a.jpg"><p>₦200,000</p></html>')
+    guard = GuardedProvider(inner, _AllowAll(), HostThrottle(interval_seconds=0.0), 0.0)
+
+    stripped = guard.fetch("https://example.com/listing")
+    assert ".jpg" not in stripped
+    assert "₦200,000" in stripped
+
+
+def test_guard_uses_a_published_crawl_delay_over_our_own_interval() -> None:
+    from compliance.rate_limit import HostThrottle
+
+    throttle = HostThrottle(interval_seconds=0.0)
+    guard = GuardedProvider(
+        _RecordingProvider("<html></html>"),
+        _AllowAll(delay=0.0),
+        throttle,
+        0.0,
+    )
+    guard.fetch("https://example.com/one")
+    guard.fetch("https://example.com/two")
+    assert len(throttle._last_hit) == 1
+
+
+def test_offline_guard_needs_no_network() -> None:
+    guard = offline_guard(FixtureTransport(FIXTURES))
+    assert "Luxury 3 Bedrooms" in guard.fetch("https://www.nigeriapropertycentre.com/anything")
+
+
+def test_unknown_transport_is_rejected_by_name() -> None:
+    try:
+        build_provider("telepathy")
+    except ProviderError as exc:
+        assert "telepathy" in str(exc)
+    else:
+        raise AssertionError("unknown transport was accepted")
+
+
+def test_paid_provider_without_a_key_explains_how_to_run_instead() -> None:
+    """A missing key is a config mistake, so the error should name the fix."""
+    try:
+        build_provider("firecrawl")
+    except ProviderError as exc:
+        assert "FIRECRAWL_API_KEY" in str(exc)
+    else:
+        raise AssertionError("firecrawl built without a key")
 
 
 def test_prices_parse_and_reject_nonsense() -> None:

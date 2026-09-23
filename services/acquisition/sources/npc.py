@@ -85,6 +85,15 @@ LAGOS_LOCALITIES: tuple[str, ...] = (
 #: Listing URLs on NPC end in a numeric id. Observed in the published sitemap.
 LISTING_ID_RE = re.compile(r"-(\d{6,})(?:/)?$")
 
+#: The page's own statement of what it is. Preferred over the URL we fetched,
+#: because a list page offers us the list URL for every row on it.
+CANONICAL_URL_RE = re.compile(
+    r"""<link[^>]+rel=["']canonical["'][^>]*?href=["']([^"']+)["']""", re.IGNORECASE
+)
+OG_URL_RE = re.compile(
+    r"""<meta[^>]+property=["']og:url["'][^>]*?content=["']([^"']+)["']""", re.IGNORECASE
+)
+
 # PRICE_RE, BEDROOMS_RE and BATHROOMS_RE are imported from extraction.property.
 # They must NOT be redefined here: an earlier version defined them locally after
 # the import, so the local copies silently shadowed the shared ones - and the
@@ -184,16 +193,24 @@ class NpcAdapter:
 
         plain = strip_tags(html)
 
+        # Identify from the page's own canonical URL where there is one. The URL
+        # we fetched is what the sitemap or a list page offered us; the canonical
+        # URL is what the publisher says the listing *is*. On a list page the
+        # two differ sharply - every row on /for-rent/short-let/lagos carries its
+        # own canonical - and using the fetched URL there collapsed an entire
+        # page of listings into one record keyed by the state slug.
+        source_url, listing_id = self._identify(html, url)
+
         website = find_operator_website(html, url) or None
         identity = extract_operator(html, website)
 
         phones = find_phones(html)
-        location = self._location_from_url(url)
+        location = self._location_from_url(source_url)
 
         listing = DiscoveredListing(
             source=self.name,
-            source_url=url,
-            source_listing_id=self._listing_id(url),
+            source_url=source_url,
+            source_listing_id=listing_id,
             property_name=name[:200],
             property_type=extract_property_type(html),
             bedrooms=first_int(BEDROOMS_RE, plain),
@@ -228,6 +245,34 @@ class NpcAdapter:
         # Fall back to the last path segment, which is stable even if NPC
         # changes its id format.
         return urlparse(url).path.rstrip("/").rsplit("/", 1)[-1]
+
+    def _identify(self, html: str, fetched_url: str) -> tuple[str, str]:
+        """
+        Return (source_url, source_listing_id) for a page.
+
+        Preference order, most authoritative first:
+
+          1. a canonical URL on the page - what the publisher says the listing is
+          2. the fetched URL, when it already carries a numeric listing id
+          3. the fetched URL's last path segment
+
+        The canonical is only accepted when it stays on this adapter's host. A
+        page that points its canonical somewhere else is either a syndicated copy
+        or a publisher mistake, and adopting a foreign URL as our provenance
+        would make the record unattributable.
+        """
+        canonical = CANONICAL_URL_RE.search(html) or OG_URL_RE.search(html)
+        if canonical:
+            candidate = canonical.group(1).strip()
+            if candidate and self._same_host(candidate):
+                return candidate, self._listing_id(candidate)
+
+        return fetched_url, self._listing_id(fetched_url)
+
+    def _same_host(self, candidate: str) -> bool:
+        expected = self.host.replace("www.", "")
+        host = urlparse(candidate).netloc.replace("www.", "")
+        return bool(host) and (host == expected or host.endswith(f".{expected}"))
 
     def _location_from_url(self, url: str) -> dict[str, Optional[str]]:
         """

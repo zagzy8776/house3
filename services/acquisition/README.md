@@ -23,16 +23,88 @@ gates them exactly as before.
 ## Architecture
 
 ```
-compliance/     robots.txt · per-host rate limit · field allowlist
+compliance/     robots.txt · per-host rate limit · field allowlist · media stripping
 sources/        base.py (SourceAdapter protocol + registry) · npc.py
-extraction/     property · operator · contact · pms
-normalization/  names · phones · addresses · dedupe (operator consolidation)
-pipeline.py     discover -> fetch -> parse -> consolidate -> funnel
+                providers.py (stdlib · playwright · firecrawl · exa · fixture)
+extraction/     property · operator · contact · pms · schema (API output schemas)
+normalization/  names · phones · addresses · dedupe (consolidation) · history
+pipeline.py     discover -> fetch -> parse -> consolidate -> diff -> funnel
 ```
 
 Adding a portal is a new file in `sources/` implementing two methods, `discover`
 and `parse`. Everything after parsing is source-agnostic — that is what stops
 this becoming a pile of brittle per-site scripts.
+
+## Crawl providers
+
+Three ways to fetch a page, one interface behind them, chosen with `--transport`:
+
+| `--transport` | What it is | When |
+|---|---|---|
+| `stdlib` | our own request | default; free; static pages only |
+| `playwright` | a real browser | JS-rendered portals such as NPC |
+| `firecrawl` | managed scrape API | scale, proxies, no browser to operate |
+| `fixture` | bundled HTML | offline development and tests |
+
+Every one of them is wrapped in `GuardedProvider`, which runs the robots check,
+then the throttle, then the provider, then media stripping. **A paid crawl API
+does not move the obligation.** If Firecrawl fetches a page, we received that
+page, so the rules run on its output exactly as they run on our own. Firecrawl's
+scrape endpoint takes no robots parameter and `excludeTags` is a cost
+optimisation on top of our stripper, never a replacement for it.
+
+`strip_media()` removes image references from the markup *before* extraction —
+`<img>`, `<picture>`, `<figure>`, CSS `url()`, `srcset`, data URIs, and any URL
+ending in an image extension in any attribute or inline JSON. A parser therefore
+cannot match a photo URL even by mistake. Stopping at an output allowlist would
+only prevent *storing* one.
+
+## Discovery
+
+`--discover exa` adds semantic discovery for operators our sitemap walk
+structurally cannot reach: NPC's sitemap only ever tells us about NPC. Exa's
+`contents.summary.schema` accepts a JSON schema and returns an LLM-written object
+matching it, which is exactly the shape we want and exactly the risk — any field
+we ask for is a field we have collected.
+
+So the schema is **derived from `ALLOWED_FIELDS`** in `extraction/schema.py`, and
+the module raises at import if it names anything forbidden or undeclared. Asking
+Exa for `description` would launder prose collection through a vendor and defeat
+the allowlist entirely; that is now an ImportError rather than a code review.
+
+```bash
+export EXA_API_KEY=...        # and FIRECRAWL_API_KEY=... for --transport firecrawl
+python pipeline.py --source npc --state LA --area lekki \
+  --transport firecrawl --discover exa
+```
+
+Exa results are candidates, not listings. Nothing reaches the lead file until the
+operator's own page has been fetched and parsed like any other.
+
+## Which houses are listed, and when
+
+`--ledger listing-observations.jsonl` is append-only. Each run appends one
+observation per listing and diffs it against everything already known:
+
+```
+  since last run, across 1,204 listings already known:
+      37 newly listed
+       9 changed price
+       4 gone (absent beyond the grace period)
+   1,154 unchanged
+```
+
+`first_seen_at` is a floor, not an exact date — the listing predated our finding
+it by an unknown amount, so anything derived from it is reported as "at least".
+A listing counts as delisted only after `DEFAULT_DELIST_GRACE_DAYS` of absence,
+because portals reorder and an interrupted crawl looks identical to a withdrawal
+on the day it happens.
+
+**Not built, deliberately: a view count.** There is no honest way to measure how
+many people viewed someone else's listing; that number lives in their analytics
+and appears nowhere on the page. We could infer something from search rank and
+print it as "views", and it would be invented. Presence, absence and advertised
+price are measurable, so those are what we record.
 
 ## Running
 
@@ -42,8 +114,8 @@ cd services/acquisition
 # Offline against bundled NPC-shaped pages. No dependencies, no network.
 python pipeline.py --source npc --state LA --area lekki --fixture --interval 0
 
-# Tests
-python test_acquisition.py
+# Tests (pytest, or the built-in runner if pytest is absent)
+python -m pytest -q
 ```
 
 Real crawl needs a browser, because NPC is Livewire/Alpine and paginates in JS:
@@ -126,6 +198,10 @@ Fields extracted: `source`, `source_url`, `source_listing_id`, `property_name`,
 explicitly, and `assert_no_media_or_prose()` **fails the run** if an extractor
 reaches for any of them — or for a field nobody declared.
 
+`strip_media()` runs earlier still, on the fetched markup, so an image reference
+never reaches an extractor in the first place. The allowlist is the second wall,
+not the only one.
+
 Crawling permission and copyright are different things. NPC's robots.txt permits
 us to fetch their pages; it does not license their photographs or their written
 descriptions. This module makes that structural rather than a promise.
@@ -133,6 +209,18 @@ descriptions. This module makes that structural rather than a promise.
 `agent_name` is on the list for a different reason: we are contacting a business
 about a commercial proposition, and the name of whichever staff member happened
 to post a listing is personal data we have no need for.
+
+### So where do the photographs come from?
+
+From the signed partner. `src/domain/media.ts` is the other half of this rule: an
+image is displayable only when it belongs to an `ACTIVE` partner with a signed
+supply agreement, names that agreement as its licence, and depicts the unit it is
+shown on. A unit with no licensed photographs renders as a card with **no image**
+— never a stock photo standing in for a specific property, because a guest who
+books because of that photo has been misled about the room.
+
+Two different problems, one fix. The operator uploads their own files during
+onboarding, or we commission a shoot, and the agreement is what licenses the use.
 
 ## Retention
 

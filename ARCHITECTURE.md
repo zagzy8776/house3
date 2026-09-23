@@ -161,10 +161,36 @@ snapshot (an empty snapshot would mass-delist the operator's rooms).
   is a bug, not a configuration option.
 - `WebhookEvent` has a unique index on `(processor, signature)` for replay protection.
 - `BookingEvent` is an append-only status audit trail.
+- `MediaAsset` cannot exist without a `licenceRef`. A photograph is displayable only
+  for an `ACTIVE` partner with a signed supply agreement, and `variants` holds storage
+  keys rather than third-party CDN URLs — a URL we do not control can be withdrawn or
+  swapped without our knowing.
+- `ProspectListing` / `ProspectObservation` are **prospect data**: listings seen on
+  someone else's portal, with `firstSeenAt` as an age *floor* and every sighting kept
+  append-only so price history survives a delisting. Neither table has a media or
+  description column, by design.
 
 `src/server/store.ts` defines the `Repository` interface the service depends on and ships
 an in-memory implementation. Swapping in a Prisma-backed implementation is one
 constructor argument in `src/server/container.ts`.
+
+## Two kinds of listing, and no path between them
+
+The same split as `DISCOVERY_SOURCE` vs `BOOKING_SOURCE`, carried into the types the UI
+consumes:
+
+- `src/domain/media.ts` — `assertMediaUsable()` / `selectGallery()`. Photographs arrive
+  with the signed partner, not with the crawl. `cardImage()` returns
+  `{ kind: 'EMPTY', reason: 'NO_AGREEMENT' | 'NO_MEDIA' }` as a first-class outcome, so a
+  unit we cannot show renders as a designed card rather than someone else's property.
+- `src/domain/provenance.ts` — `assertBookable()` refuses to let an
+  `ADVERTISED_ELSEWHERE` rate become a payable price. A number we observed on another
+  portal is research and belongs in outreach; it is not a price a guest can pay, and no
+  flag converts one into the other.
+
+No view counts are recorded anywhere. We cannot observe how many people viewed someone
+else's listing — that number is in their analytics and appears nowhere on the page — and
+inferring one from search rank would mean presenting a guess as a measurement.
 
 ## Extension points
 
