@@ -121,6 +121,13 @@ npm run db:seed
 npm run db:studio
 ```
 
+For production, set `DATABASE_URL` to the managed PostgreSQL connection string
+from the deployment secret store (Aiven/Neon/etc.) and use SSL. The managed
+PostgreSQL database is the authoritative store for properties, operators,
+availability, bookings, payments, and ledger data. Turso is not wired as the
+primary database; it may be added later as a separately defined read model or
+edge cache without changing the source of truth.
+
 Copy `.env.example` to `.env` before touching a processor. Nothing in `src/domain`
 reads the environment — pricing is injected, which is why the tests are deterministic.
 

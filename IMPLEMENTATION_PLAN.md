@@ -187,6 +187,13 @@ change to runtime behavior.
 with a `pg_isready` healthcheck. `package.json` has `db:up`, `db:migrate`, `db:push`,
 `db:seed`. No migrations exist. Only `prisma/seed.ts` uses Prisma.
 
+The intended hosted database is managed PostgreSQL (currently the Aiven connection
+provided for deployment). Its connection string belongs only in the deployment
+secret store as `DATABASE_URL`; it must not be committed or copied into issue text.
+Turso is deliberately not used as the canonical store because the inventory plan
+depends on PostgreSQL/PostGIS semantics. A future Turso integration must be an
+explicit edge/read-model adapter with its own schema and freshness contract.
+
 **Deliverables**
 
 - `docker-compose.yml`: `postgis/postgis:16-3.4`, same port, volume and healthcheck.
