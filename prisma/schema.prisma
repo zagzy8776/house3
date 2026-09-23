@@ -82,6 +82,7 @@ model Location {
   state      State           @relation(fields: [stateCode], references: [code])
   properties Property[]
   listings   SourceListing[]
+  geocodes   GeocodeRecord[]
 
   @@unique([stateCode, normalizedName])
   @@index([stateCode, name])
@@ -171,7 +172,7 @@ model Property {
   operator       Operator?            @relation(fields: [operatorId], references: [id])
   sourceListings SourceListing[]
   prices         PriceObservation[]
-  geocode        GeocodeRecord?
+  geocodes       GeocodeRecord[]
   amenities      PropertyAmenity[]
   availability   AvailabilitySignal[]
 
@@ -277,6 +278,7 @@ model SourceListing {
   observations SourceObservation[]
   prices       PriceObservation[]
   amenities    SourceListingAmenity[]
+  geocodes     GeocodeRecord[]
 
   @@unique([source, sourceListingId])
   @@index([lastSeenAt])
@@ -338,22 +340,59 @@ enum GeocodeReviewStatus {
   NEEDS_REVIEW
 }
 
-model GeocodeRecord {
-  id            String              @id @default(cuid())
-  propertyId    String              @unique
-  provider      String
-  query         String
-  latitude      Float
-  longitude     Float
-  confidenceBps Int?
-  precision     LocationPrecision
-  reviewStatus  GeocodeReviewStatus @default(PENDING)
-  observedAt    DateTime
-  rawResponse   Json?
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+/// Which kind of thing a geocode describes.
+///
+/// A geocode is evidence, and evidence arrives before the canonical answer: a
+/// source listing (or a normalised Location) is geocoded first, and entity
+/// resolution then decides which canonical Property the coordinates belong to -
+/// coordinates being one of the matching signals. Keying a geocode to a Property
+/// only, as this model originally did, made geocoding impossible until after the
+/// decision it exists to inform.
+enum GeocodeSubject {
+  SOURCE_LISTING
+  LOCATION
+  PROPERTY
+}
 
-  property Property @relation(fields: [propertyId], references: [id])
+/// One geocode of one subject.
+///
+/// Exactly one of `propertyId` / `sourceListingId` / `locationId` is set, and
+/// `subject` must agree with which. Prisma cannot express that, so it is a CHECK
+/// constraint in the migration - together with partial unique indexes that make
+/// "one geocode per subject per provider" enforceable even though all three key
+/// columns are nullable. One row per provider is deliberate: when a second
+/// provider disagrees, both opinions are worth keeping, and `reviewStatus`
+/// records which one a human accepted.
+model GeocodeRecord {
+  id                String              @id @default(cuid())
+  subject           GeocodeSubject
+  propertyId        String?
+  sourceListingId   String?
+  locationId        String?
+  provider          String
+  /// What we asked the provider.
+  query             String
+  /// The canonical address we recorded. The source's own wording is never
+  /// overwritten - both are kept, so our interpretation can be re-derived.
+  normalizedAddress String?
+  latitude          Float
+  longitude         Float
+  confidenceBps     Int?
+  precision         LocationPrecision
+  reviewStatus      GeocodeReviewStatus @default(PENDING)
+  observedAt        DateTime
+  rawResponse       Json?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  property      Property?      @relation(fields: [propertyId], references: [id])
+  sourceListing SourceListing? @relation(fields: [sourceListingId], references: [id])
+  location      Location?      @relation(fields: [locationId], references: [id])
+
+  @@index([subject])
+  @@index([propertyId])
+  @@index([sourceListingId])
+  @@index([locationId])
 }
 
 enum MatchDecisionType {

@@ -277,7 +277,10 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument(
         "--ledger",
         default="listing-observations.jsonl",
-        help="append-only observation log; this is what makes change detection possible",
+        help=(
+            "append-only observation log for runs with no database; when --ingest db is "
+            "used the observation tables are the ledger instead"
+        ),
     )
     parser.add_argument("--max", type=int, default=500, help="cap on listings walked")
     parser.add_argument("--interval", type=float, default=5.0, help="seconds between hits on one host")
@@ -408,18 +411,12 @@ def main(argv: Optional[list[str]] = None) -> int:
     report = funnel(listings)
     stats = _combined_stats(per_state, listings)
 
-    # Change detection runs before the lead file is written, because "this
-    # operator just moved their rate" changes what the call should say.
-    known = load_ledger(Path(args.ledger))
-    observed_on = date.today().isoformat()
-    observations = to_observations(listings, observed_on)
-    changes = detect_changes(known, observations, today=observed_on)
-
     ingest_report = None
+    connection = None
+    uses_database_ledger = False
     if args.ingest == "db":
         from ingest.postgres import PostgresIngestor, dsn_for_psycopg, write_report
 
-        connection = None
         if not args.dry_run:
             database_url = os.environ.get("DATABASE_URL")
             if not database_url:
@@ -432,7 +429,29 @@ def main(argv: Optional[list[str]] = None) -> int:
             # Prisma's URL is not a libpq URL (`?schema=public` is Prisma-only),
             # and the two stages share one environment variable.
             connection = psycopg.connect(dsn_for_psycopg(database_url))
+            uses_database_ledger = True
 
+    observed_on = date.today().isoformat()
+    observations = to_observations(listings, observed_on)
+
+    # The database is the ledger whenever one is reachable, so that concurrent
+    # crawlers in different states share one history instead of each keeping a
+    # private file and reporting the same listings as new every time. The JSONL
+    # ledger remains for runs with no database at all.
+    if uses_database_ledger:
+        from ingest.ledger import PostgresLedger
+
+        known = PostgresLedger(connection).load()
+        ledger_label = "database (SourceObservation + PriceObservation)"
+    else:
+        known = load_ledger(Path(args.ledger))
+        ledger_label = str(args.ledger)
+
+    # Change detection runs before the lead file is written, because "this
+    # operator just moved their rate" changes what the call should say.
+    changes = detect_changes(known, observations, today=observed_on)
+
+    if args.ingest == "db":
         try:
             ingest_report = PostgresIngestor(connection).ingest(
                 listings,
@@ -450,7 +469,11 @@ def main(argv: Optional[list[str]] = None) -> int:
         for operator in report["operators"]:
             sink.write(json.dumps(operator.to_lead(), ensure_ascii=False) + "\n")
 
-    append_ledger(Path(args.ledger), observations)
+    # The ingest above already appended the observations when the database is the
+    # ledger. Writing the file as well would create two histories that drift, so
+    # exactly one of them is written.
+    if not uses_database_ledger:
+        append_ledger(Path(args.ledger), observations)
 
     published = None
     if args.publish and args.publish != "-":
@@ -474,7 +497,10 @@ def main(argv: Optional[list[str]] = None) -> int:
     print(f"    {len(changes.unchanged):>5,} unchanged")
     print()
     print(f"  skipped by robots: {stats['skipped_robots']}, failed: {stats['failed']}")
-    print(f"  wrote {out_path} and appended {len(observations):,} observations to {args.ledger}")
+    if uses_database_ledger:
+        print(f"  wrote {out_path}; observation ledger is {ledger_label}")
+    else:
+        print(f"  wrote {out_path} and appended {len(observations):,} observations to {args.ledger}")
     if ingest_report is not None:
         mode = "dry-run" if ingest_report.dry_run else "database"
         print(

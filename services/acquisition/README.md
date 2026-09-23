@@ -83,8 +83,8 @@ operator's own page has been fetched and parsed like any other.
 
 ## Which houses are listed, and when
 
-`--ledger listing-observations.jsonl` is append-only. Each run appends one
-observation per listing and diffs it against everything already known:
+Every run writes one observation per listing and diffs it against everything
+already known:
 
 ```
   since last run, across 1,204 listings already known:
@@ -93,6 +93,25 @@ observation per listing and diffs it against everything already known:
        4 gone (absent beyond the grace period)
    1,154 unchanged
 ```
+
+**The database is the ledger.** When the run writes to PostgreSQL, the history
+comes from the observation tables themselves:
+
+```
+SourceListing      one row per listing ever seen, keyed (source, sourceListingId)
+SourceObservation  one row per listing per day: presence, plus the facts seen
+PriceObservation   the advertised figure and its basis, per day
+```
+
+`(sourceListingId, observedAt)` is unique, so two crawlers observing the same
+listing on the same day converge on one row instead of racing — which is what lets
+Lagos, FCT and Oyo run concurrently and still see one timeline. `ingest/ledger.py`
+reads those tables; `ingest/postgres.py` writes them.
+
+`--ledger listing-observations.jsonl` is the fallback for runs with **no**
+database, and is append-only. It is deliberately not written when the database is
+the ledger: two histories that drift is worse than one. A run with a database
+connection reports which ledger it used.
 
 `first_seen_at` is a floor, not an exact date — the listing predated our finding
 it by an unknown amount, so anything derived from it is reported as "at least".

@@ -8,8 +8,10 @@ must still resolve to ONE operator.
 
 from __future__ import annotations
 
+import json
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -43,8 +45,9 @@ from normalization.dedupe import consolidate, domain_of, strong_keys
 from normalization.history import Observation, detect_changes
 from normalization.names import normalise_operator_name, operator_key
 from normalization.phones import is_plausible_nigerian_mobile, normalise_phone, phone_dedupe_key
+from ingest.ledger import PostgresLedger
 from ingest.postgres import PostgresIngestor, dsn_for_psycopg
-from pipeline import FixtureTransport, build_registry, funnel
+from pipeline import FixtureTransport, build_registry, funnel, load_ledger
 from publishing import (
     assert_publishable,
     build_directory,
@@ -361,6 +364,164 @@ def test_database_ingest_records_the_price_basis() -> None:
     # A value the enum does not have means "not stated", not a database error.
     assert "PER_FORTNIGHT" not in listing_params[1]
     assert "UNKNOWN" in listing_params[1]
+
+
+class _LedgerCursor:
+    """Returns canned ledger rows, so the read path is testable without a driver."""
+
+    def __init__(self, rows: list[tuple]) -> None:
+        self.rows = rows
+        self.statements: list[str] = []
+        self.closed = False
+
+    def execute(self, operation: str, parameters: tuple = ()) -> None:
+        self.statements.append(operation)
+
+    def fetchall(self) -> list[tuple]:
+        return self.rows
+
+    def fetchone(self):
+        return None
+
+    def close(self) -> None:
+        self.closed = True
+
+
+class _LedgerConnection:
+    def __init__(self, rows: list[tuple]) -> None:
+        self.cursor_instance = _LedgerCursor(rows)
+
+    def cursor(self) -> _LedgerCursor:
+        return self.cursor_instance
+
+    def commit(self) -> None:
+        pass
+
+    def rollback(self) -> None:
+        pass
+
+
+def test_the_ledger_reads_through_the_connection() -> None:
+    connection = _LedgerConnection(
+        [("npc", "3689903", datetime(2026, 9, 1), 19_000_000, "NGN", "3", "Lekki")]
+    )
+
+    histories = PostgresLedger(connection).load()
+
+    assert len(histories) == 1
+    assert histories[0].source == "npc"
+    assert histories[0].source_listing_id == "3689903"
+    assert histories[0].last_seen == "2026-09-01"
+    assert histories[0].observations[0].advertised_price == 19_000_000
+    # The portal's own listing reference must survive the two meanings of
+    # "sourceListingId" in the schema, or every history would be keyed on our id.
+    assert histories[0].observations[0].area == "Lekki"
+    assert '"ProspectObservation"' in connection.cursor_instance.statements[0]
+    assert connection.cursor_instance.closed
+
+
+def test_a_listing_with_no_price_is_still_an_observation() -> None:
+    """The read is driven by SourceObservation, with PriceObservation joined in.
+
+    A ledger built only from priced rows would report every price-less listing as
+    brand new on every crawl - the loudest false signal the funnel can produce.
+    """
+    histories = PostgresLedger.histories_from(
+        [("npc", "A", datetime(2026, 9, 1), None, "NGN", None, "Lekki")]
+    )
+
+    assert histories[0].observations[0].advertised_price is None
+
+    current = [
+        Observation(
+            source="npc", source_listing_id="A", observed_on="2026-09-02", advertised_price=None
+        )
+    ]
+    changes = detect_changes(histories, current, today="2026-09-02")
+
+    assert changes.summary()["new_listings"] == 0
+    assert changes.summary()["unchanged"] == 1
+
+
+def test_the_database_ledger_detects_a_price_change() -> None:
+    histories = PostgresLedger.histories_from(
+        [("npc", "A", datetime(2026, 9, 1), 20_000_000, "NGN", "3", "Lekki")]
+    )
+    current = [
+        Observation(
+            source="npc", source_listing_id="A", observed_on="2026-09-08", advertised_price=25_000_000
+        )
+    ]
+
+    changes = detect_changes(histories, current, today="2026-09-08")
+
+    assert len(changes.price_changes) == 1
+    assert changes.price_changes[0].direction == "rise"
+    assert changes.price_changes[0].previous == 20_000_000
+
+
+def test_the_database_ledger_replays_the_same_history_as_the_file(tmp_path) -> None:
+    """Switching the ledger from a file to the database must not change meaning.
+
+    Both describe the same sightings, so they must replay into the same histories
+    and produce the same diff. If they diverge, then a run that changes ledger
+    backend silently reclassifies listings as new or stops seeing a price change
+    it used to see - and nobody would notice, because both outputs look plausible.
+    """
+    sightings = [
+        ("A", "2026-09-01", 20_000_000),
+        ("A", "2026-09-08", 22_000_000),
+        ("B", "2026-09-08", None),
+    ]
+
+    ledger_path = tmp_path / "listing-observations.jsonl"
+    with ledger_path.open("w", encoding="utf-8") as sink:
+        for listing_id, day, price in sightings:
+            sink.write(
+                json.dumps(
+                    {
+                        "source": "npc",
+                        "source_listing_id": listing_id,
+                        "observed_on": day,
+                        "advertised_price": price,
+                        "currency": "NGN",
+                        "bedrooms": 3,
+                        "area": "Lekki",
+                    }
+                )
+                + "\n"
+            )
+
+    rows = [
+        ("npc", listing_id, datetime.fromisoformat(day), price, "NGN", "3", "Lekki")
+        for listing_id, day, price in sightings
+    ]
+
+    from_file = load_ledger(ledger_path)
+    from_database = PostgresLedger.histories_from(rows)
+
+    assert sorted(history.key for history in from_database) == sorted(
+        history.key for history in from_file
+    )
+    for db_history in from_database:
+        file_history = next(h for h in from_file if h.key == db_history.key)
+        assert [o.to_dict() for o in db_history.observations] == [
+            o.to_dict() for o in file_history.observations
+        ]
+
+    current = [
+        Observation(
+            source="npc", source_listing_id="A", observed_on="2026-09-15", advertised_price=25_000_000
+        ),
+        Observation(
+            source="npc", source_listing_id="C", observed_on="2026-09-15", advertised_price=10_000_000
+        ),
+    ]
+    today = "2026-09-15"
+
+    assert detect_changes(from_database, current, today=today).summary() == detect_changes(
+        from_file, current, today=today
+    ).summary()
 
 
 def test_the_prisma_connection_string_is_translated_before_psycopg_sees_it() -> None:

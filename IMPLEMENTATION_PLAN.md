@@ -120,6 +120,22 @@ verify, (3) add the constraint. Prisma cannot express GiST, partial, or exclusio
 constraints, so those are hand-written in a `--create-only` migration and reviewed
 like code.
 
+**Review the generated SQL line by line, because Prisma will try to delete what it
+cannot see.** Confirmed on the geocode-subject migration: `migrate dev` emitted
+
+```sql
+DROP INDEX "Operator_normalizedName_trgm_idx";
+DROP INDEX "Property_geog_gist_idx";
+```
+
+for indexes created in raw SQL by the baseline. The migration diff is computed
+between the migration history and the datamodel, so anything that exists only in
+SQL reads as drift to remove. Applying that would have deleted the geospatial and
+trigram indexes with no error and no warning. The same applies to the CHECK
+constraint and partial unique indexes that enforce one geocode subject: they are
+not in `schema.prisma`, so every future generated migration must be read for drops
+before it is applied. The committed migration carries this warning at the top.
+
 ### Baseline, once
 
 No `prisma/migrations/` exists and only `prisma/seed.ts` imports Prisma, so the
