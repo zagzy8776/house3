@@ -7,12 +7,15 @@
  *
  * Changes from the original, all deliberate:
  *
- *  1. The two floating 3D cards carry `h3-desktop-only`. They use
- *     `backdrop-filter: blur(20px)` and the design already hid them below xl;
- *     the class makes that a token decision and keeps the blur off phones.
- *  2. The "Booking confirmed · Just now" card was invented live activity. It is
- *     kept structurally but reads from `recentBooking`, which the server fills
- *     from a real confirmed booking. Pass null and it disappears.
+ *  1. One floating card, not two. The right-hand card carries a real crawled
+ *     place - its area and the operator's published rate. The left-hand card was
+ *     a "Pay the operator direct / One payment. We never hold their money."
+ *     panel, which described a payment flow that does not exist and dressed
+ *     itself as a live notification; it is deleted rather than disabled, and the
+ *     reason is recorded where it used to be.
+ *  2. The floating card keeps `h3-desktop-only`. It uses
+ *     `backdrop-filter: blur(20px)` and the design already hid it below xl; the
+ *     class makes that a token decision and keeps the blur off phones.
  */
 
 import { useState } from 'react';
@@ -26,22 +29,13 @@ import { CitiesSection, type CityCard } from './sections/CitiesSection';
 import { CtaAndFooter } from './sections/CtaAndFooter';
 import type { ListingCardModel } from './ListingCard';
 
-export type RecentBooking = {
-  unitName: string;
-  area: string;
-  nights: number;
-  whenLabel: string;
-} | null;
-
 export type LandingPageProps = {
   listings: ListingCardModel[];
   cities: CityCard[];
   heroStats: { value: string; label: string }[];
-  /** Real confirmed booking for the hero ticker, or null to omit it. */
-  recentBooking: RecentBooking;
 };
 
-export function LandingPage({ listings, cities, heroStats, recentBooking }: LandingPageProps) {
+export function LandingPage({ listings, cities, heroStats }: LandingPageProps) {
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
@@ -178,66 +172,24 @@ export function LandingPage({ listings, cities, heroStats, recentBooking }: Land
           </div>
         </div>
 
-        <div
-          className="h3-desktop-only absolute left-8 bottom-1/3"
-          style={{ zIndex: 5, animation: 'drift 10s ease-in-out infinite', animationDelay: '2s' }}
-        >
-          <div
-            className="rounded-2xl p-4 w-44"
-            style={{
-              background: 'rgba(26,23,20,0.85)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              backdropFilter: 'blur(20px)',
-              boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
-              transform: 'perspective(800px) rotateY(8deg) rotateX(-4deg)'
-            }}
-          >
-            {recentBooking ? (
-              <>
-                <div className="flex items-center gap-2 mb-2">
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: 'rgba(217,124,43,0.2)' }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                      <path d="M7 1L1.5 5v7h4V9h3v3h4V5L7 1z" fill="var(--accent)" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold m-0" style={{ fontFamily: 'var(--font-outfit)', color: 'var(--foreground)' }}>
-                      Booking confirmed
-                    </p>
-                    <p className="text-xs m-0" style={{ color: 'var(--accent)', fontFamily: 'var(--font-outfit)' }}>
-                      {recentBooking.whenLabel}
-                    </p>
-                  </div>
-                </div>
-                <p className="text-xs m-0" style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-outfit)' }}>
-                  {recentBooking.unitName} · {recentBooking.nights} nights
-                </p>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-2 mb-2">
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: 'rgba(217,124,43,0.2)' }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                      <path d="M7 1L1.5 5v7h4V9h3v3h4V5L7 1z" fill="var(--accent)" />
-                    </svg>
-                  </div>
-                  <p className="text-xs font-semibold m-0" style={{ fontFamily: 'var(--font-outfit)', color: 'var(--foreground)' }}>
-                    Pay the operator direct
-                  </p>
-                </div>
-                <p className="text-xs m-0" style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-outfit)' }}>
-                  One payment. We never hold their money.
-                </p>
-              </>
-            )}
-          </div>
-        </div>
+        {/*
+          The second floating card is GONE.
+
+          It was a decorative panel whose entire content was the `recentBooking`
+          fallback - and `recentBooking` is always null, because House3 takes no
+          bookings, so this branch was the only one that ever rendered. It read
+          "Pay the operator direct / One payment. We never hold their money."
+
+          Two things were wrong with it. It describes a payment flow: "one payment"
+          and "we never hold their money" only mean something if money passes
+          through us, and none does - there is no checkout, no Paystack call, no
+          basket anywhere in this application. And it sat on the hero as a floating
+          notification, the visual language of a live transaction feed, which is
+          the same objection as the invented booking it was written to replace.
+
+          The first card stays because it is real: a crawled place, its area and
+          the operator's published rate.
+        */}
 
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
           <div

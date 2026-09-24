@@ -30,7 +30,7 @@ import { placeDescriptor, placeHref, placeLocation, type DirectoryPlace } from '
 import { toWhatsappHref } from '@/domain/phone';
 import { CITIES } from '@/content/marketing';
 import { loadDirectory } from '@/server/directorySource';
-import { LandingPage, type RecentBooking } from './components/marketing/LandingPage';
+import { LandingPage } from './components/marketing/LandingPage';
 import type { ListingCardModel } from './components/marketing/ListingCard';
 
 export const dynamic = 'force-dynamic';
@@ -125,22 +125,8 @@ export default async function Home() {
     { value: '₦0', label: 'Booking fees' }
   ];
 
-  /**
-   * No social proof is available, and none is fabricated.
-   *
-   * This reads from an empty list rather than from a repository of demo bookings:
-   * House3 takes no bookings, so no code path in this app can produce a confirmed
-   * one. The hero shows the factual statement about how contact works instead.
-   */
-  const recentBooking: RecentBooking = null;
-
   return (
-    <LandingPage
-      listings={listings}
-      cities={cities}
-      heroStats={heroStats}
-      recentBooking={recentBooking}
-    />
+    <LandingPage listings={listings} cities={cities} heroStats={heroStats} />
   );
 }
 
