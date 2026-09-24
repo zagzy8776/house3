@@ -103,6 +103,32 @@ NEVER_PUBLISHED = frozenset(
 )
 
 
+def publishable_media(urls: Optional[Iterable[str]]) -> list[str]:
+    """
+    The photographs we are willing to serve, filtered again at publish time.
+
+    Applied a second time, like `plausible_price_kobo`, because a row can arrive
+    from a records file extracted before the watermark filter existed - and the
+    committed `directory.json` is exactly such a file. Re-publishing it through
+    this function is what removes the watermarked images from it.
+
+    The filters live in `extraction.media` so there is one definition of each
+    rule rather than two that can drift.
+    """
+    from extraction.media import has_watermark, is_hotlinkable
+
+    kept: list[str] = []
+    for url in urls or ():
+        if not isinstance(url, str) or not url.strip():
+            continue
+        if has_watermark(url) or is_hotlinkable(url):
+            continue
+        kept.append(url)
+        if len(kept) >= 40:
+            break
+    return kept
+
+
 def assert_publishable(record: dict) -> dict:
     """
     Refuse to emit a row containing anything outside the publishable set.
@@ -207,9 +233,9 @@ def to_place_row(listing: DiscoveredListing, observed_on: str) -> dict:
         "currency": listing.currency,
         "source": listing.source,
         "source_url": listing.source_url,
-        "media": list(listing.media) or None,
-        "media_count": len(listing.media) or None,
-        "cover_image_url": listing.cover_image_url,
+        "media": publishable_media(listing.media) or None,
+        "media_count": len(publishable_media(listing.media)) or None,
+        "cover_image_url": next(iter(publishable_media(listing.media)), None),
 
         # Our own observation dates, not theirs.
         "first_seen_at": observed_on,
@@ -275,6 +301,9 @@ def build_directory(
         "counts": {
             "places": len(places),
             "contactable": sum(1 for entry in places if entry["contact_route"]["kind"] != "NONE"),
+            # Stated so the reduction is visible rather than silent: a directory
+            # that lost its photographs to the watermark filter should say so.
+            "with_photographs": sum(1 for entry in places if entry.get("media")),
         },
         "media": None,
         "places": places,

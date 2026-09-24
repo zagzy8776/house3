@@ -43,6 +43,39 @@ WHY ABSOLUTE URLS
 `../images/x.jpg` is meaningless once it leaves the page it was found on. Every
 returned URL is absolute, resolved against the page it came from, so a stored row
 is self-contained and the UI never has to know which page to resolve against.
+
+WHY MOST IMAGES ARE NOW REFUSED, AND WHY THE ONES THAT SURVIVE DO
+-----------------------------------------------------------------
+The allowlist permits media. This module is where that permission is narrowed by
+what the pixels actually are, and the narrowing is severe: a photograph we cannot
+serve honestly is worse than no photograph, so most of what a portal publishes is
+refused outright.
+
+  * WATERMARKS (`has_watermark`). A portal stamps its own brand over the
+    photograph - "Nigeria property centre" with a house logo sits dead centre of
+    every NPC image, verified by fetching one. Publishing that is not citing a
+    source and it is not displaying the operator's gallery either: it is
+    redistributing the portal's branded asset under our own listing page, which
+    is precisely the use the stamp exists to prevent. So a URL that names a
+    branding asset, or that carries a portal's own brand token, is refused.
+  * THIRD-PARTY HOTLINKING (`is_hotlinkable`). A tracked URL means our guests'
+    browsers fetch the image from the publisher's server, so our page views are
+    their bandwidth and their logs. We do not do that either.
+
+The distinction that decides it: a photograph that merely LIVES on a portal's CDN
+is that portal's storage of the operator's picture - `images.example-portal.com/
+properties/images/12345/abc.webp` is the operator's own room. A photograph whose
+URL carries the portal's brand token, or whose token is a measurement, is the
+portal's asset. The first is publishable with attribution; the second is refused.
+
+On NPC the branded token is the filename itself - `.../properties/images/3691970/
+06ab405aa95d40-newly-launched-1-bedroom-apartment....webp` - and the surviving
+count on the current crawl is near zero, which is the honest number.
+
+So `extract_gallery` keeps the listing's own gallery and rejects the branded
+remainder, and a listing left with nothing gets asked for its photographs by phone
+rather than shown a picture we had no right to serve. That is a worse-looking page
+and a correct one.
 """
 
 from __future__ import annotations
@@ -97,9 +130,121 @@ _CHROME_PATTERNS = re.compile(
 #: Used to tell THIS listing's photographs from a similar-properties strip.
 _LISTING_ID_IN_PATH_RE = re.compile(r"/(\d{5,})/")
 
+#: A publisher's own brand, as it appears in an image URL. When one of these is in
+#: the path, the image is the PUBLISHER'S asset rather than the operator's
+#: photograph, and it carries the publisher's watermark in its pixels. See
+#: `has_watermark` for the measured case that put this here.
+_PUBLISHER_BRAND_TOKENS = (
+    "npc",
+    "nigeriapropertycentre",
+    "nigeria-property-centre",
+    "propertycentre",
+    "propertypro",
+    "propertypro.ng",
+    "privateproperty",
+    "jiji",
+    "jiji.ng",
+    "realestate",
+    "nigeriaproperty",
+)
+
+#: Filenames that are a watermark rather than a photograph.
+_WATERMARK_ASSET_PATTERNS = re.compile(
+    r"(?:watermark|water-mark|wm_|_wm\.|_branded|branded\.|stamp\.|overlay-watermark)",
+    re.IGNORECASE,
+)
+
+#: Query parameters that mark a re-hosting or tracking URL rather than a plain
+#: image. `?w=800` is a resize and fine; `?url=`, `?src=`, `?source=` and any
+#: `utm_*` mean the bytes are proxied through, or measured by, somebody else.
+_TRACKING_QUERY_RE = re.compile(
+    r"[?&](?:url|src|source|image|img|u|q)=|(?:[?&]utm_|imgix|wsrv\.nl|images\.weserv)",
+    re.IGNORECASE,
+)
+
+#: Hosts we serve from directly. An image on one of these is the platform's own
+#: storage, so there is no third party to hotlink and no publisher watermark.
+_STORAGE_HOST_PATTERNS = re.compile(
+    r"(?:^|\.)(?:cloudinary\.com|imgix\.net|images\.unsplash\.com|"
+    r"storage\.googleapis\.com|s3\.amazonaws\.com|r2\.dev|cdn\.house3\.ng|"
+    r"house3\.ng)$",
+    re.IGNORECASE,
+)
+
 
 #: Dimension attributes that mark a tracking pixel or a spacer.
 _TINY_DIM_RE = re.compile(r"^(?:[12])$")
+
+
+def has_watermark(url: str) -> bool:
+    """
+    True when the URL names a publisher's branded asset rather than a photograph.
+
+    THE PROBLEM THIS SOLVES, MEASURED
+
+    Every photograph on a Nigeria Property Centre listing carries the portal's
+    watermark burned into the pixels - the words "Nigeria property centre" and its
+    house logo, dead centre of the image. Verified by fetching one:
+
+        /properties/images/3691970/06ab405aa95d40-newly-launched-1-bedroom-....webp
+
+    Two things are wrong with publishing that. It is the portal's brand on our
+    page, which is the portal's own asset used the way its stamp exists to
+    forbid; and it makes our listing page look like a scraped NPC page, which is
+    what it was.
+
+    The URL is what tells us, without downloading and inspecting pixels: NPC puts
+    the brand in the filename, and the namespace `/properties/images/` is NPC's.
+    A URL that names the brand, or that names a watermark asset, is refused.
+
+    WHAT THIS DOES NOT CATCH
+
+    A portal that watermarks without putting the brand in the URL - a generic
+    `/img/8821.jpg` over which the brand is drawn - is invisible to this check.
+    That is a real limit and the honest statement of it is that this is a filter
+    for a known, measured case, not a watermark detector. Detecting it generally
+    needs the pixels, which needs the image bytes, which is the very hotlinking
+    this module refuses.
+    """
+    lowered = url.lower()
+    if _WATERMARK_ASSET_PATTERNS.search(lowered):
+        return True
+
+    # The brand can be in the HOST or in the PATH, and on the measured case it is
+    # the host: `images.nigeriapropertycentre.com/properties/images/3691970/
+    # 06ab405aa95d40-newly-launched-....webp`. The path carries no brand token at
+    # all, so a path-only check missed every NPC photograph - which is exactly the
+    # bug this comment exists to stop someone reintroducing.
+    parsed = urlparse(lowered)
+    for surface in (parsed.hostname or "", parsed.path):
+        for token in _PUBLISHER_BRAND_TOKENS:
+            # Match on a boundary so a random hash containing "npc" does not trip
+            # it, but "npc.", "-npc-", "/npc/" and "npc" as a whole label all do.
+            if re.search(rf"(?:^|[/._-]){re.escape(token)}(?:$|[/._-])", surface):
+                return True
+    return False
+
+
+def is_hotlinkable(url: str) -> bool:
+    """
+    True when fetching this image would spend somebody else's bandwidth.
+
+    The guest's browser is what fetches an `<img src>`, not our server, so a
+    third-party URL means our page views appear in the publisher's logs and are
+    served from the publisher's CDN. That is a decision about somebody else's
+    resources that we are not in a position to make on their behalf, so a URL is
+    only used when it is the platform's own storage or a plain, untracked image.
+
+    Fail-closed on the ambiguous cases: a re-hosting or tracking parameter is
+    refused, because a proxied image is somebody else's service by definition.
+    """
+    parsed = urlparse(url)
+    host = parsed.hostname or ""
+    if _STORAGE_HOST_PATTERNS.search(host):
+        return False
+    if _TRACKING_QUERY_RE.search(url):
+        return True
+    return False
 
 
 def _attrs_of(tag: str) -> dict[str, str]:
@@ -250,6 +395,13 @@ def extract_gallery(
         if not _IMAGE_EXT_RE.search(urlparse(absolute).path):
             continue
         if _CHROME_PATTERNS.search(absolute):
+            continue
+        if has_watermark(absolute):
+            # The portal's own branded asset, watermark and all. We refuse it
+            # rather than publish the portal's brand as this listing's photograph.
+            continue
+        if is_hotlinkable(absolute):
+            # Serving this would spend the publisher's bandwidth for our page view.
             continue
         if is_other_listings_photo(absolute, listing_id):
             continue

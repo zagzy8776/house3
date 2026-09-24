@@ -21,9 +21,12 @@
  * -----------
  * The photographs are the ones the listing itself published, carried through the
  * acquisition pipeline (`services/acquisition/extraction/media.py`) and attributed
- * to the source. A place whose listing published no photographs gets a panel that
- * says exactly that, because a stock photograph of a different apartment is the
- * one genuinely dishonest thing this page could do.
+ * to the source - and filtered, which is why most listings show none. A Nigerian
+ * portal watermarks its own brand across every image it hosts, so those are
+ * refused rather than republished under our page; the panel says so instead of
+ * leaving a guest to wonder whether we simply had nothing. A stock photograph of
+ * a different apartment is the one genuinely dishonest thing this page could do,
+ * and it is the reason the placeholder exists at all.
  *
  * WHY THE ID IS DECODED
  * ---------------------
@@ -79,7 +82,12 @@ export default async function StayPage({ params }: { params: Promise<{ id: strin
       <TopBar />
 
       <div className="max-w-6xl mx-auto px-6 pb-20">
-        <Gallery images={place.media} label={descriptor} />
+        <Gallery
+          images={place.media}
+          label={descriptor}
+          attribution={place.attribution}
+          sourceUrl={place.sourceUrl}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mt-10">
           <div className="lg:col-span-2">
@@ -246,7 +254,8 @@ function SourceNotice({ place, stateName }: { place: DirectoryPlace; stateName: 
         >
           {place.attribution}
         </a>{' '}
-        and last checked on {place.lastSeenAt}. Photographs are the ones the listing published. Details
+        and last checked on {place.lastSeenAt}. Photographs are the ones the listing published, where the
+        publisher&apos;s own watermark is not stamped across them. Details
         change, so confirm anything that matters with the property before you travel. House3 does not
         take the booking or the payment for this place.
         {place.state ? (

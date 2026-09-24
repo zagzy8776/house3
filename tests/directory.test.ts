@@ -535,3 +535,92 @@ describe('published places as searchable inventory', () => {
   });
 });
 
+
+
+// ---------------------------------------------------------------------------
+// watermarked and hotlinked photographs
+// ---------------------------------------------------------------------------
+
+describe('images we will not serve', () => {
+  /**
+   * MEASURED. This is a real URL from the crawl, for NPC listing 3691970, and the
+   * bytes behind it carry "Nigeria property centre" and its house logo burned
+   * into the centre of the photograph. Verified by fetching it and looking.
+   */
+  const NPC_WATERMARKED =
+    'https://images.nigeriapropertycentre.com/properties/images/3691970/06ab405aa95d40-newly-launched-1-bedroom-apartment-balcony-gym-elevator-short-let-lekki-lagos.webp';
+
+  it('drops a watermarked image even when the directory file still carries it', () => {
+    // The third gate. `extraction/media.py` and `publishing.publishable_media`
+    // refuse these too, but neither of them sees a committed directory.json - and
+    // the committed file is the one Vercel actually serves. A row restored from an
+    // older revision, or hand-edited, must not be able to put a publisher's brand
+    // on a guest's screen.
+    const place = assertPublishable(row({ media: [NPC_WATERMARKED] }));
+
+    expect(place.media).toEqual([]);
+    expect(place.coverImageUrl).toBeNull();
+  });
+
+  it('drops a tracked or proxied image URL', () => {
+    // A tracked URL means a third party serves, or measures, our guests' views.
+    const place = assertPublishable(
+      row({
+        media: [
+          'https://example.com/img/8821.jpg?utm_source=house3',
+          'https://proxy.example.net/?url=https://elsewhere.example/room.jpg',
+          'https://elsewhere.example/room.jpg'
+        ]
+      })
+    );
+
+    // The plain one survives; the other two are dropped, not the whole row.
+    expect(place.media).toEqual(['https://elsewhere.example/room.jpg']);
+  });
+
+  it('keeps a plain, untracked image on a third-party host', () => {
+    // The distinction that matters: a photograph merely STORED on a portal's CDN
+    // is the operator's own room. Refusing every third-party host would refuse
+    // essentially every real photograph in existence.
+    const place = assertPublishable(
+      row({
+        media: [
+          'https://cdn.example.com/properties/images/3691970/a1b2c3.webp',
+          'https://example.com/img/8821.jpg?w=800'
+        ]
+      })
+    );
+
+    expect(place.media).toHaveLength(2);
+    expect(place.coverImageUrl).toBe('https://cdn.example.com/properties/images/3691970/a1b2c3.webp');
+  });
+
+  it('keeps the citation even though it names the same publisher', () => {
+    // The filter is on IMAGE urls, and it must not extend to the attribution: the
+    // source link and the publisher's name are the citation that makes publishing
+    // a fact defensible. A filter that removed those would remove the licence.
+    const place = assertPublishable(row({ media: [NPC_WATERMARKED] }));
+
+    expect(place.attribution).toBe('Nigeria Property Centre');
+    expect(place.sourceUrl).toContain('nigeriapropertycentre.com');
+  });
+
+  it('holds the committed directory to zero watermarked images', () => {
+    // The committed file is what ships. Asserted against the real artefact rather
+    // than a fixture, because "we fixed the filter" and "the file is clean" are
+    // different claims and only the second one protects a guest.
+    const file = path.join(process.cwd(), 'services', 'acquisition', 'directory.json');
+    if (!existsSync(file)) return;
+
+    const parsed = JSON.parse(readFileSync(file, 'utf8')) as {
+      places: Array<{ media?: unknown }>;
+    };
+
+    const allMedia = parsed.places.flatMap((place) => (Array.isArray(place.media) ? place.media : []));
+    const suspects = allMedia.filter(
+      (url) => typeof url === 'string' && /nigeriapropertycentre|npc|watermark/i.test(url)
+    );
+
+    expect(suspects).toEqual([]);
+  });
+});

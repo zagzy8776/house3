@@ -194,7 +194,60 @@ function int(value: unknown): number | null {
  * Non-http entries are dropped rather than passed through: `javascript:` and
  * `data:` URLs in a `src` are an injection route, and a gallery is the last place
  * to accept one.
+ *
+ * WATERMARKED IMAGES ARE DROPPED HERE AS WELL. `extraction/media.py` refuses them
+ * at extraction time and `publishing.publishable_media` refuses them at publish
+ * time; this is the third gate and the only one that sits between a committed
+ * `directory.json` and a rendered page. A portal's brand burned across a
+ * photograph is the portal's asset, not proof of what the room looks like, and no
+ * version of this file - committed, hand-edited, or restored from an older
+ * revision - should be able to put one on a guest's screen.
+ *
+ * The check is a heuristic on the URL, matching the Python rule by name. The two
+ * cannot be shared across the language boundary, so they are kept as close to
+ * identical as the languages allow and both are covered by tests naming the same
+ * measured URL.
  */
+function isPublishableImage(url: string): boolean {
+  const lowered = url.toLowerCase();
+  if (/(watermark|water-mark|_branded|branded\.|stamp\.)/.test(lowered)) return false;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(lowered);
+  } catch {
+    return false;
+  }
+
+  // A tracked or proxied URL means a third party serves, or measures, our guests.
+  if (/[?&](url|src|source|image|img|u|q)=/.test(lowered)) return false;
+  if (/([?&]utm_|imgix|wsrv\.nl|images\.weserv)/.test(lowered)) return false;
+
+  // The brand can be in the HOST or in the PATH. On the measured NPC case it is
+  // the host - `images.nigeriapropertycentre.com` - and the path carries no brand
+  // token at all, so a path-only check drops nothing.
+  const surfaces = [parsed.hostname, parsed.pathname];
+  const brands = [
+    'npc',
+    'nigeriapropertycentre',
+    'nigeria-property-centre',
+    'propertycentre',
+    'propertypro',
+    'privateproperty',
+    'jiji',
+    'realestate',
+    'nigeriaproperty'
+  ];
+  for (const surface of surfaces) {
+    for (const brand of brands) {
+      const escaped = brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (new RegExp(`(?:^|[/._-])${escaped}(?:$|[/._-])`).test(surface)) return false;
+    }
+  }
+
+  return true;
+}
+
 function mediaUrls(value: unknown): string[] {
   const entries = Array.isArray(value) ? value : [];
   const urls: string[] = [];
@@ -203,6 +256,7 @@ function mediaUrls(value: unknown): string[] {
   for (const entry of entries) {
     const candidate = text(entry);
     if (!candidate || seen.has(candidate)) continue;
+    if (!isPublishableImage(candidate)) continue;
     try {
       const parsed = new URL(candidate);
       if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') continue;

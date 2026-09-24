@@ -40,7 +40,7 @@ from compliance.source_registry import (
 )
 from compliance.non_operator_hosts import is_non_operator_host
 from extraction.contact import find_operator_website
-from extraction.media import cover_from, extract_gallery
+from extraction.media import cover_from, extract_gallery, has_watermark, is_hotlinkable
 from extraction.operator import extract_operator, name_from_domain
 from extraction.pms import find_availability_url
 from extraction.property import (
@@ -68,6 +68,7 @@ from publishing import (
     assert_publishable,
     build_directory,
     contact_route,
+    publishable_media,
     to_affiliate_row,
     to_place_row,
 )
@@ -1257,8 +1258,13 @@ def test_gallery_extraction_finds_the_property_photographs() -> None:
     """
     The filter is the feature. A portal page is mostly chrome, and returning all
     of it would put a tracking pixel on a guest's screen as "photo 3".
+
+    The page host is deliberately a neutral one. The measured NPC host is now
+    itself refused - every image it serves carries the portal's watermark - so a
+    fixture built on it could no longer test what this test is about, which is
+    the chrome and srcset handling.
     """
-    page = "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos/lekki/1234567"
+    page = "https://portal.example.com/for-rent/short-let/lagos/lekki/1234567"
     html = """
     <img src="/img/logo.png">
     <img src="/static/icons/search.svg">
@@ -1268,16 +1274,16 @@ def test_gallery_extraction_finds_the_property_photographs() -> None:
     <img src="/img/placeholder.png" data-src="/uploads/1234567/living-room.jpg" alt="Living room">
     <img src="/img/placeholder.png"
          srcset="../photos/pool-400.jpg 400w, ../photos/pool-1600.jpg 1600w" alt="Pool">
-    <img src="https://cdn.npc.com/1234567/balcony.jpg">
+    <img src="https://cdn.other.com/1234567/balcony.jpg">
     <img src="/uploads/1234567/living-room.jpg">
     """
 
     gallery = extract_gallery(html, page)
 
     # Real photographs, absolute and de-duplicated.
-    assert "https://www.nigeriapropertycentre.com/uploads/1234567/living-room.jpg" in gallery
-    assert "https://cdn.npc.com/1234567/balcony.jpg" in gallery
-    assert gallery.count("https://www.nigeriapropertycentre.com/uploads/1234567/living-room.jpg") == 1
+    assert "https://portal.example.com/uploads/1234567/living-room.jpg" in gallery
+    assert "https://cdn.other.com/1234567/balcony.jpg" in gallery
+    assert gallery.count("https://portal.example.com/uploads/1234567/living-room.jpg") == 1
 
     # The largest srcset candidate wins; the 400w thumbnail is not stored.
     assert any(url.endswith("/photos/pool-1600.jpg") for url in gallery)
@@ -1335,20 +1341,24 @@ def test_gallery_excludes_other_listings_photographs() -> None:
 
     Measured on NPC listing 3690360, whose page returned four other properties'
     images before this filter existed.
+
+    The host is neutral (`cdn.portal.com`) so that this test isolates the
+    similar-listings bug. The real NPC host is refused by the watermark filter,
+    which would empty the gallery before this filter was ever consulted.
     """
-    page = "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos/lekki/3690360-full-duplex"
+    page = "https://www.portal.example.com/for-rent/short-let/lagos/lekki/3690360-full-duplex"
     html = """
-    <img src="https://images.npc.com/properties/images/3690360/06ab-mine.webp">
-    <img src="https://images.npc.com/properties/images/thumbs/3693771/other.webp">
-    <img src="https://images.npc.com/properties/images/thumbs/3589721/other.webp">
-    <img src="https://images.npc.com/properties/profiles/7215_l.jpg">
+    <img src="https://images.cdn.portal.com/properties/images/3690360/06ab-mine.webp">
+    <img src="https://images.cdn.portal.com/properties/images/thumbs/3693771/other.webp">
+    <img src="https://images.cdn.portal.com/properties/images/thumbs/3589721/other.webp">
+    <img src="https://images.cdn.portal.com/properties/profiles/7215_l.jpg">
     <img src="https://cdn.other.com/random-photo.jpg">
     """
 
     gallery = extract_gallery(html, page, listing_id="3690360")
 
     # This listing's own photograph survives, and leads.
-    assert gallery[0] == "https://images.npc.com/properties/images/3690360/06ab-mine.webp"
+    assert gallery[0] == "https://images.cdn.portal.com/properties/images/3690360/06ab-mine.webp"
 
     # Other listings' photographs and the operator's avatar are gone.
     assert not any("3693771" in url for url in gallery)
@@ -1373,21 +1383,152 @@ def test_gallery_filter_is_off_when_no_listing_id_is_known() -> None:
     assert extract_gallery(html, page, listing_id="3690360") == ()
 
 
+def test_a_watermarked_photograph_is_refused() -> None:
+    """
+    MEASURED. Every image NPC serves carries "Nigeria property centre" and its
+    house logo stamped across the centre of the photograph - verified by fetching
+    one and looking at it.
+
+    Publishing that would put the portal's brand on our page, which is the exact
+    use the stamp exists to forbid, and it would make our listing page look like a
+    scraped copy of theirs. So the image is refused and the listing shows no
+    photograph rather than somebody else's branded asset.
+
+    The brand is in the HOST on this URL and nowhere in the path, which is why a
+    host-and-path check is required: an earlier version of this filter inspected
+    only the path and removed nothing at all from the crawl.
+    """
+    watermarked = (
+        "https://images.nigeriapropertycentre.com/properties/images/3691970/"
+        "06ab405aa95d40-newly-launched-1-bedroom-apartment-balcony-gym-elevator-"
+        "short-let-lekki-lagos.webp"
+    )
+    assert has_watermark(watermarked) is True
+
+    # End to end: the tag is on the page, and the gallery comes back empty.
+    page = "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos/lekki/3691970-x"
+    html = f'<img src="{watermarked}">'
+    assert extract_gallery(html, page, listing_id="3691970") == ()
+
+
+def test_a_photograph_merely_hosted_by_a_portal_is_kept() -> None:
+    """
+    The distinction the filter turns on, and getting it wrong in either direction
+    is a real cost.
+
+    A photograph that merely LIVES on a CDN is that CDN's storage of the
+    operator's own room: `cdn.example.com/properties/images/12345/a1b2c3.webp`.
+    There is no watermark in it and no brand token anywhere. Refusing every
+    third-party host would refuse essentially every real photograph in existence;
+    refusing only the branded ones refuses only the ones we cannot honestly serve.
+
+    A generic filename on a plain host is therefore kept, and so is a plain resize
+    parameter - `?w=800` says nothing about who serves the bytes.
+    """
+    assert has_watermark("https://cdn.example.com/properties/images/3691970/a1b2c3.webp") is False
+    assert has_watermark("https://example.com/img/8821.jpg?w=800") is False
+
+    page = "https://portal.example.com/listing/1"
+    html = '<img src="https://cdn.example.com/properties/images/3691970/a1b2c3.webp">'
+    assert extract_gallery(html, page, listing_id="3691970") == (
+        "https://cdn.example.com/properties/images/3691970/a1b2c3.webp",
+    )
+
+
+def test_a_tracked_or_proxied_image_is_refused() -> None:
+    """
+    Hotlinking, with the guest's browser as the delivery mechanism.
+
+    An `<img src>` is fetched by the visitor, not by us, so a third-party URL puts
+    our page views on somebody else's CDN and in somebody else's logs. We are not
+    in a position to make that decision for them, so a re-hosting or tracking URL
+    is refused - and refused fail-closed, because a proxied image is a third
+    party's service by definition.
+    """
+    assert is_hotlinkable("https://example.com/img/8821.jpg?utm_source=house3") is True
+    assert is_hotlinkable("https://proxy.example.net/?url=https://elsewhere.example/r.jpg") is True
+    assert is_hotlinkable("https://images.weserv.nl/?url=big.jpg") is True
+
+    # Our own storage is not a third party.
+    assert is_hotlinkable("https://res.cloudinary.com/house3/image/upload/v1/room.jpg") is False
+
+    page = "https://portal.example.com/listing/1"
+    html = """
+    <img src="https://example.com/img/8821.jpg?utm_source=house3">
+    <img src="https://example.com/img/9000.jpg">
+    """
+    assert extract_gallery(html, page, listing_id="1") == ("https://example.com/img/9000.jpg",)
+
+
+def test_publish_refuses_watermarked_media_from_an_old_records_file() -> None:
+    """
+    The second gate, and the one that cleans the committed artefact.
+
+    `directory.json` was extracted before the watermark filter existed, so it is
+    full of NPC URLs. Re-publishing it must strip them, because the committed file
+    is what Vercel serves - `--publish-from` is the path that did exactly that,
+    and it took the directory from 258 illustrated places to 0.
+    """
+    assert publishable_media(
+        [
+            "https://images.nigeriapropertycentre.com/properties/images/3691970/06ab-x.webp",
+            "https://cdn.example.com/properties/images/3691970/clean.jpg",
+        ]
+    ) == ["https://cdn.example.com/properties/images/3691970/clean.jpg"]
+
+    assert publishable_media(None) == []
+    assert publishable_media([]) == []
+
+    # The measured NPC row: not one image survives it.
+    listing = _listing(
+        media=(
+            "https://images.nigeriapropertycentre.com/properties/images/3691970/06ab-a.webp",
+            "https://images.nigeriapropertycentre.com/properties/images/3691970/06ab-b.webp",
+        ),
+        cover_image_url="https://images.nigeriapropertycentre.com/properties/images/3691970/06ab-a.webp",
+    )
+    row = to_place_row(listing, "2026-09-24")
+
+    assert "media" not in row
+    assert "cover_image_url" not in row
+
+
+def test_the_citation_survives_the_watermark_filter() -> None:
+    """
+    The filter is on IMAGE urls and must not creep onto the attribution.
+
+    The publisher's name and the link back to the listing are the citation that
+    makes publishing an observed fact defensible in the first place. A filter that
+    also stripped those would not be protecting anyone - it would be removing the
+    reason we are allowed to say any of this.
+    """
+    listing = _listing(
+        media=("https://images.nigeriapropertycentre.com/properties/images/3691970/06ab-a.webp",),
+        source="npc",
+        source_url="https://www.nigeriapropertycentre.com/for-rent/short-let/lagos/lekki/3691970-x",
+    )
+    row = to_place_row(listing, "2026-09-24")
+
+    assert row["source"] == "npc"
+    assert "nigeriapropertycentre.com" in row["source_url"]
+    assert "media" not in row
+
+
 def test_listing_carries_its_gallery_into_the_directory_row() -> None:
     """
     End to end through the projection: what extraction found is what publishing
     emits, and the fields stay inside the declared publishable set.
     """
     listing = _listing(
-        media=("https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"),
-        cover_image_url="https://cdn.npc.com/1.jpg",
+        media=("https://cdn.portal.com/1.jpg", "https://cdn.portal.com/2.jpg"),
+        cover_image_url="https://cdn.portal.com/1.jpg",
     )
 
     row = to_place_row(listing, "2026-09-23")
 
-    assert row["media"] == ["https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"]
+    assert row["media"] == ["https://cdn.portal.com/1.jpg", "https://cdn.portal.com/2.jpg"]
     assert row["media_count"] == 2
-    assert row["cover_image_url"] == "https://cdn.npc.com/1.jpg"
+    assert row["cover_image_url"] == "https://cdn.portal.com/1.jpg"
 
     # The property's marketing title is still dropped, media notwithstanding.
     assert "property_name" not in row
@@ -1504,8 +1645,8 @@ def test_a_published_directory_can_be_re_published_unchanged() -> None:
         state="LA",
         area="Lekki",
         phone="09080000395",
-        media=("https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"),
-        cover_image_url="https://cdn.npc.com/1.jpg",
+        media=("https://cdn.portal.com/1.jpg", "https://cdn.portal.com/2.jpg"),
+        cover_image_url="https://cdn.portal.com/1.jpg",
     )
 
     first = publish_directory(
@@ -1530,7 +1671,7 @@ def test_a_published_directory_can_be_re_published_unchanged() -> None:
         )
 
     # The gallery survived both directions.
-    assert second["places"][0]["media"] == ["https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"]
+    assert second["places"][0]["media"] == ["https://cdn.portal.com/1.jpg", "https://cdn.portal.com/2.jpg"]
     assert second["places"][0]["media_count"] == 2
 
     # And the reloaded row is identity-for-identity what went in.
@@ -1569,15 +1710,15 @@ def test_a_row_without_a_title_is_described_factually() -> None:
         state="LA",
         area="Lekki",
         phone="09080000395",
-        media=("https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"),
-        cover_image_url="https://cdn.npc.com/1.jpg",
+        media=("https://cdn.portal.com/1.jpg", "https://cdn.portal.com/2.jpg"),
+        cover_image_url="https://cdn.portal.com/1.jpg",
     )
 
     row = to_place_row(listing, "2026-09-23")
 
-    assert row["media"] == ["https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"]
+    assert row["media"] == ["https://cdn.portal.com/1.jpg", "https://cdn.portal.com/2.jpg"]
     assert row["media_count"] == 2
-    assert row["cover_image_url"] == "https://cdn.npc.com/1.jpg"
+    assert row["cover_image_url"] == "https://cdn.portal.com/1.jpg"
 
     # The property's marketing title is still dropped, media notwithstanding.
     assert "property_name" not in row
@@ -2087,15 +2228,15 @@ def test_directory_carries_each_place_gallery() -> None:
     still says media exists, and that each row's own gallery and cover agree.
     """
     listing = _listing(
-        media=("https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"),
-        cover_image_url="https://cdn.npc.com/1.jpg",
+        media=("https://cdn.portal.com/1.jpg", "https://cdn.portal.com/2.jpg"),
+        cover_image_url="https://cdn.portal.com/1.jpg",
     )
     directory = build_directory([listing], "2026-09-23", attribution="Nigeria Property Centre")
 
     row = directory["places"][0]
-    assert row["media"] == ["https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"]
+    assert row["media"] == ["https://cdn.portal.com/1.jpg", "https://cdn.portal.com/2.jpg"]
     assert row["media_count"] == 2
-    assert row["cover_image_url"] == "https://cdn.npc.com/1.jpg"
+    assert row["cover_image_url"] == "https://cdn.portal.com/1.jpg"
 
 
 def test_a_place_with_no_photographs_says_so_rather_than_omitting_the_field() -> None:

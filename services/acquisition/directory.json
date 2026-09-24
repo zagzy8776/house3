@@ -3,7 +3,8 @@
   "attribution": "Nigeria Property Centre",
   "counts": {
     "places": 260,
-    "contactable": 260
+    "contactable": 260,
+    "with_photographs": 0
   },
   "media": null,
   "places": [
@@ -19,11 +20,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/self-contained/lagos/lekki/lekki-phase-1/3692468-en-suite-studio-apartment-with-pool-and-gym",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3692468/06ab4439db7691-en-suite-studio-apartment-with-pool-and-gym-self-contained-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3692468/06ab4439db7691-en-suite-studio-apartment-with-pool-and-gym-self-contained-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3692468",
@@ -46,11 +42,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/self-contained/lagos/yaba/3692371-studio-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3692371/06ab4345a4bf8b-studio-apartment-self-contained-short-let-yaba-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3692371/06ab4345a4bf8b-studio-apartment-self-contained-short-let-yaba-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3692371",
@@ -73,11 +64,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/amuwo-odofin/festac/3692315-luxury-fully-furnished-2-bedroom-apartment-with-modern-amenities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3692315/06ab4296d215fe-luxury-fully-furnished-2-bedroom-apartment-with-modern-amenities-short-let-festac-amuwo-odofin-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3692315/06ab4296d215fe-luxury-fully-furnished-2-bedroom-apartment-with-modern-amenities-short-let-festac-amuwo-odofin-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3692315",
@@ -100,11 +86,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikorodu/3692199-2-bedroom-luxury-apartment-with-snooker-board-and-table-tennis",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3692199/06ab41858c1f13-2-bedroom-luxury-apartment-short-let-ikorodu-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3692199/06ab41858c1f13-2-bedroom-luxury-apartment-short-let-ikorodu-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3692199",
@@ -127,11 +108,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikorodu/3692197-3-bedroom-luxury-apartment-with-snooker-board-and-table-tennis",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3692197/06ab4184a4bfd4-3-bedroom-luxury-apartment-short-let-ikorodu-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3692197/06ab4184a4bfd4-3-bedroom-luxury-apartment-short-let-ikorodu-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3692197",
@@ -154,11 +130,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/3692113-3-bedroom-luxury-penthouse-with-cinema",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3692113/06ab40846939fd-3-bedroom-luxury-penthouse-with-cinema-short-let-oniru-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3692113/06ab40846939fd-3-bedroom-luxury-penthouse-with-cinema-short-let-oniru-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3692113",
@@ -180,11 +151,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/3692054-2-bedroom-furnished-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3692054/06ab3fec1c5669-2-bedroom-furnished-apartment-short-let-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3692054/06ab3fec1c5669-2-bedroom-furnished-apartment-short-let-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3692054",
@@ -207,11 +173,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/eko-atlantic-city/3692039-brand-new-3-bedroom-smart-apartment-with-balconies-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3692039/06ab4011246bc8-brand-new-3-bedroom-smart-apartment-with-balconies-swimming-pool-short-let-eko-atlantic-city-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3692039/06ab4011246bc8-brand-new-3-bedroom-smart-apartment-with-balconies-swimming-pool-short-let-eko-atlantic-city-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3692039",
@@ -234,11 +195,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/eko-atlantic-city/3692018-brand-new-3-bedroom-smart-apartment-with-balconies-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3692018/06ab4027e125b2-brand-new-3-bedroom-smart-apartment-with-balconies-swimming-pool-short-let-eko-atlantic-city-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3692018/06ab4027e125b2-brand-new-3-bedroom-smart-apartment-with-balconies-swimming-pool-short-let-eko-atlantic-city-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3692018",
@@ -261,11 +217,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/eko-atlantic-city/3691989-brand-new-2-bedroom-apartment-with-balconies-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691989/06ab402c6b9e35-brand-new-2-bedroom-apartment-with-balconies-swimming-pool-short-let-eko-atlantic-city-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691989/06ab402c6b9e35-brand-new-2-bedroom-apartment-with-balconies-swimming-pool-short-let-eko-atlantic-city-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691989",
@@ -288,11 +239,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/3691979-brand-new-2-bedroom-smart-apartment-with-balconies-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691979/06ab40319b17bf-brand-new-2-bedroom-smart-apartment-with-balconies-swimming-pool-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691979/06ab40319b17bf-brand-new-2-bedroom-smart-apartment-with-balconies-swimming-pool-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691979",
@@ -315,11 +261,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/3691977-lovely-3-bedroom-with-swimming-pool-available-from-today",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691977/06ab403ff4fcf6-lovely-3-bedroom-with-swimming-pool-available-from-today-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691977/06ab403ff4fcf6-lovely-3-bedroom-with-swimming-pool-available-from-today-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691977",
@@ -342,11 +283,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/3691974-3-bedroom-with-swimming-pool-available-from-today",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691974/06ab40656ae943-3-bedroom-with-swimming-pool-available-from-today-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691974/06ab40656ae943-3-bedroom-with-swimming-pool-available-from-today-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691974",
@@ -369,11 +305,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3691970-newly-launched-1-bedroom-apartment-balcony-gym-elevator",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691970/06ab405aa95d40-newly-launched-1-bedroom-apartment-balcony-gym-elevator-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691970/06ab405aa95d40-newly-launched-1-bedroom-apartment-balcony-gym-elevator-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691970",
@@ -396,11 +327,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3691956-newly-launched-3-bedroom-apartment-with-ps5-balcony-gym-elevator",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691956/06ab40604334c7-newly-launched-3-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691956/06ab40604334c7-newly-launched-3-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691956",
@@ -423,11 +349,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3691953-newly-launched-3-bedroom-apartment-with-ps5-balcony-gym-elevator",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691953/06ab404eeb3580-newly-launched-3-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691953/06ab404eeb3580-newly-launched-3-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691953",
@@ -450,11 +371,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/oniru/3691951-luxury-3-bedroom-flat-with-excellent-facilities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691951/06ab3f3ffc9480-luxury-3-bedroom-flat-with-excellent-facilities-short-let-oniru-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691951/06ab3f3ffc9480-luxury-3-bedroom-flat-with-excellent-facilities-short-let-oniru-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691951",
@@ -477,11 +393,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3691950-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691950/06ab4007c9f99c-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691950/06ab4007c9f99c-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691950",
@@ -504,11 +415,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3691938-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691938/06ab43c0de1f5d-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691938/06ab43c0de1f5d-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691938",
@@ -531,11 +437,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/self-contained/lagos/yaba/alagomeji/3691929-single-room-with-247-power-fast-unlimited-wifi",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691929/06ab3f590f1702-single-room-apartment-self-contained-short-let-alagomeji-yaba-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691929/06ab3f590f1702-single-room-apartment-self-contained-short-let-alagomeji-yaba-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691929",
@@ -558,11 +459,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/surulere/3691892-lovely-studio-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691892/06ab3eed4b82f4-lovely-studio-apartment-short-let-surulere-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691892/06ab3eed4b82f4-lovely-studio-apartment-short-let-surulere-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691892",
@@ -585,11 +481,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/oniru/3691875-luxury-3-bedroom-flat-with-excellent-facilities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691875/06ab3ecc5439b7-luxury-3-bedroom-flat-with-excellent-facilities-short-let-oniru-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691875/06ab3ecc5439b7-luxury-3-bedroom-flat-with-excellent-facilities-short-let-oniru-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691875",
@@ -612,11 +503,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/old-ikoyi/3691774-3-bedroom-luxury-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691774/06ab3e0b94fdaf-3-bedroom-luxury-apartment-short-let-old-ikoyi-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691774/06ab3e0b94fdaf-3-bedroom-luxury-apartment-short-let-old-ikoyi-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691774",
@@ -639,11 +525,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/lekki/lekki-phase-1/3691676-gorgeous-one-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691676/06ab3d6bf5849c-gorgeous-1bedroom-apartment-mini-flats-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691676/06ab3d6bf5849c-gorgeous-1bedroom-apartment-mini-flats-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691676",
@@ -666,11 +547,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3691665-2-bedroom-apartment-with-pool-smart-lock",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691665/06ab3d619d33f5-2-bedroom-apartment-with-pool-smart-lock-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691665/06ab3d619d33f5-2-bedroom-apartment-with-pool-smart-lock-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691665",
@@ -693,11 +569,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/oniru/3691648-2-bedroom-penthouse-apartment-with-pool-gym-snooker-board",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691648/06ab3d439316c6-2-bedroom-penthouse-apartment-with-pool-gym-snooker-board-short-let-oniru-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691648/06ab3d439316c6-2-bedroom-penthouse-apartment-with-pool-gym-snooker-board-short-let-oniru-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691648",
@@ -720,11 +591,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/ikeja/opebi/3691636-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/noimage.jpg"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/noimage.jpg",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691636",
@@ -747,11 +613,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3691608-new-one-bed-apartment-with-gym-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691608/06ab3d213876ad-new-one-bed-apartment-with-gym-pool-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691608/06ab3d213876ad-new-one-bed-apartment-with-gym-pool-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691608",
@@ -774,11 +635,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3691590-luxury-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691590/06ab3d0e17067a-luxury-1-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691590/06ab3d0e17067a-luxury-1-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691590",
@@ -801,11 +657,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3691588-2-bedroom-apartment-with-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691588/06ab3d34fea944-1-bedroom-loft-with-ps5-seaview-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691588/06ab3d34fea944-1-bedroom-loft-with-ps5-seaview-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691588",
@@ -828,11 +679,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3691578-unique-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691578/06ab3cfa3ca8ef-unique-1-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691578/06ab3cfa3ca8ef-unique-1-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691578",
@@ -855,11 +701,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3691545-exquisitely-built-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691545/06ab3cc79ae1f8-exquisitely-built-1-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691545/06ab3cc79ae1f8-exquisitely-built-1-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691545",
@@ -882,11 +723,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikeja/opebi/3691530-luxury-3-bedroom-serviced-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691530/06ab3cb21286cc-3-bedroom-apartment-short-let-opebi-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691530/06ab3cb21286cc-3-bedroom-apartment-short-let-opebi-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691530",
@@ -909,11 +745,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3691525-1-bedroom-luxury-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691525/06ab3ca79c6ea6-1-bedroom-luxury-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691525/06ab3ca79c6ea6-1-bedroom-luxury-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691525",
@@ -936,11 +767,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3691510-well-furnished-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691510/06ab3c915b534d-well-furnished-1-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691510/06ab3c915b534d-well-furnished-1-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691510",
@@ -963,11 +789,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3691471-1-bedroom-luxury-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691471/06ab3c56400ecb-1-bedroom-luxury-apartment-self-contained-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691471/06ab3c56400ecb-1-bedroom-luxury-apartment-self-contained-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691471",
@@ -990,11 +811,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/3691402-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691402/06ab3beae906f4-1-bedroom-apartment-short-let-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691402/06ab3beae906f4-1-bedroom-apartment-short-let-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691402",
@@ -1017,11 +833,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3691266-4-bedroom-furnished-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691266/06ab3de2e95704-4-bedroom-furnished-apartment-semi-detached-duplexes-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691266/06ab3de2e95704-4-bedroom-furnished-apartment-semi-detached-duplexes-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691266",
@@ -1044,11 +855,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3691234-2-bedroom-apartment-with-swimming-pool-gym",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691234/06ab3abe153cf2-2-bedroom-apartment-with-swimming-pool-gym-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691234/06ab3abe153cf2-2-bedroom-apartment-with-swimming-pool-gym-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691234",
@@ -1071,11 +877,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/lekki/lekki-phase-1/3691000-1-bedroom-luxury-loft-apartment-with-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3691000/06ab39041bd335-1-bedroom-luxury-loft-apartment-with-pool-mini-flats-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3691000/06ab39041bd335-1-bedroom-luxury-loft-apartment-with-pool-mini-flats-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3691000",
@@ -1098,11 +899,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3690994-luxurious-sea-view-2-bedroom-alexa-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690994/06ab38f35253e7-luxurious-2-bedroom-alexa-smart-home-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690994/06ab38f35253e7-luxurious-2-bedroom-alexa-smart-home-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690994",
@@ -1125,11 +921,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3690958-2-bedroom-apartment-with-pool-gym-snooker",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690958/06ab38a1326da1-2-bedroom-apartment-with-pool-gym-snooker-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690958/06ab38a1326da1-2-bedroom-apartment-with-pool-gym-snooker-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690958",
@@ -1152,11 +943,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/victoria-island/oniru/3690897-citrus-haven-1-bedroom-wpool-gym-and-ps5",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690897/06ab3817236c94-citrus-haven-wpool-gym-and-ps5-mini-flats-short-let-oniru-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690897/06ab3817236c94-citrus-haven-wpool-gym-and-ps5-mini-flats-short-let-oniru-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690897",
@@ -1179,11 +965,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3690892-1-bedroom-furnished-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690892/06ab37ff55dc26-1-bedroom-furnished-apartment-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690892/06ab37ff55dc26-1-bedroom-furnished-apartment-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690892",
@@ -1206,11 +987,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikeja/adeniyi-jones/3690878-luxury-2-bedroom-apartment-with-ps5-and-snooker",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690878/06ab37d44d95d7-luxury-2-bedroom-apartment-with-ps5-and-snooker-short-let-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690878/06ab37d44d95d7-luxury-2-bedroom-apartment-with-ps5-and-snooker-short-let-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690878",
@@ -1233,11 +1009,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3690848-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690848/06ab3779f0999e-1-bedroom-apartment-short-let-ikate-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690848/06ab3779f0999e-1-bedroom-apartment-short-let-ikate-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690848",
@@ -1260,11 +1031,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3690847-1-bedroom-furnished-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690847/06ab3775366edd-1-bedroom-furnished-apartment-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690847/06ab3775366edd-1-bedroom-furnished-apartment-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690847",
@@ -1287,11 +1053,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3690835-2-bedroom-luxury-apartment-with-balconies",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690835/06ab3744d0dab1-2-bedroom-luxury-apartment-with-balconies-short-let-ikate-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690835/06ab3744d0dab1-2-bedroom-luxury-apartment-with-balconies-short-let-ikate-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690835",
@@ -1314,11 +1075,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3690811-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690811/06ab36d788ec36-1-bedroom-apartment-short-let-ikate-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690811/06ab36d788ec36-1-bedroom-apartment-short-let-ikate-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690811",
@@ -1341,11 +1097,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikeja/3690653-luxury-3-bedroom-flat-with-excellent-facilities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690653/06ab30f1e4267b-luxury-3-bedroom-flat-with-excellent-facilities-short-let-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690653/06ab30f1e4267b-luxury-3-bedroom-flat-with-excellent-facilities-short-let-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690653",
@@ -1368,11 +1119,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/lekki/lekki-phase-1/3690360-full-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690360/06ab2dcaeabc5b-full-duplex-detached-duplexes-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690360/06ab2dcaeabc5b-full-duplex-detached-duplexes-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690360",
@@ -1395,11 +1141,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/eko-atlantic-city/3690285-newly-lunched-3-bedroom-apartment-with-perfect-aesthetics",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690285/06ab2ca161f6eb-newly-lunched-3-bedroom-apartment-with-perfect-aesthetics-short-let-eko-atlantic-city-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690285/06ab2ca161f6eb-newly-lunched-3-bedroom-apartment-with-perfect-aesthetics-short-let-eko-atlantic-city-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690285",
@@ -1422,11 +1163,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/eko-atlantic-city/3690284-newly-lunched-2-bedroom-apartment-with-perfect-aesthetics",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690284/06ab2d33053b63-newly-lunched-2-bedroom-apartment-with-perfect-aesthetics-short-let-eko-atlantic-city-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690284/06ab2d33053b63-newly-lunched-2-bedroom-apartment-with-perfect-aesthetics-short-let-eko-atlantic-city-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690284",
@@ -1449,11 +1185,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikeja/3690250-luxury-three-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690250/06ab2bee23f263-luxury-three-bedroom-apartment-short-let-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690250/06ab2bee23f263-luxury-three-bedroom-apartment-short-let-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690250",
@@ -1476,11 +1207,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/3690186-newly-launched-2-bedroom-apartment-with-perfect-aesthetics",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690186/06ab2b4e43337b-newly-lunched-2-bedroom-apartment-with-perfect-aesthetics-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690186/06ab2b4e43337b-newly-lunched-2-bedroom-apartment-with-perfect-aesthetics-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690186",
@@ -1503,11 +1229,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/3690180-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690180/06ab2b4b733917-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690180/06ab2b4b733917-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690180",
@@ -1530,11 +1251,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3690176-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-a",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690176/06ab2b46f048d5-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-a-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690176/06ab2b46f048d5-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-a-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690176",
@@ -1557,11 +1273,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3690175-newly-built-2-bed-flat-fully-furnished",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690175/06ab2d36131e90-newly-built-2-bed-flat-fully-furnished-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690175/06ab2d36131e90-newly-built-2-bed-flat-fully-furnished-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690175",
@@ -1584,11 +1295,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3690152-beautiful-3-bedroom-apartment-with-modern-facilities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690152/06ab2acdfbf47b-beautiful-3-bedroom-with-modern-facilities-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690152/06ab2acdfbf47b-beautiful-3-bedroom-with-modern-facilities-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690152",
@@ -1611,11 +1317,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3690137-beautiful-2-bedroom-with-modern-facilities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690137/06ab2aadca0a7d-beautiful-2-bedroom-with-modern-facilities-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690137/06ab2aadca0a7d-beautiful-2-bedroom-with-modern-facilities-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690137",
@@ -1638,11 +1339,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3690088-2-bedroom-apartment-with-cinema-experience-ps5-pool-gym",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690088/06ab2a549168b7-2-bedroom-apartment-with-cinema-experience-ps5-pool-gym-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690088/06ab2a549168b7-2-bedroom-apartment-with-cinema-experience-ps5-pool-gym-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690088",
@@ -1665,11 +1361,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikeja/allen/3690087-2-bedroom-apartments",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690087/06ab2a50d15f95-2-bedroom-shortlet-apartments-short-let-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690087/06ab2a50d15f95-2-bedroom-shortlet-apartments-short-let-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690087",
@@ -1692,11 +1383,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3690067-1-bedroom-apartment-with-swimming-pool-gym",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690067/06ab2a3511944f-1-bedroom-apartment-with-swimming-pool-gym-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690067/06ab2a3511944f-1-bedroom-apartment-with-swimming-pool-gym-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690067",
@@ -1719,11 +1405,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/oniru/3690043-aesthetically-pleasing-3-bedroom-apartment-with-balconies",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690043/06ab2a02d700d1-aesthetically-pleasing-3-bedroom-apartment-with-balconies-short-let-oniru-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690043/06ab2a02d700d1-aesthetically-pleasing-3-bedroom-apartment-with-balconies-short-let-oniru-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690043",
@@ -1746,11 +1427,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/3690035-3-bedroom-apartment-with-pool-gym",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690035/06ab29ed0225d4-3-bedroom-apartment-with-pool-gym-short-let-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690035/06ab29ed0225d4-3-bedroom-apartment-with-pool-gym-short-let-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690035",
@@ -1773,11 +1449,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3690027-brand-new-4-bedroom-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690027/06ab29da8a2b54-brand-new-4-bedroom-duplex-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690027/06ab29da8a2b54-brand-new-4-bedroom-duplex-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690027",
@@ -1800,11 +1471,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3690022-1-bedroom-apartment-with-ps5-bathtub-pool-gym",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690022/06ab29d0937175-1-bedroom-apartment-with-ps5-bathtub-pool-gym-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690022/06ab29d0937175-1-bedroom-apartment-with-ps5-bathtub-pool-gym-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690022",
@@ -1827,11 +1493,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3690006-2-bedroom-apartment-with-rooftop-pool-gym",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3690006/06ab29b577f93c-2-bedroom-apartment-with-rooftop-pool-gym-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3690006/06ab29b577f93c-2-bedroom-apartment-with-rooftop-pool-gym-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3690006",
@@ -1854,11 +1515,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/3689996-2-bedroom-apartment-with-city-view",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689996/06ab299df8f9b8-2-bedroom-apartment-with-city-view-short-let-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689996/06ab299df8f9b8-2-bedroom-apartment-with-city-view-short-let-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689996",
@@ -1881,11 +1537,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/osborne/3689988-3-bedroom-apartment-with-private-balcony-city-view",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689988/06ab298080e494-3-bedroom-apartment-with-private-balcony-city-view-short-let-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689988/06ab298080e494-3-bedroom-apartment-with-private-balcony-city-view-short-let-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689988",
@@ -1908,11 +1559,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3689972-2-bedroom-maisonette-apartment-with-city-view",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689972/06ab2961d2a451-2-bedroom-maisonette-apartment-with-city-view-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689972/06ab2961d2a451-2-bedroom-maisonette-apartment-with-city-view-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689972",
@@ -1935,11 +1581,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/3689941-3-bedroom-apartment-with-ps4-gym-pool-amazing-views",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689941/06ab2943586ff0-3-bedroom-apartment-with-ps4-gym-pool-amazing-views-short-let-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689941/06ab2943586ff0-3-bedroom-apartment-with-ps4-gym-pool-amazing-views-short-let-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689941",
@@ -1962,11 +1603,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3689926-2-bedroom-penthouse-with-ps5-gym-snooker-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689926/06ab292522a8d9-2-bedroom-penthouse-with-ps5-gym-snooker-swimming-pool-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689926/06ab292522a8d9-2-bedroom-penthouse-with-ps5-gym-snooker-swimming-pool-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689926",
@@ -1989,11 +1625,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3689904-2-bedroom-with-modern-facilities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689904/06ab2906f506f8-2-bedroom-apartment-with-ps5-snooker-board-swimming-pool-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689904/06ab2906f506f8-2-bedroom-apartment-with-ps5-snooker-board-swimming-pool-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689904",
@@ -2016,11 +1647,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3689903-beautiful-3-bedroom-with-modern-facilities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689903/06ab2903b26a98-beautiful-3-bedroom-with-modern-facilities-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689903/06ab2903b26a98-beautiful-3-bedroom-with-modern-facilities-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689903",
@@ -2043,11 +1669,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/terraced-duplexes/lagos/lekki/3689899-luxury-4-bedroom-duplex-apartment-with-ps5-pool-snooker-board",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689899/06ab28f25585b6-luxury-4-bedroom-duplex-apartment-with-ps5-pool-snooker-board-terraced-duplexes-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689899/06ab28f25585b6-luxury-4-bedroom-duplex-apartment-with-ps5-pool-snooker-board-terraced-duplexes-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689899",
@@ -2070,11 +1691,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3689894-luxury-2-bedroom-maisonette-with-modern-facilities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689894/06ab28ea903e32-luxury-2-bedroom-maisonette-with-modern-facilities-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689894/06ab28ea903e32-luxury-2-bedroom-maisonette-with-modern-facilities-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689894",
@@ -2097,11 +1713,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3689891-1-bedroom-apartment-with-ps5-rooftop-arena-pool-gym",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689891/06ab28e9253127-1-bedroom-apartment-with-ps5-rooftop-arena-pool-gym-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689891/06ab28e9253127-1-bedroom-apartment-with-ps5-rooftop-arena-pool-gym-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689891",
@@ -2124,11 +1735,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ologolo/3689871-2-bedroom-apartment-with-gym-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689871/06ab28cae01e8f-2-bedroom-apartment-with-gym-swimming-pool-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689871/06ab28cae01e8f-2-bedroom-apartment-with-gym-swimming-pool-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689871",
@@ -2151,11 +1757,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/lekki/osapa/3689855-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689855/06ab28ad68ba28-1-bedroom-apartment-mini-flats-short-let-osapa-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689855/06ab28ad68ba28-1-bedroom-apartment-mini-flats-short-let-osapa-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689855",
@@ -2178,11 +1779,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/3689850-3-bedroom-apartment-with-2-living-rooms-pool-lagoon-views",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689850/06ab28a826993f-3-bedroom-apartment-with-2-living-rooms-pool-lagoon-views-short-let-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689850/06ab28a826993f-3-bedroom-apartment-with-2-living-rooms-pool-lagoon-views-short-let-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689850",
@@ -2205,11 +1801,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3689843-beautiful-1-bedroom-loft",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689843/06ab289a4b73ac-beautiful-1-bedroom-loft-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689843/06ab289a4b73ac-beautiful-1-bedroom-loft-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689843",
@@ -2232,11 +1823,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikeja/3689839-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689839/06ab2897be4274-1-bedroom-apartment-short-let-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689839/06ab2897be4274-1-bedroom-apartment-short-let-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689839",
@@ -2259,11 +1845,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3689829-3-bedroom-maisonette-with-ps5-snooker-board",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689829/06ab2888a218fd-3-bedroom-maisonette-with-ps5-snooker-board-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689829/06ab2888a218fd-3-bedroom-maisonette-with-ps5-snooker-board-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689829",
@@ -2286,11 +1867,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3689817-2-bedroom-maisonette-with-ps5-snooker-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689817/06ab286699194e-2-bedroom-maisonette-with-ps5-snooker-swimming-pool-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689817/06ab286699194e-2-bedroom-maisonette-with-ps5-snooker-swimming-pool-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689817",
@@ -2313,11 +1889,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/banana-island/3689804-2-bedroom-apartment-with-gym-swimming-pool-city-view",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689804/06ab284a7802ea-2-bedroom-apartment-with-gym-swimming-pool-city-view-short-let-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689804/06ab284a7802ea-2-bedroom-apartment-with-gym-swimming-pool-city-view-short-let-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689804",
@@ -2340,11 +1911,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3689747-2-bedroom-apartment-with-gym-snooker-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689747/06ab27fcb4fe7b-2-bedroom-apartment-with-gym-snooker-swimming-pool-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689747/06ab27fcb4fe7b-2-bedroom-apartment-with-gym-snooker-swimming-pool-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689747",
@@ -2367,11 +1933,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3689718-1-bedroom-loft-with-city-view-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689718/06ab27d342087c-1-bedroom-loft-with-city-view-swimming-pool-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689718/06ab27d342087c-1-bedroom-loft-with-city-view-swimming-pool-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689718",
@@ -2394,11 +1955,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/oniru/3689713-city-view-3-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689713/06ab27cd1e353c-city-view-3-bedroom-apartment-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689713/06ab27cd1e353c-city-view-3-bedroom-apartment-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689713",
@@ -2421,11 +1977,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/ikeja/allen/3689658-cozy-1-bedroom-penthouse-with-private-access",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689658/06ab27827edec1-cozy-1-bedroom-penthouse-with-private-access-allen-avenue-ikeja-mini-flats-short-let-allen-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689658/06ab27827edec1-cozy-1-bedroom-penthouse-with-private-access-allen-avenue-ikeja-mini-flats-short-let-allen-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689658",
@@ -2448,11 +1999,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3689638-4-bedroom-flat-with-ps5-and-game-room",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689638/06ab2753753457-4-bedroom-self-compound-with-ps5-game-room-bathtub-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689638/06ab2753753457-4-bedroom-self-compound-with-ps5-game-room-bathtub-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689638",
@@ -2475,11 +2021,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3689613-2-bedroom-apartment-with-ps5-swimming-pool-gym",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689613/06ab272e036ba2-2-bedroom-apartment-with-ps5-swimming-pool-gym-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689613/06ab272e036ba2-2-bedroom-apartment-with-ps5-swimming-pool-gym-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689613",
@@ -2502,11 +2043,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3689586-2-bedroom-maisonette-with-ps5-snooker-board",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689586/06ab27070a6fe8-2-bedroom-maisonette-with-ps5-snooker-board-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689586/06ab27070a6fe8-2-bedroom-maisonette-with-ps5-snooker-board-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689586",
@@ -2529,11 +2065,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikeja/gra/3689568-2-bedroom-penthouse",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689568/06ab26f0c4e8ec-2-bedroom-penthouse-short-let-gra-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689568/06ab26f0c4e8ec-2-bedroom-penthouse-short-let-gra-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689568",
@@ -2556,11 +2087,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3689554-1-bedroom-apartment-with-bathtub-ps5",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689554/06ab26de472daf-1-bedroom-apartment-with-bathtub-ps5-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689554/06ab26de472daf-1-bedroom-apartment-with-bathtub-ps5-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689554",
@@ -2583,11 +2109,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/oniru/3689526-2-bedroom-apartment-with-city-water-views",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689526/06ab26aa648df3-2-bedroom-apartment-with-city-water-views-short-let-oniru-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689526/06ab26aa648df3-2-bedroom-apartment-with-city-water-views-short-let-oniru-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689526",
@@ -2610,11 +2131,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3689494-2-bedroom-apartment-with-city-views-balconies-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689494/06ab267849aba1-2-bedroom-apartment-with-city-views-balconies-swimming-pool-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689494/06ab267849aba1-2-bedroom-apartment-with-city-views-balconies-swimming-pool-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689494",
@@ -2637,11 +2153,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3689492-spacious-3-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689492/06ab267c20def8-spacious-3-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689492/06ab267c20def8-spacious-3-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689492",
@@ -2664,11 +2175,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3689459-1-bedroom-apartment-with-ps5-pool-gym",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689459/06ab26519a1299-1-bedroom-apartment-with-ps5-pool-gym-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689459/06ab26519a1299-1-bedroom-apartment-with-ps5-pool-gym-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689459",
@@ -2691,11 +2197,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3689422-3-bedroom-semi-detached-home-with-private-cinema",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689422/06ab261b6aee68-3-bedroom-semi-detached-home-with-private-cinema-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689422/06ab261b6aee68-3-bedroom-semi-detached-home-with-private-cinema-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689422",
@@ -2718,11 +2219,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/oniru/3689420-two-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689420/06ab261b0050d1-two-bedroom-apartment-short-let-oniru-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689420/06ab261b0050d1-two-bedroom-apartment-short-let-oniru-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689420",
@@ -2745,11 +2241,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3689400-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689400/06ab25f0b3da38-1-bedroom-apartment-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689400/06ab25f0b3da38-1-bedroom-apartment-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689400",
@@ -2772,11 +2263,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/victoria-island/oniru/3689392-2-bedroom-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689392/06ab25ee326807-2-bedroom-duplex-detached-duplexes-short-let-oniru-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689392/06ab25ee326807-2-bedroom-duplex-detached-duplexes-short-let-oniru-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689392",
@@ -2799,11 +2285,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/oniru/3689364-3-bedroom-smart-home-with-pool-balcony-sit-out",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689364/06ab25c610fae1-3-bedroom-smart-home-with-pool-balcony-sit-out-short-let-oniru-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689364/06ab25c610fae1-3-bedroom-smart-home-with-pool-balcony-sit-out-short-let-oniru-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689364",
@@ -2826,11 +2307,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/victoria-island/oniru/3689357-2-bedroom-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689357/06ab25b83b8662-2-bedroom-duplex-detached-duplexes-short-let-oniru-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689357/06ab25b83b8662-2-bedroom-duplex-detached-duplexes-short-let-oniru-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689357",
@@ -2853,11 +2329,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3689352-beautiful-2-bedroom-maisonette-available",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689352/06ab25b601cda9-beautiful-2-bedroom-maisonette-available-for-shortlet-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689352/06ab25b601cda9-beautiful-2-bedroom-maisonette-available-for-shortlet-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689352",
@@ -2880,11 +2351,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/oniru/3689351-luxury-3-bedroom-penthouse-with-cinema-pool-gym-balcony",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689351/06ab25c5636b59-luxury-3-bedroom-penthouse-with-cinema-pool-gym-balcony-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689351/06ab25c5636b59-luxury-3-bedroom-penthouse-with-cinema-pool-gym-balcony-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689351",
@@ -2907,11 +2373,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3689342-2-bedroom-apartment-with-pool-balcony-gym-snooker",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689342/06ab25a0936840-2-bedroom-apartment-with-pool-balcony-gym-snooker-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689342/06ab25a0936840-2-bedroom-apartment-with-pool-balcony-gym-snooker-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689342",
@@ -2934,11 +2395,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3689332-stylish-2-bedroom-with-premium-amenities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689332/06ab25992bb647-stylish-2-bedroom-with-premium-amenities-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689332/06ab25992bb647-stylish-2-bedroom-with-premium-amenities-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689332",
@@ -2961,11 +2417,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3689319-2-bedroom-apartment-with-rooftop-pool-gym",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689319/06ab2581391d1b-2-bedroom-apartment-with-rooftop-pool-gym-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689319/06ab2581391d1b-2-bedroom-apartment-with-rooftop-pool-gym-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689319",
@@ -2988,11 +2439,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/alimosho/egbeda/3689316-newly-furnished-2-bedroom-flat-24-hours-power-and-fast-internet",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689316/06ab257eb0c1fb-newly-furnished-2-bed-apt-24hrs-power-and-fast-internet-short-let-egbeda-alimosho-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689316/06ab257eb0c1fb-newly-furnished-2-bed-apt-24hrs-power-and-fast-internet-short-let-egbeda-alimosho-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689316",
@@ -3015,11 +2461,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3689314-bohemian-themed-1-bedroom-with-premium-amenities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689314/06ab257a792f46-bohemian-themed-1-bedroom-with-premium-amenities-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689314/06ab257a792f46-bohemian-themed-1-bedroom-with-premium-amenities-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689314",
@@ -3042,11 +2483,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3689300-2-bedroom-apartment-with-gym-ps5-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689300/06ab256172f54b-2-bedroom-apartment-with-gym-ps5-swimming-pool-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689300/06ab256172f54b-2-bedroom-apartment-with-gym-ps5-swimming-pool-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689300",
@@ -3069,11 +2505,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3689295-cozy-1-bedroom-with-luxurious-amenities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689295/06ab2558acabb1-cozy-1-bedroom-with-luxurious-amenities-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689295/06ab2558acabb1-cozy-1-bedroom-with-luxurious-amenities-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689295",
@@ -3096,11 +2527,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/self-contained/lagos/lekki/lekki-phase-1/3689293-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689293/06ab255b731000-1-bedroom-apartment-self-contained-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689293/06ab255b731000-1-bedroom-apartment-self-contained-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689293",
@@ -3123,11 +2549,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3689271-luxurious-2-bedroom-maisonette-with-swimming-pool-gym",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689271/06ab253403285a-luxurious-2-bedroom-maisonette-with-swimming-pool-gym-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689271/06ab253403285a-luxurious-2-bedroom-maisonette-with-swimming-pool-gym-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689271",
@@ -3150,11 +2571,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/3689251-2-bedroom-apartment-with-pool-and-gym",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689251/06ab25125c4994-2-bedroom-apartment-with-pool-and-gym-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689251/06ab25125c4994-2-bedroom-apartment-with-pool-and-gym-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689251",
@@ -3177,11 +2593,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3689226-2-bedroom-apartment-with-pool-gym-games",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689226/06ab24f2c3f07e-2-bedroom-apartment-with-pool-gym-games-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689226/06ab24f2c3f07e-2-bedroom-apartment-with-pool-gym-games-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689226",
@@ -3204,11 +2615,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/3689208-3-bedroom-luxury-serviced-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689208/06ab24d5868dc8-3-bedroom-luxury-serviced-apartment-short-let-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689208/06ab24d5868dc8-3-bedroom-luxury-serviced-apartment-short-let-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689208",
@@ -3231,11 +2637,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/old-ikoyi/3689181-well-furnished-4-bedroom-penthouse",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689181/06ab251819055e-well-furnished-4-bedroom-penthouse-short-let-old-ikoyi-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689181/06ab251819055e-well-furnished-4-bedroom-penthouse-short-let-old-ikoyi-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689181",
@@ -3258,11 +2659,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/old-ikoyi/3689156-fully-furnished-3-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689156/06ab247b833604-fully-furnished-3-bedroom-apartment-short-let-old-ikoyi-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689156/06ab247b833604-fully-furnished-3-bedroom-apartment-short-let-old-ikoyi-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689156",
@@ -3285,11 +2681,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/old-ikoyi/3689125-well-fully-furnished-3-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3689125/06ab244ea10b2f-well-furnished-3-bedroom-apartment-in-ikoyi-short-let-old-ikoyi-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3689125/06ab244ea10b2f-well-furnished-3-bedroom-apartment-in-ikoyi-short-let-old-ikoyi-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3689125",
@@ -3311,11 +2702,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/self-contained/lagos/lekki/3688951-fully-furnished-self-contain-room",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688951/06ab2329ee8870-fully-furnished-self-contain-room-self-contained-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688951/06ab2329ee8870-fully-furnished-self-contain-room-self-contained-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688951",
@@ -3338,11 +2724,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/lagos/lekki/3688882-brand-new-house-in-a-serene-and-gated-estate",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688882/06ab22873be045-brand-new-house-in-a-serene-and-gated-estate-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688882/06ab22873be045-brand-new-house-in-a-serene-and-gated-estate-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688882",
@@ -3365,11 +2746,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3688810-3-bedroom-waterfront-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688810/06ab216f552084-3-bedroom-waterfront-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688810/06ab216f552084-3-bedroom-waterfront-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688810",
@@ -3392,11 +2768,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/oniru/3688666-2-bedroom-penthouse",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688666/06ab1c6ff2421e-2-bedroom-penthouse-short-let-oniru-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688666/06ab1c6ff2421e-2-bedroom-penthouse-short-let-oniru-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688666",
@@ -3419,11 +2790,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3688664-brand-new-2-bedroom-flat",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688664/06ab1c66718d3b-brand-new-2-bedroom-flat-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688664/06ab1c66718d3b-brand-new-2-bedroom-flat-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688664",
@@ -3446,11 +2812,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3688661-luxury-2-bedroom-flat",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688661/06ab1c56188b60-luxury-2-bedroom-flat-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688661/06ab1c56188b60-luxury-2-bedroom-flat-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688661",
@@ -3473,11 +2834,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/terraced-duplexes/lagos/lekki/ikate/3688659-3-bedroom-terraced-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688659/06ab1c4b8bf2de-3-bedroom-terraced-duplex-terraced-duplexes-short-let-ikate-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688659/06ab1c4b8bf2de-3-bedroom-terraced-duplex-terraced-duplexes-short-let-ikate-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688659",
@@ -3500,11 +2856,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3688657-2-bedroom-luxury-flat",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688657/06ab1c3b2804f9-2-bedroom-luxury-flat-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688657/06ab1c3b2804f9-2-bedroom-luxury-flat-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688657",
@@ -3527,11 +2878,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-bungalows/lagos/epe/3688495-3-bedroom-minimalist-cottage-with-a-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688495/06ab19b825cd93-3-bedroom-minimalist-cottage-with-a-swimming-pool-detached-bungalows-short-let-epe-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688495/06ab19b825cd93-3-bedroom-minimalist-cottage-with-a-swimming-pool-detached-bungalows-short-let-epe-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688495",
@@ -3554,11 +2900,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3688464-1-bedroom-furnished-apartment-with-ps5-pool-gym",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688464/06ab195a2472c0-1-bedroom-furnished-apartment-with-ps5-pool-gym-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688464/06ab195a2472c0-1-bedroom-furnished-apartment-with-ps5-pool-gym-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688464",
@@ -3580,11 +2921,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/terraced-duplexes/lagos/ajah/3688371-4-bedroom-terrace-duplex-apartment-with-2-living-rooms",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688371/06ab1889156d86-4-bedroom-terrace-duplex-apartment-with-2-living-rooms-terraced-duplexes-short-let-ajah-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688371/06ab1889156d86-4-bedroom-terrace-duplex-apartment-with-2-living-rooms-terraced-duplexes-short-let-ajah-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688371",
@@ -3607,11 +2943,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3688347-2-bedroom-luxury-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688347/06ab1851e68b8b-2-bedroom-luxury-apartment-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688347/06ab1851e68b8b-2-bedroom-luxury-apartment-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688347",
@@ -3634,11 +2965,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/lekki/lekki-phase-1/3688185-1-bedroom-with-snookers",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688185/06ab16afc38f4c-spacious-1bedroom-with-snookers-mini-flats-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688185/06ab16afc38f4c-spacious-1bedroom-with-snookers-mini-flats-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688185",
@@ -3661,11 +2987,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3688105-1-bedroom-luxury-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688105/06ab15c77340ba-1-bedroom-luxury-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688105/06ab15c77340ba-1-bedroom-luxury-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688105",
@@ -3688,11 +3009,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/lekki/lekki-phase-1/3688074-4-bedroom-duplex-seaview-with-pool-gym-and-snooker",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688074/06ab15900e6eed-4-bedroom-seaview-apartment-with-pool-gym-and-snooker-detached-duplexes-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688074/06ab15900e6eed-4-bedroom-seaview-apartment-with-pool-gym-and-snooker-detached-duplexes-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688074",
@@ -3715,11 +3031,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3688073-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688073/06ab1693acf7e9-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688073/06ab1693acf7e9-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688073",
@@ -3742,11 +3053,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3688071-3-bedroom-luxury-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688071/06ab158cf27303-3-bedroom-luxury-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688071/06ab158cf27303-3-bedroom-luxury-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688071",
@@ -3769,11 +3075,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3688070-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3688070/06ab169104c57b-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3688070/06ab169104c57b-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3688070",
@@ -3796,11 +3097,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/3687882-luxury-3-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687882/06ab143c74dbb3-luxury-3-bedroom-apartment-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687882/06ab143c74dbb3-luxury-3-bedroom-apartment-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687882",
@@ -3823,11 +3119,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3687868-a-luxurious-2-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687868/06ab141fd1d035-a-luxurious-2-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687868/06ab141fd1d035-a-luxurious-2-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687868",
@@ -3850,11 +3141,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3687507-deluxe-2-bedroom-apartment-with-a-private-cinema-and-bathub",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687507/06ab11f0733b49-deluxe-2-bedroom-apartment-with-a-private-cinema-and-bathub-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687507/06ab11f0733b49-deluxe-2-bedroom-apartment-with-a-private-cinema-and-bathub-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687507",
@@ -3877,11 +3163,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3687491-brand-new-1-bedroom-smart-apartment-with-balconies-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687491/06ab138506ae8f-brand-new-1-bedroom-smart-apartment-with-balconies-swimming-pool-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687491/06ab138506ae8f-brand-new-1-bedroom-smart-apartment-with-balconies-swimming-pool-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687491",
@@ -3904,11 +3185,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikeja/opebi/3687485-exquisite-3-bedroom-apartment-with-daily-housekeeping-247-power",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687485/06ab3a9ece5045-3-bedroom-apartment-short-let-opebi-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687485/06ab3a9ece5045-3-bedroom-apartment-short-let-opebi-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687485",
@@ -3931,11 +3207,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/3687479-3-bedroom-with-swimming-pool-available-from-today",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687479/06ab1392032f56-3-bedroom-with-swimming-pool-available-from-today-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687479/06ab1392032f56-3-bedroom-with-swimming-pool-available-from-today-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687479",
@@ -3958,11 +3229,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/3687449-newly-launched-2-bedroom-apartment-with-balcony-gym-elevator",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687449/06ab13a987d1e1-newly-launched-2-bedroom-apartment-with-balcony-gym-elevator-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687449/06ab13a987d1e1-newly-launched-2-bedroom-apartment-with-balcony-gym-elevator-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687449",
@@ -3985,11 +3251,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3687427-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687427/06ab13a1da7fd8-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687427/06ab13a1da7fd8-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687427",
@@ -4012,11 +3273,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3687393-beautifully-furnished-studio-apartment-with-a-bathub",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687393/06ab117d9e51a6-beautifully-furnished-studio-apartment-with-a-bathub-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687393/06ab117d9e51a6-beautifully-furnished-studio-apartment-with-a-bathub-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687393",
@@ -4038,11 +3294,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/lekki/3687312-4-bedroom-detached-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687312/06ab11275079ab-4-bedroom-detached-duplex-detached-duplexes-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687312/06ab11275079ab-4-bedroom-detached-duplex-detached-duplexes-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687312",
@@ -4065,11 +3316,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3687302-premium-2-bedroom-apartment-with-playstation-pool-soccer-game",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687302/06ab111d20cd88-premium-2-bedroom-apartment-with-ps5247-power-pool-soccer-game-short-let-ikate-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687302/06ab111d20cd88-premium-2-bedroom-apartment-with-ps5247-power-pool-soccer-game-short-let-ikate-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687302",
@@ -4092,11 +3338,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-2/3687268-new-spacious-2-bedroom-with-ps5-and-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687268/06ab10f43d9534-new-spacious-2bedroom-with-ps5-and-swimming-pool-short-let-lekki-phase-2-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687268/06ab10f43d9534-new-spacious-2bedroom-with-ps5-and-swimming-pool-short-let-lekki-phase-2-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687268",
@@ -4119,11 +3360,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/oniru/3687262-2-bedroom-luxury-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687262/06ab10ebf69d37-2-bedroom-luxury-apartment-short-let-oniru-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687262/06ab10ebf69d37-2-bedroom-luxury-apartment-short-let-oniru-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687262",
@@ -4146,11 +3382,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/lagos/surulere/3687185-3-bedroom-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687185/06ab109093928f-3-bedroom-duplex-short-let-surulere-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687185/06ab109093928f-3-bedroom-duplex-short-let-surulere-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687185",
@@ -4173,11 +3404,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3687184-2-bedroom-apartment-with-pool-and-gym",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687184/06ab108d19e771-2-bedroom-apartment-with-pool-and-gym-short-let-ikate-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687184/06ab108d19e771-2-bedroom-apartment-with-pool-and-gym-short-let-ikate-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687184",
@@ -4200,11 +3426,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3687174-1-bedroom-luxury-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687174/06ab1081f089e4-1-bedroom-luxury-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687174/06ab1081f089e4-1-bedroom-luxury-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687174",
@@ -4227,11 +3448,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3687160-3-bedroom-furnished-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687160/06ab106809af1a-3-bedroom-furnished-apartment-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687160/06ab106809af1a-3-bedroom-furnished-apartment-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687160",
@@ -4254,11 +3470,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3687088-luxury-3-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687088/06ab1000ca3e7d-luxury-3-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687088/06ab1000ca3e7d-luxury-3-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687088",
@@ -4281,11 +3492,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3687063-3-bedroom-luxury-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3687063/06ab0fcd3458ba-3-bedroom-luxury-apartment-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3687063/06ab0fcd3458ba-3-bedroom-luxury-apartment-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3687063",
@@ -4330,11 +3536,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/terraced-duplexes/lagos/lekki/ikota/3686720-4-bedroom-luxury-furnished-terraced-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686720/06ab0df21cd51e-4-bedroom-luxury-furnished-terraced-duplex-terraced-duplexes-short-let-ikota-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686720/06ab0df21cd51e-4-bedroom-luxury-furnished-terraced-duplex-terraced-duplexes-short-let-ikota-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686720",
@@ -4357,11 +3558,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3686570-cozy-3-bedroom-apartment-in-a-serene-and-beautiful-environment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686570/06ab0b36bb36b4-cozy-3-bedroom-apartment-in-a-serene-and-beautiful-environment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686570/06ab0b36bb36b4-cozy-3-bedroom-apartment-in-a-serene-and-beautiful-environment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686570",
@@ -4405,11 +3601,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/self-contained/lagos/lekki/lekki-phase-1/3686471-luxury-studio-apartment-with-pool-gyj",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686471/06ab06b9fe1479-studio-apartment-self-contained-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686471/06ab06b9fe1479-studio-apartment-self-contained-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686471",
@@ -4432,11 +3623,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/self-contained/lagos/ikeja/ogba/3686445-luxury-single-room-selfcontained-available-with-excellent-facilities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686445/06ab05ffb32666-luxury-single-room-available-with-excellent-facilities-self-contained-short-let-ogba-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686445/06ab05ffb32666-luxury-single-room-available-with-excellent-facilities-self-contained-short-let-ogba-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686445",
@@ -4459,11 +3645,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/3686356-beautiful-2-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686356/06ab0489432521-beautiful-2-bedroom-apartment-for-booking-short-let-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686356/06ab0489432521-beautiful-2-bedroom-apartment-for-booking-short-let-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686356",
@@ -4486,11 +3667,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikorodu/3686345-exquisitely-furnished-3-bedrooms-flat-in-a-serene-environment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686345/06ab04461897e5-3-bedroom-furnished-apartment-mini-flats-short-let-ikorodu-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686345/06ab04461897e5-3-bedroom-furnished-apartment-mini-flats-short-let-ikorodu-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686345",
@@ -4513,11 +3689,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3686292-2-bedroom-apartment-with-ps5-swimming-pool-soccer-game",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686292/06ab036560e42e-2-bedroom-apartment-with-ps5-swimming-pool-soccer-game-short-let-ikate-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686292/06ab036560e42e-2-bedroom-apartment-with-ps5-swimming-pool-soccer-game-short-let-ikate-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686292",
@@ -4540,11 +3711,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3686279-brand-new-2-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686279/06ab032f6a0cf6-brand-new-2-bedroom-apartment-short-let-ikate-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686279/06ab032f6a0cf6-brand-new-2-bedroom-apartment-short-let-ikate-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686279",
@@ -4566,11 +3732,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/3686275-4-bedroom-executive-triplex-with-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686275/06ab032644ccb9-4-bedroom-executive-triplex-with-swimming-pool-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686275/06ab032644ccb9-4-bedroom-executive-triplex-with-swimming-pool-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686275",
@@ -4593,11 +3754,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3686274-2-bedroom-apartment-with-pool-gym-ps5",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686274/06ab03260102c9-2-bedroom-apartment-with-pool-gym-ps5-short-let-ikate-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686274/06ab03260102c9-2-bedroom-apartment-with-pool-gym-ps5-short-let-ikate-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686274",
@@ -4620,11 +3776,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/self-contained/lagos/ajah/3686261-room-self-contain-short-let",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686261/06ab02e4a38529-room-self-contain-short-let-self-contained-short-let-ajah-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686261/06ab02e4a38529-room-self-contain-short-let-self-contained-short-let-ajah-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686261",
@@ -4647,11 +3798,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/self-contained/lagos/ajah/olokonla/3686260-exquisite-spacious-furnished-room",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686260/06ab02eacb9257-exquisite-spacious-furnished-room-self-contained-short-let-olokonla-ajah-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686260/06ab02eacb9257-exquisite-spacious-furnished-room-self-contained-short-let-olokonla-ajah-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686260",
@@ -4674,11 +3820,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/lekki/3686253-super-luxury-5-bedrooms-fully-detached-duplex-with-cinema",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686253/06ab02c6b94ed2-super-luxury-5-bedrooms-fully-detached-duplex-detached-duplexes-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686253/06ab02c6b94ed2-super-luxury-5-bedrooms-fully-detached-duplex-detached-duplexes-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686253",
@@ -4701,11 +3842,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3686251-brand-new-luxury-2-bed-apartment-with-ps5-gym-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686251/06ab02c34e319c-brand-new-luxury-2-bed-apartment-with-ps5-gym-pool-short-let-ikate-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686251/06ab02c34e319c-brand-new-luxury-2-bed-apartment-with-ps5-gym-pool-short-let-ikate-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686251",
@@ -4728,11 +3864,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/3686222-luxury-three-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686222/06ab022d65fd15-luxury-three-bedroom-apartment-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686222/06ab022d65fd15-luxury-three-bedroom-apartment-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686222",
@@ -4755,11 +3886,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikeja/allen/3686127-2-bedroom-apartment-with-ps5-game",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686127/06aafffbf598d4-2-bedroom-apartment-with-ps-5-game-short-let-allen-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686127/06aafffbf598d4-2-bedroom-apartment-with-ps-5-game-short-let-allen-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686127",
@@ -4782,11 +3908,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/ikeja/allen/3686098-premium-1-bedroom-penthouse",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3686098/06aaff3e9ccf3e-premium-1-bedroom-penthouse-mini-flats-short-let-allen-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3686098/06aaff3e9ccf3e-premium-1-bedroom-penthouse-mini-flats-short-let-allen-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3686098",
@@ -4808,11 +3929,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/3685973-3-bedroom-residence-villa",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685973/06aafcd147999a-3-bedroom-residence-villa-short-let-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685973/06aafcd147999a-3-bedroom-residence-villa-short-let-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685973",
@@ -4835,11 +3951,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/self-contained/lagos/lekki/3685971-luxury-studio-apartments",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685971/06aafcc7d1ae5f-luxury-studio-apartments-self-contained-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685971/06aafcc7d1ae5f-luxury-studio-apartments-self-contained-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685971",
@@ -4862,11 +3973,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/self-contained/lagos/lekki/3685966-luxury-studio-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685966/06aafcaac8e170-luxury-studio-apartment-self-contained-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685966/06aafcaac8e170-luxury-studio-apartment-self-contained-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685966",
@@ -4889,11 +3995,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ilasan/3685932-luxury-2-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685932/06aafbd6c08c61-luxury-2bed-apartment-for-monthly-bookings-short-let-ilasan-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685932/06aafbd6c08c61-luxury-2bed-apartment-for-monthly-bookings-short-let-ilasan-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685932",
@@ -4916,11 +4017,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3685877-new-2-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685877/06aafa9657c607-new-2-bedroom-apartment-self-contained-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685877/06aafa9657c607-new-2-bedroom-apartment-self-contained-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685877",
@@ -4943,11 +4039,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikeja/3685815-luxury-2-bedroom-with-2-spacious-balconies-apartment-with-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685815/06aaf91413201b-luxury-2-bedroom-with-2-spacious-balconies-apartment-with-pool-short-let-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685815/06aaf91413201b-luxury-2-bedroom-with-2-spacious-balconies-apartment-with-pool-short-let-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685815",
@@ -4970,11 +4061,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/lekki/3685657-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685657/06aaf3594ad1a6-1-bedroom-apartment-mini-flats-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685657/06aaf3594ad1a6-1-bedroom-apartment-mini-flats-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685657",
@@ -4997,11 +4083,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/magodo/3685652-2-bedroom-premium-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685652/06aaf2e8499ebb-2-bedroom-premium-apartment-short-let-magodo-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685652/06aaf2e8499ebb-2-bedroom-premium-apartment-short-let-magodo-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685652",
@@ -5024,11 +4105,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/magodo/3685649-2-bedroom-luxury-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685649/06aaf2cf2d22ff-2-bedroom-luxury-apartment-short-let-magodo-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685649/06aaf2cf2d22ff-2-bedroom-luxury-apartment-short-let-magodo-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685649",
@@ -5051,11 +4127,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/lekki/3685642-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685642/06aaf29ae5daaa-1-bedroom-luxury-apartment-detached-duplexes-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685642/06aaf29ae5daaa-1-bedroom-luxury-apartment-detached-duplexes-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685642",
@@ -5078,11 +4149,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/lekki/3685637-2-bedroom-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685637/06aaf276c237bc-2-bedroom-duplex-detached-duplexes-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685637/06aaf276c237bc-2-bedroom-duplex-detached-duplexes-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685637",
@@ -5105,11 +4171,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/lekki/ikate/3685620-2-bedroom-duplex-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685620/06aaf1fa9dad55-2-bedroom-duplex-apartment-detached-duplexes-short-let-ikate-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685620/06aaf1fa9dad55-2-bedroom-duplex-apartment-detached-duplexes-short-let-ikate-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685620",
@@ -5132,11 +4193,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/lekki/ikate/3685617-2-bedroom-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685617/06aaf1e02702f1-2-bedroom-duplex-detached-duplexes-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685617/06aaf1e02702f1-2-bedroom-duplex-detached-duplexes-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685617",
@@ -5159,11 +4215,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/lekki/lekki-phase-1/3685614-2-bedroom-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685614/06aaf1c8be76a4-2-bedroom-duplex-detached-duplexes-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685614/06aaf1c8be76a4-2-bedroom-duplex-detached-duplexes-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685614",
@@ -5186,11 +4237,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/surulere/3685591-studio-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685591/06aaf13c0b036e-studio-apartment-short-let-surulere-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685591/06aaf13c0b036e-studio-apartment-short-let-surulere-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685591",
@@ -5213,11 +4259,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/lekki/victoria-garden-city/3685588-5-bedroom-fully-detached-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685588/06aaf12389972a-5-bedroom-fully-detached-duplex-detached-duplexes-short-let-victoria-garden-city-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685588/06aaf12389972a-5-bedroom-fully-detached-duplex-detached-duplexes-short-let-victoria-garden-city-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685588",
@@ -5240,11 +4281,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3685408-luxury-and-spacious-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685408/06aaede1702c26-luxury-and-spacious-1-bedroom-apartment-self-contained-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685408/06aaede1702c26-luxury-and-spacious-1-bedroom-apartment-self-contained-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685408",
@@ -5267,11 +4303,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3685360-2-bedroom-maisonette-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685360/06aaed3b96b775-2-bedroom-maisonette-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685360/06aaed3b96b775-2-bedroom-maisonette-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685360",
@@ -5294,11 +4325,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/yaba/alagomeji/3685273-3-bedroom-furnished-available-for-holiday",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685273/06aaebf694d3d7-3-bedroom-furnished-shortlet-available-short-let-alagomeji-yaba-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685273/06aaebf694d3d7-3-bedroom-furnished-shortlet-available-short-let-alagomeji-yaba-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685273",
@@ -5321,11 +4347,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3685237-exclusive-furnished-1-bedroom-executive-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685237/06aaebd63b2bb4-exclusive-furnished-1-bedroom-executive-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685237/06aaebd63b2bb4-exclusive-furnished-1-bedroom-executive-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685237",
@@ -5348,11 +4369,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3685236-exclusive-furnished-1-bedroom-executive-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685236/06aaebdaca6234-exclusive-furnished-1-bedroom-executive-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685236/06aaebdaca6234-exclusive-furnished-1-bedroom-executive-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685236",
@@ -5375,11 +4391,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3685235-exclusive-furnished-1-bedroom-executive-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685235/06aaec35e173fa-exclusive-furnished-1-bedroom-executivei-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685235/06aaec35e173fa-exclusive-furnished-1-bedroom-executivei-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685235",
@@ -5402,11 +4413,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3685231-newly-launched-2-bedroomn-apartment-with-ps5-balcony-gym-elevator",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685231/06aaec21329e00-newly-launched-2-bedroomn-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685231/06aaec21329e00-newly-launched-2-bedroomn-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685231",
@@ -5429,11 +4435,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3685217-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685217/06aaebc9f0165d-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685217/06aaebc9f0165d-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685217",
@@ -5456,11 +4457,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3685213-newly-launched-2-bedroom-iapartment-with-ps5-balcony-gym-elevator",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685213/06aaebac7e6471-newly-launched-2-bedroom-iapartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685213/06aaebac7e6471-newly-launched-2-bedroom-iapartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685213",
@@ -5483,11 +4479,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3685136-luxurious-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3685136/06aaea893ee930-luxurious-apartment-for-short-and-long-stay-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3685136/06aaea893ee930-luxurious-apartment-for-short-and-long-stay-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3685136",
@@ -5510,11 +4501,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/commercial/hotels-guest-houses/lagos/tarkwa-bay-island/3684930-takwa-bay-beach-house",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3684930/06aae8607b1575-takwa-bay-beach-house-short-let-tarkwa-bay-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3684930/06aae8607b1575-takwa-bay-beach-house-short-let-tarkwa-bay-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3684930",
@@ -5537,11 +4523,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/3684808-exquisite-2-bedroom-automated-penthouse-with-top-notch-amenities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3684808/06aae75b554a79-exquisite-2-bedroom-automated-penthouse-wtop-notch-amenities-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3684808/06aae75b554a79-exquisite-2-bedroom-automated-penthouse-wtop-notch-amenities-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3684808",
@@ -5564,11 +4545,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/ikeja/gra/3684518-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3684518/06aae41c8e03ec-1-bedroom-apartment-mini-flats-short-let-gra-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3684518/06aae41c8e03ec-1-bedroom-apartment-mini-flats-short-let-gra-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3684518",
@@ -5591,11 +4567,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikeja/gra/3684500-2-bedroom-luxury-flat-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3684500/06aae3e8d5a9ba-2-bedroom-luxury-flat-apartment-mini-flats-short-let-gra-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3684500/06aae3e8d5a9ba-2-bedroom-luxury-flat-apartment-mini-flats-short-let-gra-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3684500",
@@ -5618,11 +4589,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3684487-fully-furnished-and-magnetic-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3684487/06aae3baf45c60-fully-furnished-and-magnetic-apartment-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3684487/06aae3baf45c60-fully-furnished-and-magnetic-apartment-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3684487",
@@ -5645,11 +4611,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/lekki/victoria-garden-city/3684480-3-bedroom-detached-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3684480/06aae684c0c87a-3-bedroom-detached-duplex-detached-duplexes-short-let-victoria-garden-city-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3684480/06aae684c0c87a-3-bedroom-detached-duplex-detached-duplexes-short-let-victoria-garden-city-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3684480",
@@ -5672,11 +4633,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-bungalows/lagos/lekki/3684403-well-designed-4-bedroom-self-compound-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3684403/06aae2be58cb6e-well-designed-4-bedroom-self-compound-duplex-detached-bungalows-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3684403/06aae2be58cb6e-well-designed-4-bedroom-self-compound-duplex-detached-bungalows-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3684403",
@@ -5699,11 +4655,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/3684344-3-bedroom-apartment-7th-floor",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3684344/06aae05bd59fc6-3-bedroom-apartment-7th-floor-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3684344/06aae05bd59fc6-3-bedroom-apartment-7th-floor-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3684344",
@@ -5726,11 +4677,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3684129-exclusive-furnished-4-bedroom-executive-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3684129/06aadb59be55be-exclusive-furnished-4-bedroom-executive-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3684129/06aadb59be55be-exclusive-furnished-4-bedroom-executive-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3684129",
@@ -5753,11 +4699,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3684122-4-bedrooms-apartment-luxurious-and-pool-perfect-for-your-gateways",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3684122/06aadb5372fe8e-4-bedrooms-apartment-luxurious-and-pool-perfect-for-your-gateways-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3684122/06aadb5372fe8e-4-bedrooms-apartment-luxurious-and-pool-perfect-for-your-gateways-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3684122",
@@ -5780,11 +4721,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/lekki/ikate/3684120-5-bedroom-self-compound-house-for-staycation",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3684120/06aadafec37ab9-5-bedroom-self-compound-house-for-staycation-detached-duplexes-short-let-ikate-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3684120/06aadafec37ab9-5-bedroom-self-compound-house-for-staycation-detached-duplexes-short-let-ikate-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3684120",
@@ -5807,11 +4743,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/lekki/3683990-one-bedroom-apartment-with-24-hours-power-supply",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683990/06aad8fa609622-one-bedroom-short-let-apartment-mini-flats-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683990/06aad8fa609622-one-bedroom-short-let-apartment-mini-flats-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683990",
@@ -5834,11 +4765,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3683983-premium-2-bedroom-with-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683983/06aad8e1d2659f-premium-2bedroom-with-swimming-pool-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683983/06aad8e1d2659f-premium-2bedroom-with-swimming-pool-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683983",
@@ -5861,11 +4787,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3683938-tastefully-furnished-glamorous-master-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683938/06aad83740e518-tastefully-furnished-glamorous-masterbedroom-apartment-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683938/06aad83740e518-tastefully-furnished-glamorous-masterbedroom-apartment-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683938",
@@ -5888,11 +4809,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/terraced-duplexes/lagos/ikoyi/3683931-luxury-1-bedroom-house",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683931/06aad8207a4ae7-luxury-1-bedroom-flat-with-excellent-short-let-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683931/06aad8207a4ae7-luxury-1-bedroom-flat-with-excellent-short-let-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683931",
@@ -5915,11 +4831,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/victoria-island/oniru/3683885-luxury-1-bedroom-mini-flat-with-excellent-facilities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683885/06aad792ce29d3-luxury-1-bedroom-flat-with-excellent-facilities-mini-flats-short-let-oniru-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683885/06aad792ce29d3-luxury-1-bedroom-flat-with-excellent-facilities-mini-flats-short-let-oniru-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683885",
@@ -5942,11 +4853,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3683877-luxury-tastefully-finished-2-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683877/06aad79d68b38e-luxury-tastefully-finished-2-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683877/06aad79d68b38e-luxury-tastefully-finished-2-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683877",
@@ -5969,11 +4875,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3683873-luxury-tastefully-finished-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683873/06aad799d5e316-luxury-tastefully-finished-1-bedroom-apartment-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683873/06aad799d5e316-luxury-tastefully-finished-1-bedroom-apartment-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683873",
@@ -5996,11 +4897,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3683868-luxury-tastefully-finished-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683868/06aad78d08023f-luxury-tastefully-finished-1-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683868/06aad78d08023f-luxury-tastefully-finished-1-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683868",
@@ -6023,11 +4919,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikeja/omole-phase-1/3683562-luxury-furnished-2-bedroom-flat-with-24hours-electricity-and-internet",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683562/06aad4a89b26b9-luxury-furnished-2-bedroom-flat-with-24hours-electricity-and-internet-short-let-omole-phase-1-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683562/06aad4a89b26b9-luxury-furnished-2-bedroom-flat-with-24hours-electricity-and-internet-short-let-omole-phase-1-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683562",
@@ -6050,11 +4941,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/lekki/lekki-phase-1/3683453-5-bedroom-detached-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683453/06aad40f736bbb-5-bedroom-terrace-house-detached-duplexes-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683453/06aad40f736bbb-5-bedroom-terrace-house-detached-duplexes-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683453",
@@ -6077,11 +4963,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikoyi/3683437-luxury-3-bedroom-flat-with-excellent-facilities",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683437/06aad3c7dc7506-luxury-3-bedroom-flat-with-excellent-facilities-short-let-ikoyi-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683437/06aad3c7dc7506-luxury-3-bedroom-flat-with-excellent-facilities-short-let-ikoyi-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683437",
@@ -6104,11 +4985,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/victoria-island/3683359-brand-new-2-bedroom-apartment-with-balconies-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683359/06aad35cae35e7-brand-new-2-bedroom-apartment-with-balconies-swimming-pool-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683359/06aad35cae35e7-brand-new-2-bedroom-apartment-with-balconies-swimming-pool-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683359",
@@ -6131,11 +5007,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/eko-atlantic-city/3683354-brand-new-2-bedroom-apartment-with-balconies-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683354/06aad317246225-brand-new-2-bedroom-apartment-with-balconies-swimming-pool-short-let-eko-atlantic-city-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683354/06aad317246225-brand-new-2-bedroom-apartment-with-balconies-swimming-pool-short-let-eko-atlantic-city-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683354",
@@ -6158,11 +5029,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3683345-newly-renovated-3-bedroom-apartment-with-ps5-snooker-board",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683345/06aad306503168-newly-renovated-3-bedroom-apartment-with-ps5-snooker-board-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683345/06aad306503168-newly-renovated-3-bedroom-apartment-with-ps5-snooker-board-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683345",
@@ -6185,11 +5051,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3683337-a-luxurious-3-bedroom-in-a-beautiful-estate",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683337/06aad3122a1e01-a-luxurious-3-bedroom-in-a-beautiful-estate-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683337/06aad3122a1e01-a-luxurious-3-bedroom-in-a-beautiful-estate-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683337",
@@ -6212,11 +5073,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3683321-brand-new-3-bedroom-smart-apartment-with-balconies-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683321/06aad2f6c29e5e-brand-new-3-bedroom-smart-apartment-with-balconies-swimming-pool-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683321/06aad2f6c29e5e-brand-new-3-bedroom-smart-apartment-with-balconies-swimming-pool-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683321",
@@ -6239,11 +5095,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/yaba/3683282-beautiful-furnished-mini-flat",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683282/06aad28d05f844-beautiful-furnished-mini-flat-in-yaba-102-mini-flats-short-let-yaba-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683282/06aad28d05f844-beautiful-furnished-mini-flat-in-yaba-102-mini-flats-short-let-yaba-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683282",
@@ -6266,11 +5117,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3683281-2-bedroom-luxury-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683281/06aad2935871d1-2-bedroom-luxury-apartment-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683281/06aad2935871d1-2-bedroom-luxury-apartment-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683281",
@@ -6293,11 +5139,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3683262-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683262/06aad2773d9bb2-1-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683262/06aad2773d9bb2-1-bedroom-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683262",
@@ -6320,11 +5161,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/self-contained/lagos/yaba/3683259-tastefully-furnished-studio-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683259/06aad270c79cec-tastefully-furnished-studio-apartment-in-morocco-yaba-self-contained-short-let-yaba-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683259/06aad270c79cec-tastefully-furnished-studio-apartment-in-morocco-yaba-self-contained-short-let-yaba-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683259",
@@ -6347,11 +5183,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/yaba/3683242-tastefully-furnished-mini-flat",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683242/06aad24d619fad-tastefully-furnished-mini-flat-in-morocco-yaba-208-mini-flats-short-let-yaba-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683242/06aad24d619fad-tastefully-furnished-mini-flat-in-morocco-yaba-208-mini-flats-short-let-yaba-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683242",
@@ -6374,11 +5205,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/yaba/3683221-beautifully-furnished-mini-flat",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683221/06aad22ba26b67-beautifully-furnished-mini-flat-in-morocco-yaba-mini-flats-short-let-yaba-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683221/06aad22ba26b67-beautifully-furnished-mini-flat-in-morocco-yaba-mini-flats-short-let-yaba-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683221",
@@ -6401,11 +5227,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/self-contained/lagos/yaba/3683204-furnished-studio-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683204/06aad20a415076-furnished-studio-apartment-in-shomolu-self-contained-short-let-yaba-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683204/06aad20a415076-furnished-studio-apartment-in-shomolu-self-contained-short-let-yaba-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683204",
@@ -6428,11 +5249,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/self-contained/lagos/yaba/3683162-tastefully-furnished-studio-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683162/06aad1dda1c52b-studio-apartment-in-morocco-yaba-self-contained-short-let-yaba-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683162/06aad1dda1c52b-studio-apartment-in-morocco-yaba-self-contained-short-let-yaba-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683162",
@@ -6455,11 +5271,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/semi-detached-duplexes/lagos/victoria-island/3683147-luxury-3-bedroom-semi-detached-house",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683147/06aad1ae32939b-luxury-3-bedroom-semi-detached-house-semi-detached-duplexes-short-let-victoria-island-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683147/06aad1ae32939b-luxury-3-bedroom-semi-detached-house-semi-detached-duplexes-short-let-victoria-island-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683147",
@@ -6482,11 +5293,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/lekki/3683026-4-bedroom-detached-duplex-with-cinema",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3683026/06aad0c01a2541-4-bedroom-detached-duplex-with-cinema-detached-duplexes-short-let-lekki-lagos-re6bd09.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3683026/06aad0c01a2541-4-bedroom-detached-duplex-with-cinema-detached-duplexes-short-let-lekki-lagos-re6bd09.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3683026",
@@ -6509,11 +5315,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3682799-3-bedroom-luxury-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682799/06aacf4edb3234-3-bedroom-luxury-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682799/06aacf4edb3234-3-bedroom-luxury-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682799",
@@ -6536,11 +5337,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/lekki/lekki-phase-1/3682784-1-bedroom-furnished-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682784/06aacf2f743b80-1-bedroom-furnished-apartment-mini-flats-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682784/06aacf2f743b80-1-bedroom-furnished-apartment-mini-flats-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682784",
@@ -6563,11 +5359,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3682772-3-bedroom-luxury-penthouse-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682772/06aacf13b6371e-3-bedroom-luxury-penthouse-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682772/06aacf13b6371e-3-bedroom-luxury-penthouse-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682772",
@@ -6589,11 +5380,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/detached-duplexes/lagos/ikeja/gra/3682667-luxury-5-bedroom-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682667/06aace1d19a7d9-luxury-5-bedroom-duplex-detached-duplexes-short-let-gra-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682667/06aace1d19a7d9-luxury-5-bedroom-duplex-detached-duplexes-short-let-gra-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682667",
@@ -6616,11 +5402,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3682648-3-bedroom-furnished-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682648/06aacde4fc71ea-3-bedroom-furnished-apartment-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682648/06aacde4fc71ea-3-bedroom-furnished-apartment-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682648",
@@ -6643,11 +5424,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3682627-3-bedroom-furnished-apartment-with-swimming-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682627/06aacdba96c094-3-bedroom-furnished-apartment-with-swimming-pool-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682627/06aacdba96c094-3-bedroom-furnished-apartment-with-swimming-pool-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682627",
@@ -6670,11 +5446,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikeja/ogba/3682590-exquisite-2-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682590/06aacd6c966e0b-exquisite-2-bedroom-apartment-short-let-ogba-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682590/06aacd6c966e0b-exquisite-2-bedroom-apartment-short-let-ogba-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682590",
@@ -6697,11 +5468,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/ikeja/ogba/3682584-1-bedroom-furnished-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682584/06aacd5c29e10d-1-bedroom-furnished-apartment-mini-flats-short-let-ogba-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682584/06aacd5c29e10d-1-bedroom-furnished-apartment-mini-flats-short-let-ogba-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682584",
@@ -6724,11 +5490,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/ikeja/ogba/3682580-1-bedroom-furnished-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682580/06aacd526a3afd-1-bedroom-furnished-apartment-self-contained-short-let-ogba-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682580/06aacd526a3afd-1-bedroom-furnished-apartment-self-contained-short-let-ogba-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682580",
@@ -6751,11 +5512,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikeja/3682559-newly-built-4-bedroom-maisonette",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682559/06aacd001e4e3b-newly-built-4-bedroom-maisonette-short-let-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682559/06aacd001e4e3b-newly-built-4-bedroom-maisonette-short-let-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682559",
@@ -6778,11 +5534,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3682396-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682396/06aac7a1070952-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682396/06aac7a1070952-newly-launched-2-bedroom-apartment-with-ps5-balcony-gym-elevator-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682396",
@@ -6805,11 +5556,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3682394-luxury-2-bedroom-apartment-with-snooker-ps5-and-pool",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682394/06aac775585ea3-luxury-2-bedroom-apartment-with-snooker-ps5-and-pool-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682394/06aac775585ea3-luxury-2-bedroom-apartment-with-snooker-ps5-and-pool-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682394",
@@ -6831,11 +5577,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/3682343-2-bedroom-furnished-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682343/06aac6a50dc4e3-2-bedroom-furnished-apartment-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682343/06aac6a50dc4e3-2-bedroom-furnished-apartment-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682343",
@@ -6857,11 +5598,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/semi-detached-duplexes/lagos/lekki/3682331-3-bedroom-semi-detached-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682331/06aac6723a34d1-3-bedroom-semi-detached-serviced-apartment-semi-detached-duplexes-short-let-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682331/06aac6723a34d1-3-bedroom-semi-detached-serviced-apartment-semi-detached-duplexes-short-let-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682331",
@@ -6884,11 +5620,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/lekki-phase-1/3682282-2-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682282/06aac5d3e578b3-2-bedroom-maisonette-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682282/06aac5d3e578b3-2-bedroom-maisonette-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682282",
@@ -6911,11 +5642,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/lekki/ikate/3682200-1-bedroom-furnished-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682200/06aac4df9ebeea-1-bedroom-furnished-apartment-self-contained-short-let-ikate-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682200/06aac4df9ebeea-1-bedroom-furnished-apartment-self-contained-short-let-ikate-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682200",
@@ -6938,11 +5664,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/mini-flats/lagos/lekki/lekki-phase-1/3682186-1-bedroom-apartment",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682186/06aac4b5cc6071-1-bedroom-apartment-mini-flats-short-let-lekki-phase-1-lekki-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682186/06aac4b5cc6071-1-bedroom-apartment-mini-flats-short-let-lekki-phase-1-lekki-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682186",
@@ -6965,11 +5686,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/houses/semi-detached-duplexes/lagos/ikeja/opebi/3682135-5-bedroom-semi-detached-duplex",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682135/06aac423a10eca-5-bedroom-semi-detached-duplex-semi-detached-duplexes-short-let-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682135/06aac423a10eca-5-bedroom-semi-detached-duplex-semi-detached-duplexes-short-let-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682135",
@@ -6992,11 +5708,6 @@
       "currency": "NGN",
       "source": "npc",
       "source_url": "https://nigeriapropertycentre.com/for-rent/short-let/flats-apartments/lagos/ikeja/opebi/3682125-4-bedroom-luxury-penthouse",
-      "media": [
-        "https://images.nigeriapropertycentre.com/properties/images/3682125/06aac403eb3000-4-bedroom-luxury-penthouse-short-let-ikeja-lagos.webp"
-      ],
-      "media_count": 1,
-      "cover_image_url": "https://images.nigeriapropertycentre.com/properties/images/3682125/06aac403eb3000-4-bedroom-luxury-penthouse-short-let-ikeja-lagos.webp",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
       "id": "npc:3682125",
