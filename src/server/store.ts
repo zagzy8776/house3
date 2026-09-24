@@ -60,6 +60,41 @@ export type ListedUnit = {
   longitude: number | null;
   /** Property title. Filters on this are what make this a Nigerian platform. */
   titleDocument: TitleDocument;
+
+  // ----------------------------------------------------------------- discovery
+  //
+  // HOW A GUEST REACHES THIS PLACE.
+  //
+  // These are the fields that make House3 a referral platform rather than a booking
+  // engine: a guest reads them and contacts the property themselves. They are
+  // `null`-able because they are OBSERVED facts about an unknown third party, not
+  // values we set. `src/domain/contact.ts` turns them into the routes a page offers.
+  //
+  // `sourceUrl` is the anchor. Without it a place cannot be attributed or reached, so
+  // a page cannot honestly present it as a place at all.
+
+  /** Where we observed this. The publisher's own listing. */
+  sourceUrl?: string | null;
+  /** Which publisher. Named on the page so the guest knows who we read it from. */
+  sourceName?: string | null;
+  /**
+   * The name the SOURCE stated for the operator, or null.
+   *
+   * A name inferred from a domain is a hint and does not belong here: sending a guest
+   * to a guessed website is worse than sending them to the listing they were reading.
+   */
+  operatorName?: string | null;
+  /** The operator's own site, when the operator was identified by more than a hint. */
+  operatorWebsite?: string | null;
+  /** The number the listing published so guests would call. */
+  contactPhone?: string | null;
+  operatorInstagram?: string | null;
+  /**
+   * An availability link the source offered. NEVER used as a destination - a live
+   * portal page once pointed one at a different listing on the same portal. Recorded
+   * for future validation, never rendered as "book here".
+   */
+  availabilityHintUrl?: string | null;
 };
 
 export type LedgerRecipient = 'PARTNER' | 'PLATFORM';

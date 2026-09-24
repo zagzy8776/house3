@@ -8,7 +8,7 @@
 
 import { findState, liveStates } from '@/data/nigeria';
 import { getContainer } from '@/server/container';
-import type { SellableUnit } from '@/server/bookingService';
+import type { PlaceResult } from '@/server/placeSearch';
 import { MoneyTable } from '../components/MoneyTable';
 
 export const dynamic = 'force-dynamic';
@@ -36,12 +36,12 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const guests = Number(params.guests ?? '2');
   const area = params.area?.trim() ? params.area.trim() : undefined;
 
-  let results: SellableUnit[] = [];
+  let results: PlaceResult[] = [];
   let error: string | null = null;
   let operatorCount = 0;
 
   try {
-    const outcome = getContainer().service.search({
+    const outcome = getContainer().places.search({
       stateCode,
       area,
       stay: { checkIn, checkOut },
@@ -120,7 +120,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   );
 }
 
-function ResultCard({ result }: { result: SellableUnit }) {
+function ResultCard({ result }: { result: PlaceResult }) {
   return (
     <li className="h3-card">
       <div className="h3-card__head">

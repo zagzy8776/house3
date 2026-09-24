@@ -114,10 +114,10 @@ export async function GET(request: Request) {
     if (centroid) geoFilter = { center: centroid, radiusKm: radiusKm ?? 5 };
   }
 
-  const { service } = getContainer();
+  const { places: directory } = getContainer();
 
   try {
-    const outcome = service.search({
+    const outcome = directory.search({
       stateCode: state,
       // With a radius we do NOT also pin the exact area name, otherwise
       // "near Lekki Phase 1, 8km" would wrongly exclude Ikoyi.
@@ -172,14 +172,10 @@ export async function GET(request: Request) {
         },
         feePolicyId: result.quote.policyId
       })),
-      unavailable: outcome.rejected.map((entry) => ({
+      excluded: outcome.excluded.map((entry) => ({
         unitId: entry.unitId,
         name: entry.unitName,
-        reasons: entry.reasons,
-        // Present only for authorised affiliate redirects; ordinary
-        // unavailability keeps its existing shape rather than borrowing the
-        // label.
-        ...(entry.distribution ? { distribution: entry.distribution } : {})
+        reasons: entry.reasons
       }))
     });
   } catch (error) {
