@@ -1,0 +1,42 @@
+frozen dataset: 583 records, 583 distinct ids
+
+database:
+  SourceListing          583
+  distinct ids / urls    583 / 583
+  SourceObservation      608
+  PriceObservation       590
+  Location               22
+  Property/Operator/Unit 0 / 0 / 0
+
+  [PASS] SourceListing matches the frozen dataset
+          database=583 file=583
+  [PASS] no duplicate ids
+          0 collisions
+  [PASS] no duplicate urls
+          0 collisions
+  [PASS] the same ids are present, not merely the same number
+          only-in-db=0 only-in-file=0
+  [PASS] the same urls are present
+          only-in-db=0 only-in-file=0
+  [PASS] every listing has an observation
+          608 observations for 583 listings
+  [PASS] no duplicate observations
+          0 duplicate (sourceListingId, observedAt)
+  [PASS] no duplicate prices
+          0 duplicate (sourceListingId, observedAt)
+  [PASS] zero non-shortlet rows
+          0 non-shortlet
+  [PASS] discovery created no canonical inventory
+          Property=0 Operator=0 Unit=0
+  [PASS] no listing linked to an operator or property
+          0 linked
+  observable days        2
+  price basis            {'PER_NIGHT': 523, 'PER_MONTH': 34, 'UNKNOWN': 22, 'PER_WEEK': 4}
+  [PASS] price-basis distribution matches the file
+          db={'PER_NIGHT': 523, 'PER_MONTH': 34, 'UNKNOWN': 22, 'PER_WEEK': 4} file={'PER_NIGHT': 523, 'UNKNOWN': 22, 'PER_MONTH': 34, 'PER_WEEK': 4}
+  by state               {'LA': 583}
+  top areas              {'Lekki': 352, 'Victoria Island': 54, 'Ikeja': 53, 'Ikoyi': 46, 'Ajah': 17, 'Alimosho': 12, 'Yaba': 11, 'Shomolu': 7}
+
+==============================================================================
+RE-AUDIT: 0 failure(s)
+==============================================================================

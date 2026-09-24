@@ -5,6 +5,7 @@
   "description": "House3 - shortlet & hostel booking platform for Nigeria (disclosed service-fee aggregator)",
   "scripts": {
     "dev": "next dev",
+    "postinstall": "prisma generate",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
