@@ -24,16 +24,52 @@ gates them exactly as before.
 
 ```
 compliance/     robots.txt · per-host rate limit · field allowlist · media stripping
-sources/        base.py (SourceAdapter protocol + registry) · npc.py
+sources/        base.py (SourceAdapter protocol + registry) · npc.py · propertypro.py
+                apartments_ng · jiji · krent · gidistays · shortlethomes
                 providers.py (stdlib · playwright · firecrawl · exa · fixture)
-extraction/     property · operator · contact · pms · schema (API output schemas)
+extraction/     property · operator · contact · pms · media · watermark · schema
 normalization/  names · phones · addresses · dedupe (consolidation) · history
 pipeline.py     discover -> fetch -> parse -> consolidate -> diff -> funnel
+check_sources.py  live connectivity probe, one adapter at a time
 ```
 
 Adding a portal is a new file in `sources/` implementing two methods, `discover`
 and `parse`. Everything after parsing is source-agnostic — that is what stops
 this becoming a pile of brittle per-site scripts.
+
+## Which sources actually work
+
+**MEASURED, 2026-09-24, `python check_sources.py --limit 2`:**
+
+| source | verdict | found | usable | note |
+|---|---|---|---|---|
+| `npc` | OK | 8 | 2 | Lekki NGN 50,000 · Yaba NGN 65,000 |
+| `propertypro` | OK | 8 | 2 | Ikoyi NGN 370,000 · Lekki NGN 95,000 |
+| `apartments_ng` | NO LISTINGS FOUND | 0 | 0 | sitemap URL serves HTML, not XML |
+| `gidistays` | NO LISTINGS FOUND | 0 | 0 | 35 real listings in its sitemap; keyword filter matches none |
+| `jiji` | NO LISTINGS FOUND | 0 | 0 | discovery filter unverified |
+| `krent` | NO LISTINGS FOUND | 0 | 0 | fallback discovery unverified |
+| `shortlethomes` | NO LISTINGS FOUND | 0 | 0 | robots.txt unreachable (TLS alert) |
+
+**Two of seven.** The five failures are not hosts being down — every robots.txt
+and sitemap answered 200 when fetched by hand. They are discovery bugs, and the
+two diagnosed ones:
+
+* `apartments_ng` was built against a guessed sitemap URL (`/sitemap-p25`) which
+  returns an HTML theme template. Its robots.txt publishes no `Sitemap:`
+  directive at all. Discovery finds zero `<loc>` entries and reports nothing —
+  correct parsing of the wrong resource.
+* `gidistays` filters its sitemap for `/property/`, `/apartment/`, `/listing/`,
+  `/rent/`, `/short-let/`. Its real URLs are `/en/1830780/artsy-chic-studio---lekki-1`
+  — id and slug, no such segment. The keyword filter matches nothing, the
+  fallback yields the site root and `all-properties`, and `parse()` rejects them.
+
+**This is why `check_sources.py` exists.** A test suite cannot catch either bug:
+the fixtures are saved HTML and they contain exactly what the regexes expect. Both
+adapters pass every unit test while fetching nothing from the live site. Run the
+probe before trusting a crawl.
+
+The 260-place published directory comes from `npc` and `propertypro` only.
 
 ## Crawl providers
 

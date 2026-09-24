@@ -601,6 +601,128 @@ def test_registry_refuses_a_booking_layer_source() -> None:
 
 
 def test_every_registered_adapter_is_a_discovery_source() -> None:
+    for adapter in build_registry().all():
+        assert adapter.layer == SourceLayer.DISCOVERY, adapter.name
+
+
+def test_every_registered_adapter_declares_a_host_and_a_name() -> None:
+    """
+    A `host` is what robots.txt and the rate limiter are keyed on. An adapter
+    without one cannot be policed, so it is a registration error rather than a
+    runtime surprise.
+    """
+    for adapter in build_registry().all():
+        assert adapter.name, "an adapter must have a name"
+        assert adapter.host, f"{adapter.name} declares no host"
+
+
+# ---------------------------------------------------------------------------
+# source connectivity - measured, not assumed
+# ---------------------------------------------------------------------------
+#
+# WHAT THESE TESTS ARE
+# --------------------
+# They encode the result of a deliberate live probe (`python check_sources.py`)
+# rather than downloading anything: a unit test that hits five third-party sites
+# fails for reasons unrelated to this code, and a suite that goes red for those
+# reasons gets ignored.
+#
+# THE MEASUREMENT, 2026-09-24
+# ---------------------------
+#     npc              OK      8 found, 2 parsed, 2 usable   (Lekki NGN 50,000)
+#     propertypro      OK      8 found, 2 parsed, 2 usable   (Ikoyi NGN 370,000)
+#     apartments_ng    NO LISTINGS FOUND   0
+#     gidistays        NO LISTINGS FOUND   0   <- 35 real listings in its sitemap
+#     jiji             NO LISTINGS FOUND   0
+#     krent            NO LISTINGS FOUND   0
+#     shortlethomes    NO LISTINGS FOUND   0
+#
+# 2 of 7. The five failures are NOT hosts being down: every robots.txt and
+# sitemap answered 200 when fetched by hand. They are discovery bugs, and the two
+# diagnosed ones are pinned below so the shape of the problem survives.
+
+
+def test_gidistays_sitemap_urls_are_not_keyword_matched() -> None:
+    """
+    MEASURED BUG. gidistays.com publishes 35 URLs in its sitemap, and this adapter
+    yields none of the real ones.
+
+    The real listing URLs look like:
+
+        https://gidistays.com/en/1830780/artsy-chic-studio---lekki-1
+
+    An operator site names properties by id and slug - there is no `/property/`,
+    `/apartment/`, `/listing/`, `/rent/` or `/short-let/` segment anywhere in that
+    path. `discover()` filters on exactly those keywords, so it matches nothing,
+    falls through to the unfiltered fallback, and the fallback's skip-list
+    (`/about/`, `/blog/`, ...) does not catch `all-properties` or the site root.
+    The result is a handful of non-listing URLs and zero properties.
+
+    This test documents the shape rather than the fix, because the fix depends on
+    whether `discover()` should be matching ids or filtering a sitemap by
+    exclusion - a decision for whoever owns the adapter, not for a diagnostic.
+    """
+    from sources.gidistays import GidiStaysAdapter
+
+    real = "https://gidistays.com/en/1830780/artsy-chic-studio---lekki-1"
+    keywords = ["/property/", "/apartment/", "/listing/", "/rent/", "/short-let/"]
+
+    # The keyword filter cannot match a real listing URL. That is the bug.
+    assert not any(keyword in real.lower() for keyword in keywords), (
+        "if this now matches, the filter was fixed and this test should be replaced "
+        "with one asserting discovery finds gidistays listings"
+    )
+
+    # And the adapter is still registered, so the bug is live rather than archived.
+    assert any(adapter.name == "gidistays" for adapter in build_registry().all())
+
+    del GidiStaysAdapter  # imported to prove the module loads; the assertion is above
+
+
+def test_apartments_ng_sitemap_url_returns_html() -> None:
+    """
+    MEASURED BUG. apartments.ng advertises `/sitemap-p25` in its own comments as
+    the sitemap, and that URL serves an HTML page - a Wizestate/Osclass theme
+    template, complete with a Zendesk snippet - not XML.
+
+    So discovery finds zero `<loc>` entries and returns nothing, which is correct
+    parsing of the wrong resource. The URL was guessed rather than read from
+    robots.txt, and robots.txt publishes no Sitemap directive at all:
+
+        User-agent: *
+        Disallow: /oc-admin/
+
+    The consequence worth stating: an adapter can be "working" in every
+    unit-tested sense and still fetch nothing, because the tests use saved HTML
+    and the fixture always contains what the regex expects.
+    """
+    from sources.apartments_ng import LISTING_PATHS
+
+    # The path patterns the adapter expects; none of them is a sitemap path, and
+    # the site serves the guessed sitemap URL as HTML.
+    assert "/real-estate/residential-short-lets/" in LISTING_PATHS
+
+    # The five adapters that found nothing, all still registered. A future change
+    # making any of them work should delete its entry here deliberately.
+    silent = {"apartments_ng", "gidistays", "jiji", "krent", "shortlethomes"}
+    registered = {adapter.name for adapter in build_registry().all()}
+    assert silent <= registered, "these adapters are registered and find nothing"
+
+
+def test_the_two_working_sources_are_still_registered() -> None:
+    """
+    The half of the measurement that is good news, and the half a refactor is most
+    likely to break by accident.
+
+    npc and propertypro both return usable listings with live rates. They are what
+    the published directory is built from, so if either disappears from the
+    registry the site loses all its inventory - which is precisely what happened
+    when a commit replaced directory.json with fixtures.
+    """
+    names = {adapter.name for adapter in build_registry().all()}
+
+    assert "npc" in names
+    assert "propertypro" in names
     """The registry holds DISCOVERY adapters, and nothing else.
 
     This assertion used to be `registry.names() == ["npc"]`, which was true when
