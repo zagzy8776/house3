@@ -2,8 +2,8 @@
   "generated_at": "2026-09-24",
   "attribution": "Nigeria Property Centre",
   "counts": {
-    "places": 1,
-    "contactable": 1,
+    "places": 3,
+    "contactable": 3,
     "with_photographs": 0
   },
   "media": null,
@@ -18,17 +18,69 @@
       "bathrooms": 3,
       "state": "LA",
       "city": "Lagos",
+      "area": "Ikeja",
       "advertised_price": 20000000,
       "currency": "NGN",
-      "source": "shortlethomes",
-      "source_url": "https://shortlethomes.com/for-rent/short-let/lagos",
+      "source": "npc",
+      "source_url": "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos/ikeja/adeniyi-jones-3br-apartment-unit-b-1043668",
       "first_seen_at": "2026-09-24",
       "last_seen_at": "2026-09-24",
-      "id": "shortlethomes:short",
+      "id": "npc:1043668",
       "distribution": "DIRECTORY",
       "contact_route": {
         "kind": "PHONE",
         "href": "tel:08030000000"
+      },
+      "attribution": "Nigeria Property Centre"
+    },
+    {
+      "operator_name": "Adeniyi Jones Residences Ltd",
+      "email": "bookings@adeniyijones.ng",
+      "website": "https://adeniyijones.ng/availability",
+      "property_type": "SHORTLET",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "state": "LA",
+      "city": "Lagos",
+      "area": "Ikeja",
+      "advertised_price": 24000000,
+      "currency": "NGN",
+      "source": "npc",
+      "source_url": "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos/ikeja/adeniyi-jones-serviced-flat-1043821",
+      "first_seen_at": "2026-09-24",
+      "last_seen_at": "2026-09-24",
+      "id": "npc:1043821",
+      "distribution": "DIRECTORY",
+      "contact_route": {
+        "kind": "WEBSITE",
+        "href": "https://adeniyijones.ng/availability"
+      },
+      "attribution": "Nigeria Property Centre"
+    },
+    {
+      "operator_name": "Adeniyi Jones Residences Ltd",
+      "phone": "+234 803 000 0000",
+      "email": "stay@adeniyijones.ng",
+      "website": "https://adeniyijones.ng/availability",
+      "instagram": "adeniyijones",
+      "pms_detected": "smoobu",
+      "property_type": "SHORTLET",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "state": "LA",
+      "city": "Lagos",
+      "area": "Ikeja",
+      "advertised_price": 22000000,
+      "currency": "NGN",
+      "source": "npc",
+      "source_url": "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos/ikeja/luxury-3-bedrooms-flats-with-city-view-1043552",
+      "first_seen_at": "2026-09-24",
+      "last_seen_at": "2026-09-24",
+      "id": "npc:1043552",
+      "distribution": "DIRECTORY",
+      "contact_route": {
+        "kind": "PHONE",
+        "href": "tel:+2348030000000"
       },
       "attribution": "Nigeria Property Centre"
     }
