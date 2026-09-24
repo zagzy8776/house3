@@ -43,6 +43,11 @@ from publishing import build_directory
 from sources.base import AdapterRegistry, DiscoveredListing
 from sources.npc import NpcAdapter
 from sources.propertypro import PropertyproAdapter
+from sources.apartments_ng import ApartmentsNgAdapter
+from sources.jiji import JijiAdapter
+from sources.krent import KrentAdapter
+from sources.gidistays import GidiStaysAdapter
+from sources.shortlethomes import ShortletHomesAdapter
 from sources.providers import (
     FixtureTransport,
     GuardedProvider,
@@ -66,6 +71,11 @@ def build_registry() -> AdapterRegistry:
     registry = AdapterRegistry()
     registry.register(NpcAdapter())
     registry.register(PropertyproAdapter())
+    registry.register(ApartmentsNgAdapter())
+    registry.register(JijiAdapter())
+    registry.register(KrentAdapter())
+    registry.register(GidiStaysAdapter())
+    registry.register(ShortletHomesAdapter())
     return registry
 
 

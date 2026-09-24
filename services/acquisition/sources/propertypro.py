@@ -55,6 +55,7 @@ import urllib.parse
 from urllib.parse import urljoin, urlparse
 
 from extraction.contact import find_email, find_instagram, find_operator_website, find_phones
+from extraction.media import cover_from, extract_gallery
 from extraction.operator import extract_operator
 from extraction.pms import detect_pms, find_availability_url, find_booking_url
 from extraction.property import (
@@ -204,6 +205,9 @@ class PropertyproAdapter:
         location = self._location(structured, source_url)
         price_kobo, basis = self._price(html, structured)
 
+        # Extract gallery from the listing page
+        gallery = extract_gallery(html, url, listing_id=reference)
+
         return DiscoveredListing(
             source=self.name,
             source_url=source_url,
@@ -228,6 +232,8 @@ class PropertyproAdapter:
             availability_hint_url=find_availability_url(html, source_url),
             price_basis=basis,
             title_document=None,
+            media=gallery,
+            cover_image_url=cover_from(gallery),
         )
 
     # ---------------------------------------------------------------- identity
