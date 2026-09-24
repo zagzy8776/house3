@@ -27,6 +27,7 @@
 
 import { findState } from '@/data/nigeria';
 import { placeDescriptor, placeHref, placeLocation, type DirectoryPlace } from '@/domain/directory';
+import { toWhatsappHref } from '@/domain/phone';
 import { CITIES, HERO_STATS } from '@/content/marketing';
 import { loadDirectory } from '@/server/directorySource';
 import { LandingPage, type RecentBooking } from './components/marketing/LandingPage';
@@ -65,7 +66,9 @@ function toCard(place: DirectoryPlace): ListingCardModel {
     // Facts only. The design's tags were amenities it invented ("Pool", "Gym"),
     // and the crawler does not read amenities - so the chip row carries the
     // source and the observation date, which are true.
-    tags: [place.attribution, `seen ${place.lastSeenAt}`]
+    tags: [place.attribution, `seen ${place.lastSeenAt}`],
+    phone: place.phone,
+    whatsappHref: toWhatsappHref(place.phone)
   };
 }
 

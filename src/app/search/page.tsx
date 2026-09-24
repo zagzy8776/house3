@@ -21,6 +21,7 @@
 import { findState, liveStates } from '@/data/nigeria';
 import { HANDOFF_DISCLOSURE } from '@/domain/contact';
 import { formatNaira } from '@/domain/money';
+import { prettyPhone, telHref, toWhatsappHref } from '@/domain/phone';
 import { placeHref, placeDescriptor, placeLocation } from '@/domain/directory';
 import { buildDirectoryRepository } from '@/server/directoryRepository';
 import { createPlaceSearch, type PlaceResult } from '@/server/placeSearch';
@@ -197,6 +198,11 @@ function ResultCard({
   const nightlyKobo = result.unit.nightlyRateKobo;
   const stayKobo = nightlyKobo * nights;
 
+  // The number the listing published, read off the shared unit projection so this
+  // page and the place page cannot disagree about it.
+  const contactPhone = result.unit.contactPhone ?? null;
+  const whatsappHref = toWhatsappHref(contactPhone);
+
   return (
     <li className="h3-card">
       <div className="h3-card__head">
@@ -216,9 +222,60 @@ function ResultCard({
             </div>
           ) : null}
 
+          {/*
+            The contact block, which is the point of the card.
+
+            Search results are reused from `placeToUnit` in
+            `src/server/directoryRepository.ts`, so the phone here is the number
+            the listing published - the same number the place page offers. It is
+            absent for listings that published none, and the row disappears rather
+            than rendering an empty button.
+          */}
+          {contactPhone ? (
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.9rem', flexWrap: 'wrap' }}>
+              <a
+                href={telHref(contactPhone)}
+                className="h3-contact"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.6rem 1rem',
+                  borderRadius: '0.75rem',
+                  background: 'var(--primary)',
+                  color: 'var(--primary-foreground)',
+                  fontWeight: 600,
+                  textDecoration: 'none'
+                }}
+              >
+                ☎ {prettyPhone(contactPhone)}
+              </a>
+              {whatsappHref ? (
+                <a
+                  href={whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h3-contact"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.6rem 1rem',
+                    borderRadius: '0.75rem',
+                    background: 'var(--secondary)',
+                    color: 'var(--foreground)',
+                    textDecoration: 'none'
+                  }}
+                >
+                  💬 WhatsApp
+                </a>
+              ) : null}
+            </div>
+          ) : null}
+
           {detailHref ? (
             <p className="h3-operator" style={{ marginTop: '0.75rem' }}>
-              <Link href={detailHref}>See the photographs and full details →</Link>
+              <Link href={detailHref}>See the full details →</Link>
             </p>
           ) : null}
         </div>
