@@ -13,9 +13,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
-from typing import Any, Iterable, Optional, Protocol
+from typing import Any, Callable, Iterable, Optional, Protocol
 from urllib.parse import urlparse
 
 from extraction.property import PRICE_BASES
@@ -63,6 +64,9 @@ class IngestReport:
     written: int = 0
     rejected: list[RejectedRecord] = field(default_factory=list)
     dry_run: bool = False
+    #: Wall-clock seconds the run took. Reported so a run that is slow is visibly
+    #: slow, rather than looking identical to a run that has stalled.
+    elapsed_seconds: float = 0.0
 
     @property
     def rejected_count(self) -> int:
@@ -74,8 +78,18 @@ class IngestReport:
             "written": self.written,
             "rejected": self.rejected_count,
             "dry_run": self.dry_run,
+            "elapsed_seconds": round(self.elapsed_seconds, 2),
             "rejected_records": [record.to_dict() for record in self.rejected],
         }
+
+
+class IngestAborted(RuntimeError):
+    """
+    The run exceeded its time budget and was rolled back.
+
+    Distinct from a validation rejection: nothing was written, and the caller is told
+    how far it got so the run is addressable rather than merely failed.
+    """
 
 
 def _utc_datetime(value: str | date | datetime) -> datetime:
@@ -199,26 +213,73 @@ class PostgresIngestor:
         observed_at: str | date | datetime,
         dry_run: bool = False,
         limit: Optional[int] = None,
+        progress_every: int = 100,
+        progress: Optional[Callable[[int, int], None]] = None,
+        max_seconds: Optional[float] = None,
     ) -> IngestReport:
+        """
+        Write listings and their observations, committing once at the end.
+
+        PROGRESS REPORTING IS NOT DECORATION
+        ------------------------------------
+        An earlier version of this method was silent until it finished. A monitor
+        therefore sampled a SECOND connection, saw the last committed counts on every
+        sample, and a slow-but-working ingest was reported as hung. The monitor's
+        observation ("no visible progress") was accurate and its conclusion ("no
+        progress") was false, and nothing in the system could tell the two apart.
+
+        So `progress` is called every `progress_every` listings with (done, total).
+        A slow ingest and a stalled one must not look the same.
+
+        `max_seconds` bounds the whole run. Numbering is the point: a batch failure
+        says which listing index failed, so the failure is addressable rather than
+        merely detected.
+
+        COMMITS ONCE, AT THE END
+        ------------------------
+        Deliberately not per-batch. A partially committed crawl would leave the
+        inventory readable in a state the run never intended, and the observation
+        ledger's convergence depends on a listing and its observation arriving
+        together. The failure mode is therefore all-or-nothing, which is what the
+        replay test asserts.
+
+        Raises `IngestAborted` if `max_seconds` is exceeded; the caller sees how far
+        it got rather than a silent timeout.
+        """
+        started = time.monotonic()
         timestamp = _utc_datetime(observed_at)
         report = IngestReport(dry_run=dry_run)
         candidates = list(listings)
         if limit is not None:
             candidates = candidates[: max(0, limit)]
         report.received = len(candidates)
+        total = len(candidates)
 
-        for listing in candidates:
+        for index, listing in enumerate(candidates, 1):
             reason = _validate_listing(listing)
             if reason:
                 report.rejected.append(
                     RejectedRecord(listing.source, listing.source_listing_id, reason)
                 )
-                continue
-            if dry_run:
+            elif dry_run:
                 report.written += 1
-                continue
-            self._write_listing(listing, timestamp)
-            report.written += 1
+            else:
+                self._write_listing(listing, timestamp)
+                report.written += 1
+
+            if progress is not None and (index % progress_every == 0 or index == total):
+                progress(index, total)
+
+            if max_seconds is not None and time.monotonic() - started > max_seconds:
+                # Roll back rather than leaving a half-written run for a later reader
+                # to mistake for a complete inventory.
+                if not dry_run and self.connection is not None:
+                    self.connection.rollback()
+                raise IngestAborted(
+                    f"ingest exceeded max_seconds={max_seconds:.0f} after "
+                    f"{index}/{total} listings ({report.written} written, "
+                    f"{report.rejected_count} rejected); transaction rolled back"
+                )
 
         if not dry_run:
             if self.connection is None:
@@ -228,7 +289,10 @@ class PostgresIngestor:
             except Exception:
                 self.connection.rollback()
                 raise
+
+        report.elapsed_seconds = time.monotonic() - started
         return report
+
 
     def _write_listing(self, listing: DiscoveredListing, observed_at: datetime) -> None:
         if self.connection is None:

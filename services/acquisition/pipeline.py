@@ -25,6 +25,7 @@ import argparse
 import json
 import os
 import sys
+import time
 from dataclasses import asdict
 from datetime import date
 from pathlib import Path
@@ -300,6 +301,15 @@ def main(argv: Optional[list[str]] = None) -> int:
             "ingest already-parsed DiscoveredListing records from JSON. Used by the "
             "staged rollout so a long crawl can be resumed without re-fetching, and so "
             "the database is written by this same code path."
+        ),
+    )
+    parser.add_argument(
+        "--ingest-max-seconds",
+        type=float,
+        default=900.0,
+        help=(
+            "wall-clock budget for one ingest; on expiry the transaction is rolled "
+            "back and the run reports how far it got (default 900)"
         ),
     )
     parser.add_argument("--dump-html", metavar="URL", help="save a page so selectors can be verified")
@@ -611,7 +621,7 @@ def _run_ingest_file(args, adapter) -> int:
     """
     from datetime import date
 
-    from ingest.postgres import PostgresIngestor, dsn_for_psycopg, write_report
+    from ingest.postgres import IngestAborted, PostgresIngestor, dsn_for_psycopg, write_report
 
     path = Path(args.ingest_file)
     if not path.exists():
@@ -669,20 +679,57 @@ def _run_ingest_file(args, adapter) -> int:
         except ImportError:
             print("--ingest-file requires psycopg", file=sys.stderr)
             return 2
-        connection = psycopg.connect(dsn_for_psycopg(database_url))
+        # A connect timeout so an unreachable host fails fast, and a statement timeout
+        # so no single statement can outlive the run. Neither replaces progress
+        # reporting: they bound failure, they do not make progress visible.
+        connection = psycopg.connect(
+            dsn_for_psycopg(database_url),
+            connect_timeout=20,
+        )
+        with connection.cursor() as setup:
+            setup.execute("SET statement_timeout = '300000'")
 
+    started = time.monotonic()
+
+    def progress(done: int, total: int) -> None:
+        elapsed = time.monotonic() - started
+        rate = done / elapsed if elapsed else 0
+        remaining = (total - done) / rate if rate else 0
+        print(
+            f"ingest {done}/{total}  elapsed={elapsed:.0f}s  "
+            f"eta={remaining:.0f}s",
+            file=sys.stderr,
+            flush=True,
+        )
+
+    aborted = False
     try:
         ingestor = PostgresIngestor(
             connection,
             parser_version=f"rollout-{adapter.name}",
         )
-        report = ingestor.ingest(listings, observed_at=date.today(), dry_run=args.dry_run)
+        report = ingestor.ingest(
+            listings,
+            observed_at=date.today(),
+            dry_run=args.dry_run,
+            progress=None if args.dry_run else progress,
+            progress_every=max(1, min(100, max(1, len(listings) // 20))),
+            max_seconds=None if args.dry_run else args.ingest_max_seconds,
+        )
+    except IngestAborted as exc:
+        print(f"ingest ABORTED: {exc}", file=sys.stderr)
+        report = None
+        aborted = True
     finally:
         if connection is not None:
             connection.close()
 
+    if aborted:
+        return 4
+
     print(
-        f"database ingest: {report.written} written, {report.rejected_count} rejected",
+        f"database ingest: {report.written} written, {report.rejected_count} rejected, "
+        f"elapsed={report.elapsed_seconds:.0f}s",
         file=sys.stderr,
     )
 

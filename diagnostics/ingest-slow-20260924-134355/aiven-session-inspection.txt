@@ -1,0 +1,23 @@
+
+=== 1. all sessions ===
+  pid | usename | application_name | client_addr | state | connected_for | in_state_for | xact_open_for | wait_event_type | wait_event | query
+  <inspector-pid> | avnadmin |  | <client-ip-redacted> | active | 0:00:00.768391 | -1 day, 23:59:59.704953 | 0:00:00 | None | None | 
+        SELECT pid, usename, application_name, client_addr, state,
+               now() -
+  111 | postgres | pg_cron scheduler | None | None | 18:30:31.711805 | None | None | Extension | Extension | <insufficient privilege>
+
+=== 2. idle in transaction (holding locks, doing nothing) ===
+  pid | state | xact_open_for | idle_for | last_query
+  (no rows)
+
+=== 3. blocked queries and what blocks them ===
+  blocked_pid | blocking_pid | wait_event_type | wait_event | blocked_for | blocked_query | blocking_query
+  (no rows)
+
+=== 4. locks held by non-idle sessions ===
+  pid | locktype | mode | granted | relname | query
+  (no rows)
+
+=== 5. current row counts (is anything landing?) ===
+  listings | observations | prices | newest_seen
+  584 | 609 | 591 | 2026-09-24 00:00:00
