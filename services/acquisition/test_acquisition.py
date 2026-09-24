@@ -71,6 +71,7 @@ from publishing import (
     publishable_media,
     to_affiliate_row,
     to_place_row,
+    verify_media,
 )
 from sources.base import AdapterRegistry, DiscoveredListing, SourceLayer
 from sources.npc import LAGOS_LOCALITIES, NpcAdapter
@@ -1458,6 +1459,105 @@ def test_a_tracked_or_proxied_image_is_refused() -> None:
     <img src="https://example.com/img/9000.jpg">
     """
     assert extract_gallery(html, page, listing_id="1") == ("https://example.com/img/9000.jpg",)
+
+
+def test_verify_media_keeps_the_clean_and_refuses_the_marked() -> None:
+    """
+    The byte-level pass, which is what makes a photograph on a card possible at
+    all.
+
+    The URL filter alone refuses everything from a publisher that names itself in
+    the URL - correct for NPC, useless for a portal watermarked over
+    `/img/8821.jpg`, and it also refuses clean images from a source that cannot
+    prove they are clean. Verification is how cleanliness is established: by
+    fetching the bytes and looking.
+
+    `fetch` is injected so the pipeline controls the transport and so this test
+    makes no network call.
+    """
+    from test_watermark import _png_bytes, _photograph, _watermark
+    from extraction.watermark import inspect_bytes
+
+    clean = _png_bytes(_photograph())
+    marked = _png_bytes(_watermark(_photograph()))
+    payloads = {
+        "https://cdn.example.com/a.jpg": clean,
+        "https://cdn.example.com/b.jpg": marked,
+    }
+
+    kept, rejections = verify_media(
+        ["https://cdn.example.com/a.jpg", "https://cdn.example.com/b.jpg"],
+        fetch=lambda url: payloads.get(url),
+    )
+
+    assert kept == ["https://cdn.example.com/a.jpg"]
+    assert len(rejections) == 1
+    assert rejections[0]["url"] == "https://cdn.example.com/b.jpg"
+    # The reason is carried so a run can say WHY a listing has no photographs.
+    assert rejections[0]["reason"]
+
+
+def test_verify_media_refuses_what_it_cannot_fetch() -> None:
+    """
+    Fail closed. An image we could not retrieve is an image we cannot vouch for,
+    and "the request failed" must not read as "the image is clean".
+    """
+    kept, rejections = verify_media(["https://cdn.example.com/gone.jpg"], fetch=lambda url: None)
+
+    assert kept == []
+    assert rejections == [{"url": "https://cdn.example.com/gone.jpg", "reason": "could not be fetched"}]
+
+
+def test_verify_media_refuses_undecodable_bytes() -> None:
+    """A 200 response carrying garbage is still not a photograph we can publish."""
+    kept, rejections = verify_media(
+        ["https://cdn.example.com/broken.jpg"],
+        fetch=lambda url: b"<html>404 page</html>",
+    )
+
+    assert kept == []
+    assert "decoded" in rejections[0]["reason"].lower()
+
+
+def test_verify_media_stops_at_the_limit() -> None:
+    """
+    A cap, because a gallery is a bounded thing. A portal that renders a hundred
+    "similar properties" thumbnails must not turn one listing's row into a
+    hundred-image fetch.
+    """
+    from test_watermark import _png_bytes, _photograph
+
+    clean = _png_bytes(_photograph())
+    urls = [f"https://cdn.example.com/{index}.jpg" for index in range(20)]
+
+    calls: list[str] = []
+
+    def counting_fetch(url: str):
+        calls.append(url)
+        return clean
+
+    kept, _ = verify_media(urls, fetch=counting_fetch, limit=3)
+
+    assert len(kept) == 3
+    # It stopped requesting once satisfied, rather than fetching all twenty.
+    assert len(calls) == 3
+
+
+def test_verify_media_reports_a_refusal_for_every_candidate() -> None:
+    """
+    The measured NPC shape: every candidate is watermarked, so the listing keeps
+    no photographs. The rejections are returned rather than swallowed, because a
+    listing with no pictures has to be explainable.
+    """
+    from test_watermark import _png_bytes, _watermark, _photograph
+
+    marked = _png_bytes(_watermark(_photograph()))
+    urls = [f"https://images.portal.com/properties/images/3691970/{i}.webp" for i in range(4)]
+
+    kept, rejections = verify_media(urls, fetch=lambda url: marked)
+
+    assert kept == []
+    assert len(rejections) == 4
 
 
 def test_publish_refuses_watermarked_media_from_an_old_records_file() -> None:

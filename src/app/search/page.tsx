@@ -21,7 +21,7 @@
 import { findState, liveStates } from '@/data/nigeria';
 import { HANDOFF_DISCLOSURE } from '@/domain/contact';
 import { formatNaira } from '@/domain/money';
-import { prettyPhone, telHref, toWhatsappHref } from '@/domain/phone';
+import { telHref, toWhatsappHref } from '@/domain/phone';
 import { placeHref, placeDescriptor, placeLocation } from '@/domain/directory';
 import { buildDirectoryRepository } from '@/server/directoryRepository';
 import { createPlaceSearch, type PlaceResult } from '@/server/placeSearch';
@@ -248,7 +248,7 @@ function ResultCard({
                   textDecoration: 'none'
                 }}
               >
-                ☎ {prettyPhone(contactPhone)}
+                ☎ Call
               </a>
               {whatsappHref ? (
                 <a

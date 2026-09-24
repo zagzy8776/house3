@@ -34,7 +34,7 @@
  */
 
 import { formatNaira } from '@/domain/money';
-import { prettyPhone, telHref } from '@/domain/phone';
+import { telHref } from '@/domain/phone';
 import { Card3D } from './primitives';
 
 /** A card built from a real observed place. */
@@ -188,6 +188,25 @@ export function ListingCard({ listing }: { listing: ListingCardModel }) {
         >
           {phone ? (
             <div className="flex items-center gap-2">
+              {/*
+                THE NUMBER IS NOT DISPLAYED
+
+                This button used to read `☎ 0703 193 7484`. It now says `Call` and
+                carries the number only in the `tel:` href, so tapping it opens the
+                dialler with the number loaded.
+
+                The reasoning, since it is a deliberate reversal: publishing a
+                scraped number as text is the part that is actually hard to defend.
+                A `tel:` link is a handoff, exactly like the "View original listing"
+                link - the guest is sent to their own dialler and the call is their
+                action on the operator's published number. Printing the digits on
+                our page is us republishing contact data as our own content, and it
+                is what gets scraped onward from us.
+
+                It is also the better product: a guest never retypes a number, and
+                they do not bounce off to check whether it is a real line - they
+                just tap Call.
+              */}
               <a
                 href={telHref(phone)}
                 className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl font-semibold transition-opacity hover:opacity-85"
@@ -200,7 +219,7 @@ export function ListingCard({ listing }: { listing: ListingCardModel }) {
                 }}
               >
                 <span aria-hidden="true">☎</span>
-                {prettyPhone(phone)}
+                Call
               </a>
 
               {listing.whatsappHref ? (

@@ -26,7 +26,7 @@ import json
 import os
 import sys
 import time
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import date
 from pathlib import Path
 from typing import Optional
@@ -279,6 +279,15 @@ def main(argv: Optional[list[str]] = None) -> int:
             "DiscoveredListing records) without crawling. Used to re-publish a "
             "frozen crawl stage - e.g. after publishing changed - without "
             "re-fetching thousands of pages. Writes --publish and exits."
+        ),
+    )
+    parser.add_argument(
+        "--verify-photos",
+        action="store_true",
+        help=(
+            "with --publish-from, fetch each listing's candidate photographs and "
+            "keep only the ones with no watermark in the pixels. Makes real HTTP "
+            "requests per image, so it is opt-in."
         ),
     )
 
@@ -792,6 +801,24 @@ def _run_publish_from(args) -> int:
         print("publish-from needs a --publish path to write to", file=sys.stderr)
         return 2
 
+    # BYTE-LEVEL PHOTOGRAPH VERIFICATION
+    #
+    # The URL filter refuses every image from a publisher that names itself in the
+    # URL, which is correct for NPC and useless for a portal that watermarks over
+    # `/img/8821.jpg`. It also refuses clean images from a source that cannot prove
+    # they are clean. This pass fetches the candidates and looks at them, which is
+    # the only way a photograph gets onto a card from a source we have not cleared
+    # by URL.
+    #
+    # Opt-in, because it makes real HTTP requests per image and a re-publish is
+    # often run offline. `--verify-photos` says to do it.
+    if getattr(args, "verify_photos", False):
+        listings, kept_photos, refused_photos = _verify_listing_photos(listings, args)
+        print(
+            f"photo verification: {kept_photos:,} kept, {refused_photos:,} refused",
+            file=sys.stderr,
+        )
+
     published = publish_directory(
         Path(args.publish), listings, observed_on, attribution=args.attribution
     )
@@ -804,6 +831,69 @@ def _run_publish_from(args) -> int:
         file=sys.stderr,
     )
     return 0
+
+
+def _verify_listing_photos(listings: list, args) -> tuple[list, int, int]:
+    """
+    Fetch each listing's candidate photographs and keep only the clean ones.
+
+    Reports per-listing when every candidate was refused, because "this listing
+    has no photographs" and "this listing's photographs were all watermarked" are
+    different facts and a run should not collapse them.
+    """
+    from publishing import publishable_media, verify_media
+    from urllib.request import Request, urlopen
+
+    user_agent = getattr(args, "user_agent", None) or "House3Bot/1.0 (+https://house3.ng/bot)"
+
+    def fetch(url: str):
+        """Bytes, or None. Never raises - a failure is a refusal, not a crash."""
+        try:
+            request = Request(url, headers={"User-Agent": user_agent})
+            with urlopen(request, timeout=20) as response:  # noqa: S310 - allowlisted by caller
+                if response.status != 200:
+                    return None
+                # Cap the read: a malicious or mistaken URL should not be able to
+                # pull an unbounded stream into memory during a publish.
+                return response.read(8 * 1024 * 1024)
+        except Exception:
+            return None
+
+    kept_count = 0
+    refused_count = 0
+    result: list = []
+
+    for listing in listings:
+        # The URL filter runs first because it is free, then the pixels decide.
+        candidates = publishable_media(listing.media)
+        if not candidates:
+            # Nothing survived the URL filter. This is the NPC case and it is
+            # final: re-checking pixels we already refused on the URL would be
+            # re-litigating a decision that did not depend on them.
+            result.append(listing)
+            continue
+
+        kept, rejections = verify_media(candidates, fetch=fetch)
+        kept_count += len(kept)
+        refused_count += len(rejections)
+
+        if not kept and candidates:
+            print(
+                f"  {listing.source}:{listing.source_listing_id} - all "
+                f"{len(candidates)} candidate photograph(s) refused: "
+                f"{rejections[0]['reason'] if rejections else 'unknown'}",
+                file=sys.stderr,
+            )
+
+        result.append(
+            replace(
+                listing,
+                media=tuple(kept),
+                cover_image_url=kept[0] if kept else None,
+            )
+        )
+
+    return result, kept_count, refused_count
 
 
 def _run_ingest_file(args, adapter) -> int:

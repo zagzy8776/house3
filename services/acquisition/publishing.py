@@ -105,15 +105,17 @@ NEVER_PUBLISHED = frozenset(
 
 def publishable_media(urls: Optional[Iterable[str]]) -> list[str]:
     """
-    The photographs we are willing to serve, filtered again at publish time.
+    The photographs we are willing to serve, filtered on the URL alone.
 
     Applied a second time, like `plausible_price_kobo`, because a row can arrive
     from a records file extracted before the watermark filter existed - and the
     committed `directory.json` is exactly such a file. Re-publishing it through
-    this function is what removes the watermarked images from it.
+    this function is what removed the watermarked images from it.
 
-    The filters live in `extraction.media` so there is one definition of each
-    rule rather than two that can drift.
+    URL-ONLY. This catches a publisher that names itself in the URL, which is the
+    measured NPC case, and it costs nothing. It cannot catch a watermark drawn
+    over a generic filename, which is why `verify_media` exists and why this is no
+    longer the last word on the subject.
     """
     from extraction.media import has_watermark, is_hotlinkable
 
@@ -127,6 +129,60 @@ def publishable_media(urls: Optional[Iterable[str]]) -> list[str]:
         if len(kept) >= 40:
             break
     return kept
+
+
+def verify_media(
+    urls: Iterable[str],
+    *,
+    fetch,
+    limit: int = 6,
+    probe=None,
+) -> tuple[list[str], list[dict]]:
+    """
+    Fetch candidate images and keep only the ones with no watermark in the pixels.
+
+    THIS IS WHAT MAKES A PHOTOGRAPH ON A CARD POSSIBLE.
+
+    The URL filter alone refused every NPC image, because NPC puts its brand in
+    the filename. That is correct for NPC and useless for a portal that watermarks
+    over `/img/8821.jpg` - and it also means a source that does NOT watermark has
+    no way to prove it, so we refuse its photographs too. This pass is how a clean
+    photograph gets to exist on the site: by being looked at.
+
+    `fetch` is injected rather than imported so the pipeline decides how images
+    are retrieved - the same transport, politeness delay and user agent as the
+    page crawl, and no second HTTP client in the codebase. It takes a URL and
+    returns bytes, or None on failure.
+
+    A fetch or decode failure is a REFUSAL, not a pass. An image we could not look
+    at is an image we cannot vouch for.
+
+    Returns `(kept, rejections)`. Rejections carry the URL and the reason so a run
+    can report why a listing has no photographs, which is otherwise an unanswerable
+    question.
+    """
+    from extraction.watermark import inspect_bytes
+
+    kept: list[str] = []
+    rejections: list[dict] = []
+
+    for url in urls:
+        if len(kept) >= limit:
+            break
+
+        payload = fetch(url)
+        if not payload:
+            rejections.append({"url": url, "reason": "could not be fetched"})
+            continue
+
+        verdict = inspect_bytes(payload, probe)
+        if verdict.watermarked:
+            rejections.append({"url": url, "reason": verdict.reason})
+            continue
+
+        kept.append(url)
+
+    return kept, rejections
 
 
 def assert_publishable(record: dict) -> dict:
