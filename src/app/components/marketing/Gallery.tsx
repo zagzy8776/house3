@@ -52,7 +52,7 @@ export function Gallery({
 
   const visible = images.map((src, index) => ({ src, index })).filter((entry) => !failed[entry.index]);
 
-  if (visible.length === 0) return <PhotoPlaceholder label={label} attribution={attribution} />;
+  if (visible.length === 0) return <PhotoPlaceholder label={label} />;
 
   // `visible` is non-empty here, but this project compiles with
   // `noUncheckedIndexedAccess`, so every index is `T | undefined` and the guard
@@ -60,7 +60,7 @@ export function Gallery({
   // compile and would also hide it if the filter above ever stopped guaranteeing
   // a first element.
   const first = visible[0];
-  if (!first) return <PhotoPlaceholder label={label} attribution={attribution} />;
+  if (!first) return <PhotoPlaceholder label={label} />;
 
   const current = visible.find((entry) => entry.index === active) ?? first;
   const currentIndex = visible.findIndex((entry) => entry.index === current.index) + 1;
@@ -147,17 +147,17 @@ export function Gallery({
 /**
  * No photographs. States the fact instead of dressing it up.
  *
- * A stock image here would be the one genuinely dishonest thing on the page: the
- * guest would believe they were looking at the apartment they are about to call.
+ * ONE LINE, NOT A PARAGRAPH. This panel used to explain the whole sourcing
+ * policy - which publication watermarks its images, why we do not republish
+ * them, that we never substitute stock photography - which is a page of internal
+ * policy shown to somebody who came to look at a room. The guest needs to know
+ * there are no pictures and that the absence is not a bug; the reasoning is ours
+ * to hold, and `extraction/watermark.py` is where it is recorded and tested.
  *
- * It also does not blame the listing. "did not publish any images" was the old
- * wording and it is now often false - the listing did publish photographs, and
- * what happened is that the publication stamped its brand across them and we
- * declined to republish that. Saying so is both accurate and the more useful
- * thing for a guest to read: it tells them the photographs exist and where to
- * find them.
+ * It says "no photographs yet" rather than blaming the listing or the publisher,
+ * because the truthful short answer is that we do not have pictures to show.
  */
-function PhotoPlaceholder({ label, attribution }: { label: string; attribution: string }) {
+function PhotoPlaceholder({ label }: { label: string }) {
   return (
     <div
       className="rounded-2xl flex flex-col items-center justify-center text-center px-8"
@@ -167,16 +167,14 @@ function PhotoPlaceholder({ label, attribution }: { label: string; attribution: 
         border: '1px solid var(--border)'
       }}
     >
-      <p className="text-lg font-semibold mb-2 m-0" style={{ fontFamily: 'var(--font-outfit)' }}>
-        No photographs we can publish
+      <p className="text-lg font-semibold mb-1 m-0" style={{ fontFamily: 'var(--font-outfit)' }}>
+        No photographs yet
       </p>
       <p
-        className="text-sm m-0 max-w-md"
+        className="text-sm m-0 max-w-sm"
         style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-outfit)', lineHeight: 1.7 }}
       >
-        The photographs for {label} that we saw on {attribution} carry {attribution}&apos;s own watermark, so we
-        do not republish them, and we never substitute stock photography. Ask the property to send you pictures
-        directly — everything else on this page is observed fact.
+        Nothing to show for {label} — ask the property for pictures directly.
       </p>
     </div>
   );

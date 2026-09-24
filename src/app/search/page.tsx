@@ -19,7 +19,6 @@
  */
 
 import { findState, liveStates } from '@/data/nigeria';
-import { HANDOFF_DISCLOSURE } from '@/domain/contact';
 import { formatNaira } from '@/domain/money';
 import { telHref, toWhatsappHref } from '@/domain/phone';
 import { placeHref, placeDescriptor, placeLocation } from '@/domain/directory';
@@ -148,10 +147,6 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         {findState(stateCode)?.name ?? stateCode}
         {area ? ` in ${area}` : ''} · {checkIn} to {checkOut} · {nights} night
         {nights === 1 ? '' : 's'} · {guests} guest{guests === 1 ? '' : 's'}
-      </p>
-
-      <p className="h3-summary" style={{ marginTop: '-0.5rem' }}>
-        {HANDOFF_DISCLOSURE}
       </p>
 
       {total === 0 ? (

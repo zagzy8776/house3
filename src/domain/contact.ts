@@ -206,9 +206,29 @@ export function contactConfidence(evidence: ContactEvidence): ContactConfidence 
  * of record and does not take the money, so no page may imply otherwise, and the
  * phrase must not drift per template.
  */
-export const HANDOFF_DISCLOSURE =
-  'House3 lists this place and shows you what we observed. We do not take the ' +
-  'booking or the payment - you arrange your stay directly with the property.';
+/*
+ * `HANDOFF_DISCLOSURE` has been REMOVED, and this note says why so nobody re-adds
+ * it by instinct.
+ *
+ * It read: "House3 lists this place and shows you what we observed. We do not take
+ * the booking or the payment - you arrange your stay directly with the property."
+ * It was rendered on the place page and on every search result, in body text,
+ * on every listing.
+ *
+ * It was honest, and it was still wrong on the page. A guest who has opened a
+ * listing is looking at a room - they are not reading a platform's statement of
+ * its own commercial model, and repeating it on every row reads as a disclaimer
+ * the site is anxious about. The fact remains true and is still communicated:
+ * every contact button says "Call", "Message on WhatsApp" or "Visit their
+ * website" and goes to the operator, there is no basket or checkout anywhere in
+ * the application, and `assertBookable` in this file refuses a payable price at
+ * the type level. The product makes the statement; the prose was belt-and-braces
+ * on top of it.
+ *
+ * If a disclosure is ever genuinely needed here - a market where a regulator
+ * requires specific wording - it should go on a page about how House3 works, once,
+ * rather than attached to 260 listings.
+ */
 
 /**
  * Whether a rate or listing may be presented as something a guest can pay.

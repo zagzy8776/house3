@@ -162,7 +162,7 @@ export function ListingCard({ listing }: { listing: ListingCardModel }) {
                 className="text-xs mt-1 m-0"
                 style={{ fontFamily: 'var(--font-outfit)', color: 'var(--muted-foreground)' }}
               >
-                No photographs we can publish
+                Ask the property for pictures
               </p>
             </div>
           )}

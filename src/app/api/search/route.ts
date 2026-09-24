@@ -19,7 +19,6 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { findState, liveStates } from '@/data/nigeria';
 import { allFeePolicies, defaultFeePolicy } from '@/data/feePolicies';
-import { HANDOFF_DISCLOSURE } from '@/domain/contact';
 import { centroidForArea, PRICE_BANDS } from '@/domain/geo';
 import { TITLE_DOCUMENTS, TITLE_DOCUMENT_LABELS, parseTitleDocuments } from '@/domain/title';
 import { buildDirectoryRepository } from '@/server/directoryRepository';
@@ -190,8 +189,7 @@ export async function GET(request: Request) {
         // this time", which is a different and equally wrong claim.
         handoff: {
           source: result.unit.sourceName ?? null,
-          sourceUrl: result.unit.sourceUrl ?? null,
-          disclosure: HANDOFF_DISCLOSURE
+          sourceUrl: result.unit.sourceUrl ?? null
         }
       })),
       excluded: outcome.excluded.map((entry) => ({

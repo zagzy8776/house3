@@ -9,7 +9,6 @@ import { describe, expect, it } from 'vitest';
 import {
   contactConfidence,
   contactRoutes,
-  HANDOFF_DISCLOSURE,
   isHouse3Bookable,
   isSameHost,
   primaryRoute,
@@ -143,18 +142,19 @@ describe('contact confidence', () => {
   });
 });
 
-describe('the handoff disclosure', () => {
-  it('states that House3 does not take the booking or the payment', () => {
-    expect(HANDOFF_DISCLOSURE).toContain('do not take');
-    expect(HANDOFF_DISCLOSURE).toContain('booking');
-    expect(HANDOFF_DISCLOSURE).toContain('payment');
-    expect(HANDOFF_DISCLOSURE).toContain('directly with the property');
-  });
-
-  it('is not a House3 booking claim', () => {
-    expect(HANDOFF_DISCLOSURE.toLowerCase()).not.toContain('house3 booking');
-  });
-});
+/*
+ * The `handoff disclosure` suite has been removed with the constant it tested.
+ *
+ * `HANDOFF_DISCLOSURE` was rendered in body text on the place page and on every
+ * search result. It was honest and it was clutter: a guest looking at a room does
+ * not need the platform's commercial model repeated beneath it, and on 260 rows
+ * it read as a disclaimer the site was anxious about.
+ *
+ * The FACT it carried is still enforced, and by something better than prose:
+ * `isHouse3Bookable` below refuses a House3-bookable claim for anything observed
+ * on a public source, and `assertBookable` refuses a payable price at the type
+ * level. That suite is the one that matters, and it is right here.
+ */
 
 describe('house3 bookability', () => {
   it('is false for anything observed on a public source', () => {

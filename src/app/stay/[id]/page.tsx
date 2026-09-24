@@ -45,7 +45,7 @@ import {
   placeLocation,
   type DirectoryPlace
 } from '@/domain/directory';
-import { HANDOFF_DISCLOSURE, contactRoutes } from '@/domain/contact';
+import { contactRoutes } from '@/domain/contact';
 import { formatNaira } from '@/domain/money';
 import { loadPlace } from '@/server/directorySource';
 import { Gallery } from '../../components/marketing/Gallery';
@@ -105,10 +105,9 @@ export default async function StayPage({ params }: { params: Promise<{ id: strin
             >
               {place.operatorName ? (
                 <>
-                  Listed by <strong style={{ color: 'var(--foreground)' }}>{place.operatorName}</strong>.{' '}
+                  Listed by <strong style={{ color: 'var(--foreground)' }}>{place.operatorName}</strong>.
                 </>
               ) : null}
-              {HANDOFF_DISCLOSURE}
             </p>
 
             <DetailTable rows={rows} />
@@ -234,6 +233,19 @@ function DetailTable({ rows }: { rows: Array<{ label: string; value: string }> }
   );
 }
 
+/**
+ * Where the facts came from, and what we do not do.
+ *
+ * This used to run to several lines: photographs the publisher watermarked, what
+ * we do about it, confirm details before travelling, House3 takes no payment...
+ * It is reduced to the two facts a guest can act on - the source and the date -
+ * because the rest was the platform explaining its own sourcing policy to
+ * someone who came to look at a room. Policy belongs on the page that describes
+ * the policy, not interleaved with a listing.
+ *
+ * The link back to the source is the part that must stay: it is the attribution,
+ * and without it none of the observed facts are defensible.
+ */
 function SourceNotice({ place, stateName }: { place: DirectoryPlace; stateName: string | null }) {
   const searchHref = place.state
     ? `/search?state=${place.state}${place.area ? `&area=${encodeURIComponent(place.area)}` : ''}`
@@ -245,7 +257,7 @@ function SourceNotice({ place, stateName }: { place: DirectoryPlace; stateName: 
         className="text-sm m-0"
         style={{ color: 'var(--secondary-foreground)', fontFamily: 'var(--font-outfit)', lineHeight: 1.7 }}
       >
-        These details were observed on{' '}
+        Observed on{' '}
         <a
           href={place.sourceUrl}
           rel="nofollow noopener"
@@ -254,15 +266,12 @@ function SourceNotice({ place, stateName }: { place: DirectoryPlace; stateName: 
         >
           {place.attribution}
         </a>{' '}
-        and last checked on {place.lastSeenAt}. Photographs are the ones the listing published, where the
-        publisher&apos;s own watermark is not stamped across them. Details
-        change, so confirm anything that matters with the property before you travel. House3 does not
-        take the booking or the payment for this place.
+        · {place.lastSeenAt}
         {place.state ? (
           <>
-            {' '}
+            {' · '}
             <Link href={searchHref} style={{ color: 'var(--accent)', textDecoration: 'none' }}>
-              See what else is in {place.area ?? stateName ?? 'this area'} →
+              More in {place.area ?? stateName ?? 'this area'} →
             </Link>
           </>
         ) : null}
