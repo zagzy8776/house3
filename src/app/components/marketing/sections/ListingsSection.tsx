@@ -11,9 +11,16 @@
  * "short-let" - so a row of chips that filters nine real places into one bucket is
  * furniture, not a control. They are removed rather than faked.
  *
- * The grid keeps the design's layout and its card. What changed is that an empty
- * state is now possible and has to say something true: it means no crawl has run,
- * which is a fact about our coverage rather than about the guest's search.
+ * The grid is a single-column LIST now, because the card is horizontal. A
+ * horizontal card in a three-column grid would give each thumbnail about 100px,
+ * which is not enough to read a room from - the layout and the column count have
+ * to agree. This is how the portals the card is modelled on present results, and
+ * it is why a guest can scan price down the left edge.
+ *
+ * The section keeps the design's heading and its empty state. What is worth
+ * restating is that an empty state is possible and has to say something true: it
+ * means no crawl has run, which is a fact about our coverage rather than about
+ * the guest's search.
  */
 
 import { SECTION_COPY } from '@/content/marketing';
@@ -57,7 +64,7 @@ export function ListingsSection({ listings }: { listings: ListingCardModel[] }) 
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-col gap-5">
           {listings.map((listing) => (
             <ListingCard key={listing.id} listing={listing} />
           ))}

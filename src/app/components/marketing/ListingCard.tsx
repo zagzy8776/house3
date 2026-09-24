@@ -5,24 +5,38 @@
 /**
  * Listing card.
  *
- * CONTACT-FIRST, BECAUSE THAT IS THE WHOLE PRODUCT
- * ------------------------------------------------
- * House3 does not take a booking or a payment. A guest reads a card, then phones
- * the operator. So the number is the most useful thing on the card and it is
- * rendered as one: a `tel:` link, tappable, with WhatsApp beside it. Everything
- * else - the layout, the banner, the rate - exists to get a guest to that button.
+ * THE LAYOUT IS HORIZONTAL, AND WHY
+ * ---------------------------------
+ * Modelled on how Nigerian property portals present a result: a landscape
+ * thumbnail on the left, and everything a guest scans - price, type, name,
+ * location, spec row, poster - stacked to its right. It is denser than a grid of
+ * portrait tiles and it reads in one sweep: price first, then what the place is,
+ * then where, then how to reach it.
  *
- * WHY THE BANNER IS A BANNER AND NOT A PHOTOGRAPH
- * -----------------------------------------------
- * Most cards have no photograph, because the portals we crawl stamp their own
- * watermark across every image they host and we will not republish that. A 200px
- * empty box on every card looked broken, so the space carries the things a guest
- * can actually use - where it is, what it is - and a card WITH a photograph still
- * shows the photograph.
+ * The thumbnail is landscape rather than a tall hero because most cards have no
+ * photograph of their own. A 240px portrait void on every row was the ugliest
+ * thing on the site; a shorter landscape slot that carries location and spec when
+ * there is no photograph keeps the row dense either way.
  *
- * The striped gradient is a deliberate placeholder texture, not a stand-in image.
- * It cannot be mistaken for a room, which is the point: a stock apartment here
- * would be the one genuinely dishonest thing this card could do.
+ * WHY THE THUMBNAIL IS USUALLY A TEXTURE, NOT A PHOTOGRAPH
+ * -------------------------------------------------------
+ * The portals we crawl stamp their own watermark across every image they host, so
+ * we do not republish them - see `extraction/watermark.py`, which is where that
+ * decision is recorded and tested. The striped gradient is a deliberate
+ * placeholder: it cannot be mistaken for a room, which is the point. A stock
+ * apartment here would be the one genuinely dishonest thing this card could do.
+ *
+ * The layout deliberately works with either, so the day a source publishes clean
+ * photographs - an operator's own site, a direct submission - the same card
+ * renders them with no change.
+ *
+ * WHAT IS NOT HERE, AND WHY
+ * -------------------------
+ * No "Premium" badge: nothing in this directory is promoted and House3 charges
+ * nothing, so the badge would be a lie about commercial status. No heart/save
+ * button: nothing is stored server-side, so it would be a button that loses the
+ * guest's list on reload. No "3 toilets", because toilets are not a field we
+ * observe - and a spec row that invents one is worse than a shorter spec row.
  *
  * THE PRICE SAYS WHOSE IT IS
  * --------------------------
@@ -31,6 +45,13 @@
  * for our service fee. There is no service fee any more, so there is nothing to
  * gross up: the number shown is the number the operator published, which is the
  * number the guest will be quoted when they call.
+ *
+ * WHY THE CARD IS NOT ONE BIG ANCHOR
+ * ----------------------------------
+ * An `<a>` may not contain a `tel:` link - nested anchors are invalid and a
+ * browser silently flattens them, so the call button would open the listing page
+ * instead of the dialler. The thumbnail carries the link to the place's page and
+ * the buttons sit outside it.
  */
 
 import { formatNaira } from '@/domain/money';
@@ -49,50 +70,67 @@ export type ListingCardModel = {
   bedrooms: number | null;
   bathrooms: number | null;
   type: string;
-  /** True when the listing published a gallery rather than a single image. */
-  hasGallery: boolean;
-  /** How many photographs the listing published. Zero renders the placeholder. */
+  /** How many photographs the listing published. Zero renders no count. */
   photoCount: number;
   /** Where to open the place. */
   href: string;
-  tags: string[];
   /** The number the listing published, or null. The card's primary action. */
   phone: string | null;
   /** `https://wa.me/...`, prebuilt by the domain layer, or null. */
   whatsappHref: string | null;
+  /** Who published it. Shown the way a portal shows the poster. */
+  attribution: string;
+  /** When we observed it, ISO date. Shown as a freshness badge. */
+  lastSeenAt: string;
 };
 
 /**
- * The clickable half of the banner, when the banner has to be clickable at all.
- *
- * An `<a>` may not contain a `tel:` link - nested anchors are invalid HTML and a
- * browser silently flattens them, so the call button would open the listing page
- * instead of the dialler. The card is therefore NOT one big anchor: this overlay
- * covers the banner and carries the link to the place's page, and everything below
- * sits outside it.
+ * A readable label for the property type, in the reference card's position.
  */
-function BannerLink({ href, label }: { href: string; label: string }) {
-  return (
-    <a
-      href={href}
-      aria-label={`Open ${label}`}
-      className="absolute inset-0"
-      style={{ textDecoration: 'none' }}
-    />
-  );
+function typeLabel(type: string): string {
+  const cleaned = type.replace(/_/g, ' ').trim();
+  if (!cleaned) return 'Short stay';
+  return `${cleaned.charAt(0).toUpperCase() + cleaned.slice(1)} · short stay`;
+}
+
+/**
+ * Spec row entries, only those we actually observed.
+ *
+ * Built as a list so a missing field drops its own chip rather than rendering an
+ * empty one. `bathrooms` is present on 256 of 260 published places and `bedrooms`
+ * on all 260, so in practice the row is nearly always full - but "nearly always"
+ * is not a reason to render a chip with nothing in it.
+ */
+function specRow(listing: ListingCardModel): Array<{ icon: string; value: string }> {
+  const entries: Array<{ icon: string; value: string }> = [];
+  if (listing.bedrooms !== null) {
+    entries.push({ icon: '🛏', value: `${listing.bedrooms} bed${listing.bedrooms === 1 ? '' : 's'}` });
+  }
+  if (listing.bathrooms !== null) {
+    entries.push({
+      icon: '🛁',
+      value: `${listing.bathrooms} bath${listing.bathrooms === 1 ? '' : 's'}`
+    });
+  }
+  return entries;
 }
 
 export function ListingCard({ listing }: { listing: ListingCardModel }) {
   const rate = listing.rateKobo === null ? null : formatNaira(listing.rateKobo, { decimals: false });
   const phone = listing.phone;
+  const specs = specRow(listing);
 
   return (
-    <Card3D className="rounded-2xl overflow-hidden group">
+    <Card3D className="rounded-2xl group">
       <div
-        className="rounded-2xl overflow-hidden h-full flex flex-col"
+        className="rounded-2xl overflow-hidden flex flex-col sm:flex-row h-full"
         style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
       >
-        <div className="relative overflow-hidden" style={{ height: 200, background: 'var(--muted)' }}>
+        {/* THUMBNAIL */}
+        <div
+          className="relative sm:w-[280px] sm:min-w-[280px] shrink-0 overflow-hidden"
+          style={{ height: 210, background: 'var(--muted)' }}
+        >
           {listing.image ? (
             <img
               src={listing.image}
@@ -104,215 +142,213 @@ export function ListingCard({ listing }: { listing: ListingCardModel }) {
             /*
               The placeholder texture. Diagonal stripes over a warm gradient, low
               contrast and obviously a texture - it must never be read as a
-              photograph of a room.
+              photograph of a room. It carries the location because the row beside
+              it can be long and an empty box reads as a broken card.
             */
             <div
-              className="w-full h-full flex flex-col justify-end p-5"
+              className="w-full h-full flex flex-col justify-end p-4"
               style={{
                 backgroundImage:
                   'repeating-linear-gradient(135deg, rgba(217,124,43,0.10) 0px, rgba(217,124,43,0.10) 2px, transparent 2px, transparent 14px), linear-gradient(150deg, rgba(217,124,43,0.22) 0%, rgba(20,14,10,0.96) 72%)'
               }}
             >
               <p
-                className="text-2xl font-semibold m-0"
+                className="text-lg font-semibold m-0"
                 style={{ fontFamily: 'var(--font-outfit)', color: 'var(--foreground)' }}
               >
                 {listing.area}
               </p>
               <p
-                className="text-sm mt-1 m-0"
+                className="text-xs mt-1 m-0"
                 style={{ fontFamily: 'var(--font-outfit)', color: 'var(--muted-foreground)' }}
               >
-                {[listing.bedrooms !== null ? `${listing.bedrooms} bedroom` : null, listing.type]
-                  .filter(Boolean)
-                  .join(' · ')}
+                No photographs we can publish
               </p>
             </div>
           )}
 
-          {listing.image ? (
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{ background: 'linear-gradient(to top, rgba(10,8,6,0.7) 0%, transparent 55%)' }}
-            />
-          ) : null}
-
-          {/* The photo count, not a "Featured" badge: it tells the guest how much
-              there is to look at, which is the thing they act on. */}
+          {/* The photo count, the way a portal shows it on a thumbnail. It tells
+              the guest how much there is to look at, which is what they act on. */}
           {listing.photoCount > 1 ? (
-            <div className="absolute top-3 left-3">
-              <span
-                className="px-2.5 py-1 rounded-full text-xs font-semibold"
-                style={{
-                  background: 'rgba(0,0,0,0.6)',
-                  backdropFilter: 'blur(8px)',
-                  color: 'var(--foreground)',
-                  fontFamily: 'var(--font-outfit)'
-                }}
-              >
-                {listing.photoCount} photos
-              </span>
-            </div>
-          ) : null}
-
-          {listing.image ? (
-            <div className="absolute bottom-3 left-3 right-3 pointer-events-none">
-              <p
-                className="text-white font-semibold text-sm m-0"
-                style={{ fontFamily: 'var(--font-outfit)', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}
-              >
-                {listing.area}
-              </p>
-            </div>
+            <span
+              className="absolute bottom-3 left-3 px-2 py-1 rounded-md text-xs font-semibold"
+              style={{
+                background: 'rgba(0,0,0,0.66)',
+                backdropFilter: 'blur(8px)',
+                color: '#fff',
+                fontFamily: 'var(--font-outfit)'
+              }}
+            >
+              ▣ {listing.photoCount}
+            </span>
           ) : null}
 
           {/*
-            Only when there is nothing below to click. With a number published the
-            contact block is the card's route, and a banner overlay as well would
-            put two competing targets under the same thumb.
+            The freshness badge, in the reference card's top-left slot. It reports
+            our own observation date rather than the source's listing age, because
+            the observation date is the thing we actually know - "added yesterday"
+            is the source's claim about itself.
           */}
-          {phone ? null : <BannerLink href={listing.href} label={listing.name} />}
-        </div>
+          <span
+            className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-semibold"
+            style={{
+              background: 'rgba(0,0,0,0.6)',
+              backdropFilter: 'blur(8px)',
+              color: 'var(--foreground)',
+              fontFamily: 'var(--font-outfit)'
+            }}
+          >
+            Seen {listing.lastSeenAt}
+          </span>
 
-        {/*
-          THE CONTACT BLOCK
-          -----------------
-          This is what the card is for. It sits directly under the banner so the
-          eye lands on the number instead of hunting for it in a footer, and it is
-          deliberately outside the banner's link overlay so the two do not compete
-          for the same tap.
-        */}
-        <div
-          className="px-4 py-3 border-t"
-          style={{ borderColor: 'var(--border)', background: 'rgba(255,255,255,0.02)' }}
-        >
-          {phone ? (
-            <div className="flex items-center gap-2">
-              {/*
-                THE NUMBER IS NOT DISPLAYED
-
-                This button used to read `☎ 0703 193 7484`. It now says `Call` and
-                carries the number only in the `tel:` href, so tapping it opens the
-                dialler with the number loaded.
-
-                The reasoning, since it is a deliberate reversal: publishing a
-                scraped number as text is the part that is actually hard to defend.
-                A `tel:` link is a handoff, exactly like the "View original listing"
-                link - the guest is sent to their own dialler and the call is their
-                action on the operator's published number. Printing the digits on
-                our page is us republishing contact data as our own content, and it
-                is what gets scraped onward from us.
-
-                It is also the better product: a guest never retypes a number, and
-                they do not bounce off to check whether it is a real line - they
-                just tap Call.
-              */}
-              <a
-                href={telHref(phone)}
-                className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl font-semibold transition-opacity hover:opacity-85"
-                style={{
-                  background: 'var(--primary)',
-                  color: 'var(--primary-foreground)',
-                  fontFamily: 'var(--font-outfit)',
-                  textDecoration: 'none',
-                  fontSize: 15
-                }}
-              >
-                <span aria-hidden="true">☎</span>
-                Call
-              </a>
-
-              {listing.whatsappHref ? (
-                <a
-                  href={listing.whatsappHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Message ${listing.name} on WhatsApp`}
-                  className="flex items-center justify-center rounded-xl transition-opacity hover:opacity-85"
-                  style={{
-                    width: 44,
-                    height: 44,
-                    flexShrink: 0,
-                    background: 'var(--secondary)',
-                    color: 'var(--foreground)',
-                    textDecoration: 'none',
-                    fontSize: 18
-                  }}
-                >
-                  <span aria-hidden="true">💬</span>
-                </a>
-              ) : null}
-            </div>
-          ) : (
+          {/*
+            Only when there is nothing below to click. With a number published the
+            contact block is the card's route, and a thumbnail overlay as well
+            would put two competing targets under the same thumb.
+          */}
+          {phone ? null : (
             <a
               href={listing.href}
-              className="flex items-center justify-center px-3 py-2.5 rounded-xl text-sm font-medium"
-              style={{
-                background: 'var(--secondary)',
-                color: 'var(--muted-foreground)',
-                fontFamily: 'var(--font-outfit)',
-                textDecoration: 'none'
-              }}
-            >
-              No phone published — view details
-            </a>
+              aria-label={`Open ${listing.name}`}
+              className="absolute inset-0"
+              style={{ textDecoration: 'none' }}
+            />
           )}
-
-          <div className="flex items-center justify-between gap-3 mt-2.5">
-            <p className="text-sm font-semibold m-0" style={{ fontFamily: 'var(--font-outfit)' }}>
-              {rate ? (
-                <>
-                  {rate}
-                  <span
-                    className="font-normal"
-                    style={{ color: 'var(--muted-foreground)', fontSize: 12, marginLeft: 6 }}
-                  >
-                    per night
-                  </span>
-                </>
-              ) : (
-                <span style={{ color: 'var(--muted-foreground)', fontWeight: 400, fontSize: 13 }}>
-                  rate not published
-                </span>
-              )}
-            </p>
-
-            <a
-              href={listing.href}
-              className="text-xs whitespace-nowrap"
-              style={{ color: 'var(--accent)', fontFamily: 'var(--font-outfit)', textDecoration: 'none' }}
-            >
-              Details →
-            </a>
-          </div>
         </div>
 
-        <div className="px-4 pt-3 pb-4 mt-auto">
+        {/* BODY */}
+        <div className="flex-1 flex flex-col p-4 sm:p-5 min-w-0">
+          <p className="m-0 leading-none" style={{ fontFamily: 'var(--font-outfit)' }}>
+            <span className="text-2xl font-bold" style={{ color: 'var(--primary)' }}>
+              {rate ?? 'Rate not published'}
+            </span>
+            {rate ? (
+              <span className="text-sm font-normal" style={{ color: 'var(--muted-foreground)', marginLeft: 8 }}>
+                /night
+              </span>
+            ) : null}
+          </p>
+
+          {/*
+            The type, in the reference card's position. It says "short stay"
+            rather than the reference's "for rent" because that is what this
+            inventory is - a night-by-night stay, not an annual let - and
+            borrowing the reference's wording would misdescribe every row.
+          */}
           <p
-            className="text-sm font-semibold mb-2 m-0"
+            className="text-sm mt-1.5 m-0 font-medium"
+            style={{ color: 'var(--primary)', fontFamily: 'var(--font-outfit)' }}
+          >
+            {typeLabel(listing.type)}
+          </p>
+
+          <h3
+            className="text-lg font-semibold mt-1.5 m-0 truncate"
             style={{ fontFamily: 'var(--font-outfit)', color: 'var(--foreground)' }}
           >
             {listing.name}
-          </p>
+          </h3>
 
-          {listing.tags.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5">
-              {listing.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-xs px-2 py-0.5 rounded-full"
-                  style={{
-                    background: 'rgba(217,124,43,0.12)',
-                    color: 'var(--accent)',
-                    fontFamily: 'var(--font-outfit)',
-                    border: '1px solid rgba(217,124,43,0.2)'
-                  }}
-                >
-                  {tag}
+          <div
+            className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1.5 text-sm"
+            style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-outfit)' }}
+          >
+            <span>📍 {listing.area}</span>
+          </div>
+
+          {specs.length > 0 ? (
+            <div
+              className="flex flex-wrap items-center gap-4 mt-3 text-sm"
+              style={{ color: 'var(--foreground)', fontFamily: 'var(--font-outfit)' }}
+            >
+              {specs.map((spec) => (
+                <span key={spec.value} className="flex items-center gap-1.5">
+                  <span aria-hidden="true">{spec.icon}</span>
+                  {spec.value}
                 </span>
               ))}
             </div>
           ) : null}
+
+          {/*
+            Who published it, the way a portal shows the poster at the foot of a
+            card. It is the source rather than a "property agent" portrait,
+            because the source is who we actually observed.
+          */}
+          <div
+            className="flex items-center gap-1.5 mt-3.5 pt-3 border-t text-xs"
+            style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)', fontFamily: 'var(--font-outfit)' }}
+          >
+            🏢 <span className="truncate">{listing.attribution}</span>
+          </div>
+
+          <div className="flex items-center gap-2 mt-auto pt-3">
+            {phone ? (
+              <>
+                <a
+                  href={telHref(phone)}
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl font-semibold transition-opacity hover:opacity-85"
+                  style={{
+                    background: 'var(--primary)',
+                    color: 'var(--primary-foreground)',
+                    fontFamily: 'var(--font-outfit)',
+                    textDecoration: 'none',
+                    fontSize: 15
+                  }}
+                >
+                  <span aria-hidden="true">☎</span>
+                  Call
+                </a>
+
+                {listing.whatsappHref ? (
+                  <a
+                    href={listing.whatsappHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Message ${listing.attribution} on WhatsApp`}
+                    className="flex items-center justify-center rounded-xl transition-opacity hover:opacity-85"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      flexShrink: 0,
+                      background: 'var(--secondary)',
+                      color: 'var(--foreground)',
+                      textDecoration: 'none',
+                      fontSize: 18
+                    }}
+                  >
+                    <span aria-hidden="true">💬</span>
+                  </a>
+                ) : null}
+
+                <a
+                  href={listing.href}
+                  className="px-3 py-2.5 rounded-xl text-sm font-medium transition-opacity hover:opacity-85"
+                  style={{
+                    background: 'var(--secondary)',
+                    color: 'var(--foreground)',
+                    fontFamily: 'var(--font-outfit)',
+                    textDecoration: 'none'
+                  }}
+                >
+                  Details
+                </a>
+              </>
+            ) : (
+              <a
+                href={listing.href}
+                className="flex-1 flex items-center justify-center px-3 py-2.5 rounded-xl text-sm font-medium"
+                style={{
+                  background: 'var(--secondary)',
+                  color: 'var(--muted-foreground)',
+                  fontFamily: 'var(--font-outfit)',
+                  textDecoration: 'none'
+                }}
+              >
+                No phone published — view details
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </Card3D>

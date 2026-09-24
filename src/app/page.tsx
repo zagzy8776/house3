@@ -28,7 +28,7 @@
 import { findState } from '@/data/nigeria';
 import { placeDescriptor, placeHref, placeLocation, type DirectoryPlace } from '@/domain/directory';
 import { toWhatsappHref } from '@/domain/phone';
-import { CITIES, HERO_STATS } from '@/content/marketing';
+import { CITIES } from '@/content/marketing';
 import { loadDirectory } from '@/server/directorySource';
 import { LandingPage, type RecentBooking } from './components/marketing/LandingPage';
 import type { ListingCardModel } from './components/marketing/ListingCard';
@@ -59,16 +59,13 @@ function toCard(place: DirectoryPlace): ListingCardModel {
     rateKobo: place.advertisedPriceKobo,
     bedrooms: place.bedrooms,
     bathrooms: place.bathrooms,
-    type: place.propertyType ? place.propertyType.toLowerCase().replace(/_/g, ' ') : 'shortlet',
-    hasGallery: place.media.length > 1,
+    type: place.propertyType ?? 'shortlet',
     photoCount: place.media.length,
     href: placeHref(place),
-    // Facts only. The design's tags were amenities it invented ("Pool", "Gym"),
-    // and the crawler does not read amenities - so the chip row carries the
-    // source and the observation date, which are true.
-    tags: [place.attribution, `seen ${place.lastSeenAt}`],
     phone: place.phone,
-    whatsappHref: toWhatsappHref(place.phone)
+    whatsappHref: toWhatsappHref(place.phone),
+    attribution: place.attribution,
+    lastSeenAt: place.lastSeenAt
   };
 }
 
@@ -99,7 +96,34 @@ export default async function Home() {
     };
   });
 
-  const heroStats = HERO_STATS.map((stat) => ({ value: stat.value, label: stat.label }));
+  /**
+   * The hero stats are REAL COUNTS from the directory.
+   *
+   * This used to be `HERO_STATS.map(...)`, which passed invented figures - "847
+   * Lagos listings", "312 Abuja listings" - to the hero as plain facts, with the
+   * `illustrative` flag dropped on the way so nothing downstream could tell. The
+   * real directory holds 260 places in Lagos and none in Abuja, so those numbers
+   * were false on the page that most needs to be believed.
+   *
+   * The counts per state are already computed below for the city cards, so the
+   * hero reads the same source and the two cannot disagree.
+   */
+  const placesByState = new Map<string, number>();
+  for (const place of places) {
+    if (!place.state) continue;
+    placesByState.set(place.state, (placesByState.get(place.state) ?? 0) + 1);
+  }
+
+  const heroStats = [
+    { value: String(placesByState.get('LA') ?? 0), label: 'Lagos places' },
+    { value: String(placesByState.get('FC') ?? 0), label: 'Abuja places' },
+    {
+      value: String(places.filter((place) => place.state && place.state !== 'LA' && place.state !== 'FC').length),
+      label: 'Other states'
+    },
+    // This one is true, and it is the whole pitch.
+    { value: '₦0', label: 'Booking fees' }
+  ];
 
   /**
    * No social proof is available, and none is fabricated.
