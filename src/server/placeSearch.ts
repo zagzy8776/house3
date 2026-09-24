@@ -204,7 +204,29 @@ export function createPlaceSearch(deps: PlaceSearchDeps): PlaceSearch {
         continue;
       }
 
-      const place = buildQuote(unit, partner, query.stay, query.guests);
+      /**
+       * A place that cannot be priced is EXCLUDED, not fatal.
+       *
+       * `computeQuote` throws on a nonsensical input, and an earlier version let
+       * that throw escape the loop - so one malformed row turned a state's entire
+       * result set into "0 places". Measured: six of 260 published Lagos places
+       * carry no readable rate, which meant the whole of Lagos returned nothing.
+       *
+       * The trade-off is deliberate. A guest is worse served by an empty page than
+       * by a page that omits one place and says why - the reason is surfaced in
+       * `excluded`, so a thin result set stays explainable rather than mysterious.
+       */
+      let place: PlaceResult;
+      try {
+        place = buildQuote(unit, partner, query.stay, query.guests);
+      } catch (caught) {
+        excluded.push({
+          unitId: unit.id,
+          unitName: unit.name,
+          reasons: [caught instanceof Error ? caught.message : 'Could not price this place']
+        });
+        continue;
+      }
 
       // Price band applies to the total the guest would pay THE OPERATOR, so it can
       // only be tested after quoting. Filtering on the nightly rate would hide cheaper

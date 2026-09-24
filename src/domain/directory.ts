@@ -15,10 +15,19 @@
  * here carries `attribution` and links back to `sourceUrl`, and
  * `assertPublishable()` refuses to let a row through without them.
  *
- * What we do not carry is the operator's title or their photographs. Both are
- * creative work with an owner, and republishing either is not made lawful by the
- * page being reachable. `media: null` on every row is therefore not an omission,
- * it is a declared feature - and the claim flow is what changes it.
+ * MEDIA IS CARRIED, ATTRIBUTED
+ *
+ * A row also carries the photographs its listing published, as `media` and
+ * `coverImageUrl`. An earlier revision of this file declared `media: null` on
+ * every row as a deliberate refusal; that refusal has been lifted by product
+ * decision, and the record of the reversal lives in
+ * `services/acquisition/compliance/allowed_fields.py`. What did NOT change is
+ * attribution: every row still names its source, and an image the source did not
+ * publish is never substituted in.
+ *
+ * PROSE IS STILL NOT PUBLISHED. `description` and the title fields stay in
+ * `FORBIDDEN_PUBLIC_KEYS`: we display a listing's gallery, we do not republish
+ * its written description.
  *
  * WHY THIS IS NOT PART OF /search
  *
@@ -84,18 +93,36 @@ export type DirectoryPlace = {
   lastSeenAt: string;
   contactRoute: ContactRoute;
   affiliate: AffiliateHandoff | null;
-  /** Always null. See the module comment. */
-  media: null;
+  /**
+   * The listing's own photographs, absolute URLs, as the source published them.
+   *
+   * An empty array means the listing published no images, which the UI renders as
+   * a designed placeholder - not as a broken image and not as somebody else's
+   * stock photograph. Showing a stock photo of a different apartment could not be
+   * honest; this is the gallery of the place the guest is about to call.
+   */
+  media: string[];
+  /** The first of `media`, promoted so a card needn't index the array. */
+  coverImageUrl: string | null;
 };
 
-/** Never acceptable on a public row, whatever else changes. */
+/**
+ * Never acceptable on a public row, whatever else changes.
+ *
+ * The media entries that used to live here - `photo`, `photos`, `image`,
+ * `images`, `gallery` - have been removed: this platform now carries a listing's
+ * gallery, under the names `media` and `coverImageUrl`, so refusing the older
+ * aliases would reject the very rows the pipeline now produces.
+ *
+ * PROSE STAYS FORBIDDEN. `description` is the one that matters: an operator's
+ * written listing copy is somebody's writing, and we display their photographs
+ * without republishing their prose. `property_name` is the same argument at
+ * field level - a marketing title is copy, not a fact.
+ */
 const FORBIDDEN_PUBLIC_KEYS = [
   'description',
-  'photos',
-  'photo',
-  'images',
-  'image',
-  'gallery',
+  'body_text',
+  'summary',
   'property_name',
   'propertyName',
   'title_document',
@@ -157,6 +184,39 @@ function int(value: unknown): number | null {
 }
 
 /**
+ * The listing's gallery, as absolute http(s) URLs.
+ *
+ * Parsed defensively and never thrown on: a malformed image URL blanks that one
+ * image rather than rejecting the whole place. A place is worth publishing for
+ * its name, area and rate alone - refusing the row because one of forty image
+ * URLs was malformed would lose a real property over a cosmetic field.
+ *
+ * Non-http entries are dropped rather than passed through: `javascript:` and
+ * `data:` URLs in a `src` are an injection route, and a gallery is the last place
+ * to accept one.
+ */
+function mediaUrls(value: unknown): string[] {
+  const entries = Array.isArray(value) ? value : [];
+  const urls: string[] = [];
+  const seen = new Set<string>();
+
+  for (const entry of entries) {
+    const candidate = text(entry);
+    if (!candidate || seen.has(candidate)) continue;
+    try {
+      const parsed = new URL(candidate);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') continue;
+      seen.add(candidate);
+      urls.push(candidate);
+    } catch {
+      continue;
+    }
+  }
+
+  return urls;
+}
+
+/**
  * Validate and convert one row.
  *
  * Fails loudly. A row that cannot be validated is a row we do not know how to
@@ -185,8 +245,8 @@ export function assertPublishable(row: RawDirectoryPlace, now?: string): Directo
   for (const key of FORBIDDEN_PUBLIC_KEYS) {
     if (row[key] !== undefined && row[key] !== null) {
       throw new UnpublishablePlaceError(
-        `Place "${id}" carries non-publishable field "${key}". Operator titles and ` +
-          'photographs are creative work with an owner; a directory publishes facts.'
+        `Place "${id}" carries non-publishable field "${key}". A directory publishes ` +
+          'facts and the gallery a listing published - never its written copy.'
       );
     }
   }
@@ -241,6 +301,12 @@ export function assertPublishable(row: RawDirectoryPlace, now?: string): Directo
 
   const verifiedNow = now ?? new Date().toISOString();
 
+  // The cover is the first parsed image, computed rather than trusted from the
+  // row. A pipeline that promoted a cover the gallery does not contain would
+  // otherwise put an image on a card that the gallery then fails to show.
+  const media = mediaUrls(row.media);
+  const coverImageUrl = media[0] ?? null;
+
   return {
     id,
     distribution,
@@ -272,7 +338,8 @@ export function assertPublishable(row: RawDirectoryPlace, now?: string): Directo
             disclosure: affiliateDisclosure as string
           }
         : null,
-    media: null
+    media,
+    coverImageUrl
   };
 }
 
@@ -390,6 +457,56 @@ export function bookableSearchHref(
   if (place.area) params.set('area', place.area);
   if (place.bedrooms !== null && place.bedrooms > 0) params.set('bedrooms', String(place.bedrooms));
   return `/search?${params.toString()}`;
+}
+
+/**
+ * The page for one place.
+ *
+ * The id is `{source}:{listingId}`, so it contains a colon. It is encoded
+ * here and decoded by the route, because a raw colon in a path segment is
+ * legal but fragile - and a route param that silently truncates at the colon
+ * would 404 every listing.
+ */
+export function placeHref(place: Pick<DirectoryPlace, 'id'>): string {
+  return `/stay/${encodeURIComponent(place.id)}`;
+}
+
+/**
+ * The full detail rows shown on a place's own page.
+ *
+ * Built here rather than in the component so the page renders a list of facts
+ * instead of deciding which facts exist, and so what counts as a displayable
+ * field is one reviewable function. Only fields that are actually populated are
+ * returned: a row reading "Bathrooms —" is noise, and a guest reads it as a
+ * failed lookup rather than as "not published".
+ */
+export function placeDetailRows(
+  place: DirectoryPlace,
+  stateName?: string | null
+): Array<{ label: string; value: string }> {
+  const rows: Array<{ label: string; value: string }> = [];
+  const type = typeLabel(place.propertyType);
+  if (type) rows.push({ label: 'Type', value: type });
+
+  if (place.bedrooms !== null && place.bedrooms > 0) {
+    rows.push({ label: 'Bedrooms', value: String(place.bedrooms) });
+  }
+  if (place.bathrooms !== null && place.bathrooms > 0) {
+    rows.push({ label: 'Bathrooms', value: String(place.bathrooms) });
+  }
+
+  const location = placeLocation(place, stateName);
+  if (location) rows.push({ label: 'Location', value: location });
+
+  rows.push({ label: 'First seen', value: place.firstSeenAt });
+  rows.push({ label: 'Last checked', value: place.lastSeenAt });
+  rows.push({ label: 'Source', value: place.attribution });
+
+  if (place.pmsDetected) {
+    rows.push({ label: 'Booking system', value: place.pmsDetected });
+  }
+
+  return rows;
 }
 
 /**

@@ -1,14 +1,31 @@
 """
-Field allowlist - the wall between a crawler and someone else's copyright.
+Field allowlist - what the extraction layer may hand onward.
 
-Crawling is one permission; copyright is another. nigeriapropertycentre.com's
-robots.txt permits us to fetch their pages. It does not grant a licence to their
-photographs or their written descriptions, so this module makes it structurally
-impossible for a parser to hand those to us.
+Crawling is one permission; what you may store is another. nigeriapropertycentre.com's
+robots.txt permits us to fetch their pages, so we fetch them. This module defines
+the boundary: the fields a parser is allowed to emit, and the fields it is not.
 
-`assert_no_media_or_prose()` runs at the boundary between extraction and storage.
-A parser that over-reaches fails the run loudly rather than quietly writing a
-photographer's work into a database.
+THE MEDIA DECISION CHANGED. THIS IS RECORDED DELIBERATELY.
+
+An earlier revision of this module stripped every image reference out of the HTML
+before a parser saw it, and refused to let a media field leave extraction at all.
+The reasoning was that a photograph is a creative work with a live owner.
+
+That policy is now LIFTED for gallery media, by explicit product decision: House3
+displays the photographs a listing publishes, because a guest choosing a place to
+call needs to see the place. Where the decision lands:
+
+  * Media is now an ALLOWED field, declared below. `strip_media` no longer removes
+    `<img>` elements, so the pixels reach the parser.
+  * `MEDIA_FIELDS` are allowlisted separately from `ALLOWED_FIELDS` so the media
+    surface stays visible as its own decision instead of dissolving into the
+    general list.
+  * Prose is STILL forbidden. `description`, `body_text` and `summary` remain in
+    FORBIDDEN_FIELDS: a listing's marketing copy is a different thing from its
+    gallery and is still somebody's writing.
+
+`assert_no_media_or_prose()` keeps its name and its failing-on-undeclared-field
+behaviour, because a new field should still be a conscious addition here.
 """
 
 from __future__ import annotations
@@ -56,19 +73,26 @@ ALLOWED_FIELDS = frozenset(
         # The unit an advertised price is quoted in (PER_NIGHT, PER_MONTH, ...).
         "price_basis",
         "title_document",
+        # the property's own gallery - see MEDIA_FIELDS
+        "media",
+        "media_count",
+        "cover_image_url",
     }
 )
 
+#: Media is allowlisted, but as its own set so the decision is legible. A reviewer
+#: asking "does this crawler carry other people's photographs?" should get a
+#: one-line answer from the file, not have to infer it from ALLOWED_FIELDS.
+MEDIA_FIELDS = frozenset({"media", "media_count", "cover_image_url"})
+
 #: Never extracted, never stored. Named explicitly so the exclusion is a decision
 #: on record rather than an oversight.
+#:
+#: Media has been removed from this set by product decision (see the module
+#: docstring). Prose has NOT: we display a listing's photographs, we still do not
+#: republish its written description.
 FORBIDDEN_FIELDS = frozenset(
     {
-        "photo",
-        "photos",
-        "image",
-        "images",
-        "gallery",
-        "photo_count",
         "description",
         "body_text",
         "summary",
@@ -77,6 +101,20 @@ FORBIDDEN_FIELDS = frozenset(
         "agent_photo",
     }
 )
+
+#: Was forbidden, now permitted. Kept as a named set so a future reversal is a
+#: one-line change and so the history is greppable.
+FORMERLY_FORBIDDEN_FIELDS = frozenset(
+    {
+        "photo",
+        "photos",
+        "image",
+        "images",
+        "gallery",
+        "photo_count",
+    }
+)
+
 
 
 def assert_no_media_or_prose(record: dict) -> dict:
@@ -109,13 +147,25 @@ def assert_no_media_or_prose(record: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 #: Container elements whose entire contents go, so no orphaned captions remain.
+#: `picture` is deliberately NOT in this list any more: a `<picture>` wraps the
+#: `<img>` that IS the gallery. It is unwrapped instead, just below.
 _MEDIA_CONTAINER_RE = re.compile(
-    r"<(picture|figure|video|audio|object|embed)\b[^>]*>.*?</\1\s*>",
+    r"<(video|audio|object|embed)\b[^>]*>.*?</\1\s*>",
     re.IGNORECASE | re.DOTALL,
 )
 
-#: Void elements are self-closing, so they need their own pattern.
-_MEDIA_VOID_RE = re.compile(r"<(img|source|track)\b[^>]*>", re.IGNORECASE)
+#: `<picture><source ...><img src=...></picture>` becomes the `<img>` alone, so a
+#: parser reading `src` sees one element per photograph instead of two.
+_PICTURE_RE = re.compile(
+    r"<picture\b[^>]*>(.*?)</picture\s*>",
+    re.IGNORECASE | re.DOTALL,
+)
+
+#: Void elements. `<source>` survives only in the sense that a `<video>`'s sources
+#: are already gone with their container; an orphan `<source>` outside a picture is
+#: dropped here.
+_EMBED_URL_RE = re.compile(r"<(track)\b[^>]*>", re.IGNORECASE)
+
 
 #: Any reference anywhere in the document that points at an image asset. This is
 #: the blunt instrument, and it is the one that matters: it catches attributes,
@@ -151,32 +201,40 @@ STRIPPED = "[media-stripped]"
 
 def strip_media(html: str) -> str:
     """
-    Remove every reference to a hosted image from a page, before extraction.
+    Normalise a page's media so extraction sees only the gallery we accept.
 
-    Why this exists rather than only an output allowlist: an allowlist stops a
-    bad field being *stored*, but a regex in extraction/ could still match a
-    photo URL and hand it onward. Stripping at the boundary means the pixels are
-    never in memory, so "we do not republish other operators' photographs" is a
-    property of the data flow instead of a code-review habit.
+    WHY THIS NO LONGER DELETES IMAGES
 
-    Runs on every provider's output, including paid crawl APIs. `excludeTags` in
-    the Firecrawl request is a cost optimisation on top of this, never a
-    replacement for it - it only helps for providers that offer such an option.
+    This function used to remove every image reference from the document. That was
+    the enforcement point for the old no-media policy, which has been lifted (see
+    the module docstring). It is kept - and kept running on every provider's
+    output - because it still does three things worth doing:
+
+      1. It drops the container elements that carry NO listing value and a lot of
+         noise: `<video>`, `<audio>`, `<object>`, `<embed>`. A property tour video
+         is not the gallery and a parser should not go looking inside one.
+      2. It normalises inline base64 blobs to a marker, so a data URI cannot bloat
+         an extraction record or smuggle bytes past a URL check.
+      3. It rewrites `<picture>` to the `<img>` inside it, so a parser reading
+         `src` finds one element per photograph rather than two.
+
+    `<img>` and `<source>` are deliberately preserved now: they are the gallery.
 
     Never raises. There is a real question about what to do with markup that
-    cannot be parsed at all; the failure worth catching is a parser emitting
-    image data, and the allowlist catches that separately.
+    cannot be parsed at all; the failure worth catching is a parser emitting a
+    field that is not allowlisted, and `assert_no_media_or_prose` catches that
+    separately.
     """
     without_containers = _MEDIA_CONTAINER_RE.sub(f"<!-- {STRIPPED} -->", html)
-    without_voids = _MEDIA_VOID_RE.sub(f"<!-- {STRIPPED} -->", without_containers)
-    without_urls = _IMAGE_URL_RE.sub(STRIPPED, without_voids)
-    return _DATA_URI_RE.sub(STRIPPED, without_urls)
+    unwrapped_pictures = _PICTURE_RE.sub(lambda match: match.group(1), without_containers)
+    without_data_uris = _DATA_URI_RE.sub(STRIPPED, unwrapped_pictures)
+    return _EMBED_URL_RE.sub(STRIPPED, without_data_uris)
 
 
 def image_urls_in(html: str) -> list[str]:
     """
-    What `strip_media` would have removed. Used by tests and by an audit run, so
-    the claim "we drop their photographs" can be demonstrated rather than
-    asserted.
+    Every image URL the extractor can see. Used by tests and by an audit run, so
+    the claim "we carry the gallery a listing published" is demonstrable.
     """
     return _IMAGE_URL_RE.findall(html)
+

@@ -273,6 +273,16 @@ def main(argv: Optional[list[str]] = None) -> int:
         help="publishable place rows for the public site; '-' to skip",
     )
     parser.add_argument(
+        "--publish-from",
+        help=(
+            "publish from an existing records file (JSON array or JSONL of "
+            "DiscoveredListing records) without crawling. Used to re-publish a "
+            "frozen crawl stage - e.g. after publishing changed - without "
+            "re-fetching thousands of pages. Writes --publish and exits."
+        ),
+    )
+
+    parser.add_argument(
         "--attribution",
         default="Nigeria Property Centre",
         help="the source we name on every published row",
@@ -285,7 +295,15 @@ def main(argv: Optional[list[str]] = None) -> int:
             "used the observation tables are the ledger instead"
         ),
     )
+    parser.add_argument(
+        "--observed-on",
+        help=(
+            "ISO date to stamp on published rows. Defaults to today. Setting it "
+            "explicitly makes re-publishing a frozen stage byte-identical."
+        ),
+    )
     parser.add_argument("--max", type=int, default=500, help="cap on listings walked")
+
     parser.add_argument("--interval", type=float, default=5.0, help="seconds between hits on one host")
     parser.add_argument(
         "--transport",
@@ -369,12 +387,20 @@ def main(argv: Optional[list[str]] = None) -> int:
     registry = build_registry()
     adapter = registry.get(args.source)
 
+    # Publish-only mode: re-project records a previous stage already parsed, with
+    # no crawl and no network. Placed before the permission gate because it fetches
+    # nothing, so requiring a crawl review to re-run a projection would be asking
+    # for the wrong permission.
+    if args.publish_from:
+        return _run_publish_from(args)
+
     # Ingest-only mode: records already parsed by a previous stage. This exists so a
     # long staged crawl can be ingested, re-ingested and inspected without fetching
     # anything again - and so the database is written by this same code path rather
     # than by a second, parallel implementation that could drift from it.
     if args.ingest_file:
         return _run_ingest_file(args, adapter)
+
 
     # The permission gate. A source must have a recorded review before an adapter
     # runs against it, so the crawl decision is a reviewable record rather than a
@@ -610,6 +636,176 @@ def publish_directory(path: Path, listings: list, observed_on: str, *, attributi
     return directory
 
 
+def load_listing_records(path: Path) -> tuple[list[DiscoveredListing], int, int]:
+    """
+    Read `DiscoveredListing` records from a JSON array, a JSONL file, or a
+    published directory document.
+
+    Returns (listings, unusable, total). Extracted from `_run_ingest_file` so the
+    publish path and the ingest path cannot drift: both must reconstruct records
+    the same way, including the `to_record()` allowlist check that a re-load
+    would otherwise bypass.
+
+    Three accepted shapes, and the third is why this is not a two-line function:
+
+      1. A JSON array - a hand-assembled or already-de-duplicated record set.
+      2. JSONL - the format the crawl stages write, because a stage that dies
+         mid-run still leaves every completed record behind.
+      3. A published directory document (`{"places": [...]}`). This is what
+         `--publish` writes, and it is the natural thing to re-publish: a
+         directory that needs a projection change can be re-derived from its own
+         output without touching the crawl. Accepting it here keeps that a
+         one-command operation rather than a reason to write a second parser.
+    """
+    raw: list[dict] = []
+    text = path.read_text(encoding="utf-8").strip()
+
+    if text.startswith("["):
+        raw = json.loads(text)
+    elif text.startswith("{"):
+        # Either a published directory document or a single record. Told apart by
+        # whether it has a `places` key, not by guessing from the filename.
+        document = json.loads(text)
+        if isinstance(document.get("places"), list):
+            raw = document["places"]
+        else:
+            raw = [document]
+    else:
+        # JSONL: one record per line.
+        for line, entry in enumerate(text.splitlines(), 1):
+            entry = entry.strip()
+            if not entry:
+                continue
+            try:
+                raw.append(json.loads(entry))
+            except json.JSONDecodeError as exc:
+                raise SystemExit(f"{path.name}: malformed JSON on line {line}: {exc}") from exc
+
+    fields = set(DiscoveredListing.__dataclass_fields__)
+    listings: list[DiscoveredListing] = []
+    unusable = 0
+    for item in raw:
+        # A published row names the source and the listing in its `id`
+        # (`npc:3690360`) but carries no `source` or `source_listing_id` field, so
+        # both are recovered here. Without them every re-published row would read
+        # as identity-less and be dropped.
+        if isinstance(item.get("id"), str) and ":" in item["id"]:
+            prefix, listing_id = item["id"].split(":", 1)
+            item = {
+                **item,
+                "source": item.get("source", prefix),
+                "source_listing_id": item.get("source_listing_id", listing_id)
+            }
+
+        known = {key: value for key, value in item.items() if key in fields}
+        # Records with no identity cannot be used: (source, sourceListingId) is the
+        # uniqueness key, so a missing id would collide with every other record that
+        # is also missing one.
+        if not known.get("source_listing_id") or not known.get("source_url"):
+            unusable += 1
+            continue
+        # `media` arrives as a JSON list and is stored as a tuple, so this is the
+        # one field that needs coercing. A record written before media existed
+        # simply has no key and falls back to the dataclass default of ().
+        if isinstance(known.get("media"), list):
+            known["media"] = tuple(known["media"])
+
+        # A published row deliberately carries no `property_name` - it is the
+        # operator's marketing copy and stays internal (see `publishing.py`). The
+        # dataclass requires one, so a factual description is rebuilt from the
+        # fields the row does publish. It is never published again, so this is not
+        # a back door for the title: round-tripping a directory produces the same
+        # directory.
+        if not known.get("property_name"):
+            known["property_name"] = describe_factually(known)
+
+        listings.append(DiscoveredListing(**known))
+
+    return listings, unusable, len(raw)
+
+
+def describe_factually(fields: dict) -> str:
+    """
+    A factual descriptor for a row that has no stored title.
+
+    "3-bedroom shortlet, Ikeja" - the same construction the UI uses
+    (`placeDescriptor` in src/domain/directory.ts), because a row reloaded from
+    disk should look like the row that produced it rather than like a record that
+    lost its name.
+    """
+    parts: list[str] = []
+    bedrooms = fields.get("bedrooms")
+    if isinstance(bedrooms, int) and bedrooms > 0:
+        parts.append(f"{bedrooms}-bedroom")
+    property_type = fields.get("property_type")
+    if isinstance(property_type, str) and property_type:
+        parts.append(property_type.lower().replace("_", " "))
+    descriptor = " ".join(parts) if parts else "Shortlet"
+    area = fields.get("area") or fields.get("city")
+    return f"{descriptor}, {area}" if isinstance(area, str) and area else descriptor
+
+
+def _run_publish_from(args) -> int:
+    """
+    Publish a directory from an existing records file, with no crawl.
+
+    WHY THIS EXISTS
+    ---------------
+    The published projection changes more often than the crawl does. Adding
+    photographs to it, for instance, does not make the 583 pages already fetched
+    stale - but without this flag the only way to get the new projection was to
+    re-fetch all 583 of them at one request every five seconds.
+
+    It also makes the publish step reproducible: the same records file produces
+    the same directory.json, so a diff on that file is a diff on the projection
+    rather than on whatever the network happened to return that day.
+
+    `--dry-run` reports the funnel without writing anything.
+    """
+    from datetime import date
+
+    path = Path(args.publish_from)
+    if not path.exists():
+        print(f"--publish-from: {path} does not exist", file=sys.stderr)
+        return 2
+
+    listings, unusable, total = load_listing_records(path)
+    print(
+        f"publish-from: {total} records, {len(listings)} usable, "
+        f"{unusable} without an identity",
+        file=sys.stderr,
+    )
+
+    if not listings:
+        print("publish-from: nothing to publish", file=sys.stderr)
+        return 2
+
+    observed_on = args.observed_on or date.today().isoformat()
+
+    if args.dry_run:
+        report = funnel(listings)
+        print(json.dumps(report, indent=2), file=sys.stderr)
+        print("dry-run: no files written", file=sys.stderr)
+        return 0
+
+    if not args.publish or args.publish == "-":
+        print("publish-from needs a --publish path to write to", file=sys.stderr)
+        return 2
+
+    published = publish_directory(
+        Path(args.publish), listings, observed_on, attribution=args.attribution
+    )
+
+    with_media = sum(1 for entry in published["places"] if entry.get("cover_image_url"))
+    print(
+        f"published {published['counts']['places']:,} places "
+        f"({published['counts']['contactable']:,} contactable, "
+        f"{with_media:,} with photographs) to {args.publish}",
+        file=sys.stderr,
+    )
+    return 0
+
+
 def _run_ingest_file(args, adapter) -> int:
     """
     Ingest DiscoveredListing records from a JSON file written by a crawl stage.
@@ -629,40 +825,12 @@ def _run_ingest_file(args, adapter) -> int:
         print(parser_error, file=sys.stderr)
         return 2
 
-    raw: list[dict] = []
-    text = path.read_text(encoding="utf-8").strip()
-    if text.startswith("["):
-        # A JSON array.
-        raw = json.loads(text)
-    else:
-        # JSONL, one record per line. The crawl stages append line-by-line so a run
-        # that dies mid-stage still leaves every completed record behind, which a
-        # single JSON document could not do.
-        line = 0
-        for line, entry in enumerate(text.splitlines(), 1):
-            entry = entry.strip()
-            if not entry:
-                continue
-            try:
-                raw.append(json.loads(entry))
-            except json.JSONDecodeError as exc:
-                raise SystemExit(f"{path.name}: malformed JSON on line {line}: {exc}") from exc
-
-    fields = set(DiscoveredListing.__dataclass_fields__)
-    listings: list[DiscoveredListing] = []
-    unusable = 0
-    for item in raw:
-        known = {key: value for key, value in item.items() if key in fields}
-        # Records with no identity cannot be ingested: (source, sourceListingId) is
-        # the uniqueness key, so a missing id would collide with every other record
-        # that is also missing one.
-        if not known.get("source_listing_id") or not known.get("source_url"):
-            unusable += 1
-            continue
-        listings.append(DiscoveredListing(**known))
+    # Shared with `--publish-from`, so the two paths cannot reconstruct records
+    # differently - including the `to_record()` allowlist check.
+    listings, unusable, total = load_listing_records(path)
 
     print(
-        f"ingest-file: {len(raw)} records, {len(listings)} ingestable, "
+        f"ingest-file: {total} records, {len(listings)} ingestable, "
         f"{unusable} without an identity",
         file=sys.stderr,
     )

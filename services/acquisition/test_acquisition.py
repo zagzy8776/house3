@@ -40,6 +40,7 @@ from compliance.source_registry import (
 )
 from compliance.non_operator_hosts import is_non_operator_host
 from extraction.contact import find_operator_website
+from extraction.media import cover_from, extract_gallery
 from extraction.operator import extract_operator, name_from_domain
 from extraction.pms import find_availability_url
 from extraction.property import (
@@ -1202,24 +1203,31 @@ def test_each_fixture_is_a_distinct_property_from_one_operator() -> None:
 
 
 # ---------------------------------------------------------------------------
-# media stripping
+# media policy - the decision was reversed, and both halves are tested
 # ---------------------------------------------------------------------------
 
 
-def test_strip_media_removes_every_route_to_a_photograph() -> None:
+def test_strip_media_keeps_the_gallery_and_drops_the_rest() -> None:
     """
-    The guard has to hold for any way a developer can reference a file, not just
-    the <img> tag we thought of first.
+    Media is now carried. This replaces `test_strip_media_removes_every_route_to_a_
+    photograph`, which asserted the opposite policy.
+
+    The interesting half is what is STILL removed. Loosening "no photographs at
+    all" into "photographs when a listing publishes them" invites the mistake of
+    loosening it into "everything", so this test pins both sides:
+
+      * Gallery images survive, because extraction needs to see them.
+      * Video/audio embeds and inline base64 go, because they bloat a record and
+        a base64 blob is bytes rather than a URL.
+      * Facts are untouched - a guard that ate the price would be worse than none.
     """
     html = """
     <div class="gallery">
       <img src="https://cdn.nigeriapropertycentre.com/listing/1043552/1.jpg" alt="Living room" />
-      <picture><source srcset="https://cdn.x/2.webp 1x, https://cdn.x/3.webp 2x" /></picture>
-      <figure><img data-lazy-src="/media/4.JPEG" /><figcaption>Ensuite</figcaption></figure>
-      <div style="background-image: url('/media/5.png')"></div>
-      <a href="https://cdn.x/6.gif?w=800">gallery</a>
+      <picture><source srcset="https://cdn.x/2.webp 1x" /><img src="https://cdn.x/3.webp"></picture>
+      <img data-lazy-src="/media/4.JPEG" />
+      <video><source src="https://cdn.x/tour.mp4"></video>
       <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==" />
-      <script>var photos = ["https://cdn.x/7.avif"];</script>
     </div>
     <p class="price">₦240,000 /day</p>
     <a href="tel:+2348030000000">Call agent</a>
@@ -1227,26 +1235,356 @@ def test_strip_media_removes_every_route_to_a_photograph() -> None:
 
     stripped = strip_media(html)
 
-    # Every image extension is gone, including the uppercase one and the
-    # one buried in a JSON blob.
-    for leftover in (".jpg", ".jpeg", ".JPEG", ".webp", ".png", ".gif", ".avif"):
-        assert leftover.lower() not in stripped.lower()
-
-    # Container elements go whole, so no orphaned caption survives to suggest
-    # there was a photograph.
-    assert "<img" not in stripped
+    # The gallery survives, and the <picture> wrapper is unwrapped so a parser
+    # reading `src` sees one element per photograph rather than two.
+    assert "1043552/1.jpg" in stripped
+    assert "/media/4.JPEG" in stripped
+    assert "https://cdn.x/3.webp" in stripped
     assert "<picture" not in stripped
-    assert "<figure" not in stripped
-    assert "Living room" not in stripped
-    assert "Ensuite" not in stripped
+    assert stripped.count("3.webp") == 1
 
-    # The operator's own alt text is prose about the property, so it leaves too.
-    assert "alt=" not in stripped
+    # Containers that are not the gallery go, and inline base64 goes.
+    assert "tour.mp4" not in stripped
+    assert "base64" not in stripped
 
     # Facts we are allowed to keep are untouched. This is the important half:
     # a guard that ate the price would be worse than no guard.
     assert "₦240,000" in stripped
     assert "+2348030000000" in stripped
+
+
+def test_gallery_extraction_finds_the_property_photographs() -> None:
+    """
+    The filter is the feature. A portal page is mostly chrome, and returning all
+    of it would put a tracking pixel on a guest's screen as "photo 3".
+    """
+    page = "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos/lekki/1234567"
+    html = """
+    <img src="/img/logo.png">
+    <img src="/static/icons/search.svg">
+    <img src="/px.gif" width="1" height="1">
+    <img src="/images/pixel.gif" width="1" height="1">
+    <img src="/user/avatars/agent-88.jpg">
+    <img src="/img/placeholder.png" data-src="/uploads/1234567/living-room.jpg" alt="Living room">
+    <img src="/img/placeholder.png"
+         srcset="../photos/pool-400.jpg 400w, ../photos/pool-1600.jpg 1600w" alt="Pool">
+    <img src="https://cdn.npc.com/1234567/balcony.jpg">
+    <img src="/uploads/1234567/living-room.jpg">
+    """
+
+    gallery = extract_gallery(html, page)
+
+    # Real photographs, absolute and de-duplicated.
+    assert "https://www.nigeriapropertycentre.com/uploads/1234567/living-room.jpg" in gallery
+    assert "https://cdn.npc.com/1234567/balcony.jpg" in gallery
+    assert gallery.count("https://www.nigeriapropertycentre.com/uploads/1234567/living-room.jpg") == 1
+
+    # The largest srcset candidate wins; the 400w thumbnail is not stored.
+    assert any(url.endswith("/photos/pool-1600.jpg") for url in gallery)
+    assert not any(url.endswith("/photos/pool-400.jpg") for url in gallery)
+
+    # Chrome is gone: logo, icon, tracking pixel, avatar, and the placeholder
+    # itself - which is the bug that made this filter necessary, because a
+    # lazy-loading template keeps the placeholder in `src`.
+    assert not any("logo" in url for url in gallery)
+    assert not any("pixel" in url or url.endswith("px.gif") for url in gallery)
+    assert not any("avatar" in url for url in gallery)
+    assert not any(url.endswith("placeholder.png") for url in gallery)
+
+    # Every URL is absolute, so the stored row is self-contained.
+    assert all(url.startswith("https://") for url in gallery)
+
+
+def test_media_is_allowlisted_and_prose_is_not() -> None:
+    """
+    The reversal has a boundary, and this is it: photographs yes, someone's
+    written description no.
+    """
+    from compliance.allowed_fields import ALLOWED_FIELDS, FORBIDDEN_FIELDS, MEDIA_FIELDS
+
+    assert MEDIA_FIELDS <= ALLOWED_FIELDS
+    assert {"media", "media_count", "cover_image_url"} == set(MEDIA_FIELDS)
+
+    # Prose is still refused.
+    assert "description" in FORBIDDEN_FIELDS
+    assert "body_text" in FORBIDDEN_FIELDS
+
+    # A media record passes the extraction guard; a description does not.
+    assert_no_media_or_prose({"media": ["https://cdn.x/1.jpg"], "bedrooms": 3})
+
+    try:
+        assert_no_media_or_prose({"media": [], "description": "A lovely home"})
+    except PolicyViolation:
+        pass
+    else:
+        raise AssertionError("a description should not survive the extraction guard")
+
+
+def test_cover_is_the_first_gallery_image() -> None:
+    """A card needs one image without indexing a list; an empty gallery is None."""
+    assert cover_from(("https://cdn.x/1.jpg", "https://cdn.x/2.jpg")) == "https://cdn.x/1.jpg"
+    assert cover_from(()) is None
+
+
+def test_gallery_excludes_other_listings_photographs() -> None:
+    """
+    A live page carries a "similar properties" strip, and those photographs belong
+    to different properties. Showing them under this listing's name would be worse
+    than showing nothing: a guest would believe they were looking at the room they
+    are about to call about.
+
+    Measured on NPC listing 3690360, whose page returned four other properties'
+    images before this filter existed.
+    """
+    page = "https://www.nigeriapropertycentre.com/for-rent/short-let/lagos/lekki/3690360-full-duplex"
+    html = """
+    <img src="https://images.npc.com/properties/images/3690360/06ab-mine.webp">
+    <img src="https://images.npc.com/properties/images/thumbs/3693771/other.webp">
+    <img src="https://images.npc.com/properties/images/thumbs/3589721/other.webp">
+    <img src="https://images.npc.com/properties/profiles/7215_l.jpg">
+    <img src="https://cdn.other.com/random-photo.jpg">
+    """
+
+    gallery = extract_gallery(html, page, listing_id="3690360")
+
+    # This listing's own photograph survives, and leads.
+    assert gallery[0] == "https://images.npc.com/properties/images/3690360/06ab-mine.webp"
+
+    # Other listings' photographs and the operator's avatar are gone.
+    assert not any("3693771" in url for url in gallery)
+    assert not any("3589721" in url for url in gallery)
+    assert not any("profiles" in url for url in gallery)
+
+    # A CDN that carries no listing id is kept: refusing those would refuse
+    # nearly every real photograph.
+    assert "https://cdn.other.com/random-photo.jpg" in gallery
+
+
+def test_gallery_filter_is_off_when_no_listing_id_is_known() -> None:
+    """
+    Without an id there is nothing to contradict, so nothing is dropped. The
+    filter must not become a blanket refusal when a source does not number its
+    listings.
+    """
+    page = "https://example.com/listing"
+    html = '<img src="https://cdn.x/properties/images/3693771/a.webp">'
+
+    assert extract_gallery(html, page) == ("https://cdn.x/properties/images/3693771/a.webp",)
+    assert extract_gallery(html, page, listing_id="3690360") == ()
+
+
+def test_listing_carries_its_gallery_into_the_directory_row() -> None:
+    """
+    End to end through the projection: what extraction found is what publishing
+    emits, and the fields stay inside the declared publishable set.
+    """
+    listing = _listing(
+        media=("https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"),
+        cover_image_url="https://cdn.npc.com/1.jpg",
+    )
+
+    row = to_place_row(listing, "2026-09-23")
+
+    assert row["media"] == ["https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"]
+    assert row["media_count"] == 2
+    assert row["cover_image_url"] == "https://cdn.npc.com/1.jpg"
+
+    # The property's marketing title is still dropped, media notwithstanding.
+    assert "property_name" not in row
+
+    # And the row passes the publishable gate it was just built for.
+    assert_publishable(row)
+
+
+def test_a_mangled_price_is_refused_rather_than_published() -> None:
+    """
+    A real page produced a real false positive, so this is pinned.
+
+    NPC listing 3685973 (3-bedroom, Ikoyi) carries `145,888,581` as its first
+    price match. That is a concatenated figure on the publisher's page, not a
+    rate - the page's other prices are 120,000 and 160,000 - and it was published
+    as a nightly rate before this ceiling existed.
+
+    One absurd number does not cost one wrong row: this platform's claim is that
+    its figures are observed facts, and a guest who sees NGN 145,888,581 a night
+    stops believing every other number on the page.
+    """
+    # The observed artefact is refused.
+    assert parse_price_to_kobo("145,888,581") is None
+
+    # Real rates either side of it are not.
+    assert parse_price_to_kobo("120,000") == 12_000_000
+    assert parse_price_to_kobo("6,000,000") == 600_000_000
+
+    # The floor still holds, from the other direction: "3 bedrooms" is not a price.
+    assert parse_price_to_kobo("3") is None
+
+
+def test_the_ceiling_does_not_reject_a_real_nightly_rate() -> None:
+    """
+    A guard that rejects real listings is worse than the problem it solves, so the
+    ceiling is deliberately far above the observed top of the market (about
+    NGN 6,000,000 a night for a whole Lagos villa).
+    """
+    from extraction.property import MAX_PLAUSIBLE_NIGHTLY_NAIRA
+
+    assert MAX_PLAUSIBLE_NIGHTLY_NAIRA > 6_000_000
+    assert parse_price_to_kobo("20,000,000") == 2_000_000_000
+    assert parse_price_to_kobo("20,000,001") is None
+
+
+def test_a_mangled_price_is_refused_at_publish_time_too() -> None:
+    """
+    The ceiling is applied twice, deliberately.
+
+    A row can reach `to_place_row` from records extracted BEFORE the extraction
+    guard existed, and re-publishing must be lossless - so it cannot silently
+    rewrite stored values. This is the second check, and it is the one that
+    actually protected the shipped directory: a re-publish carried NPC 3685973's
+    mangled `145,888,581` straight through until this existed.
+    """
+    from publishing import plausible_price_kobo
+
+    # The observed artefact, as kobo.
+    assert plausible_price_kobo(14_588_858_100) is None
+
+    # Real rates survive: NGN 120,000 and NGN 6,000,000 a night.
+    assert plausible_price_kobo(12_000_000) == 12_000_000
+    assert plausible_price_kobo(600_000_000) == 600_000_000
+
+    # And so do the two "not published" shapes.
+    assert plausible_price_kobo(None) is None
+    assert plausible_price_kobo(0) is None
+
+
+def test_the_dropped_price_reads_as_not_published_not_as_zero() -> None:
+    """
+    Dropping the price must remove the field, not zero it: the UI distinguishes
+    "we could not read a rate" from "the rate is zero", and only one of those is
+    ever true.
+
+    `currency` is deliberately still asserted as present, because it is a
+    dataclass default and asserting otherwise was a test bug rather than a
+    finding - "NGN" with no price is harmless, and a UI that saw a currency and
+    no amount reads it as "rate not published", which is the truth.
+    """
+    row = to_place_row(_listing(advertised_price=14_588_858_100), "2026-09-23")
+
+    assert "advertised_price" not in row
+    assert row["currency"] == "NGN"
+
+
+def test_a_published_directory_can_be_re_published_unchanged() -> None:
+    """
+    `--publish-from` accepts a published directory document, not only a records
+    file, so a projection change can be re-derived from a directory's own output
+    without re-fetching anything.
+
+    THE PROPERTY THIS PINS: a round trip is lossless. A published row deliberately
+    carries no `source`, no `source_listing_id` and no `property_name` - the name
+    is the operator's copy and never published - so the reloader has to recover
+    them from data the row does have. If that recovery were wrong, the second
+    publish would differ from the first and every re-publish would silently
+    degrade the directory.
+    """
+    import json
+    import tempfile
+
+    from pipeline import describe_factually, load_listing_records, publish_directory
+
+    listing = DiscoveredListing(
+        source="npc",
+        source_url="https://www.nigeriapropertycentre.com/for-rent/short-let/lagos/lekki/1043552-x",
+        source_listing_id="1043552",
+        property_name="Luxury 3 Bedrooms Flats with City View",
+        property_type="SHORTLET",
+        bedrooms=3,
+        bathrooms=3,
+        advertised_price=22000000,
+        state="LA",
+        area="Lekki",
+        phone="09080000395",
+        media=("https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"),
+        cover_image_url="https://cdn.npc.com/1.jpg",
+    )
+
+    first = publish_directory(
+        Path(tempfile.gettempdir()) / "house3-roundtrip-1.json",
+        [listing],
+        "2026-09-24",
+        attribution="Nigeria Property Centre",
+    )
+
+    with tempfile.TemporaryDirectory() as workspace:
+        document = Path(workspace) / "directory.json"
+        document.write_text(json.dumps(first), encoding="utf-8")
+
+        reloaded, unusable, total = load_listing_records(document)
+        assert (total, unusable, len(reloaded)) == (1, 0, 1)
+
+        second = publish_directory(
+            Path(workspace) / "directory-2.json",
+            reloaded,
+            "2026-09-24",
+            attribution="Nigeria Property Centre",
+        )
+
+    # The gallery survived both directions.
+    assert second["places"][0]["media"] == ["https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"]
+    assert second["places"][0]["media_count"] == 2
+
+    # And the reloaded row is identity-for-identity what went in.
+    assert first["places"] == second["places"]
+
+
+def test_a_row_without_a_title_is_described_factually() -> None:
+    """
+    A published row has no `property_name`, so `load_listing_records` rebuilds one
+    factually. It must not invent marketing copy - the whole reason the title is
+    dropped is that it is the operator's writing.
+    """
+    from pipeline import describe_factually
+
+    assert describe_factually({"bedrooms": 3, "property_type": "SHORTLET", "area": "Lekki"}) == (
+        "3-bedroom shortlet, Lekki"
+    )
+    # No area: still a usable descriptor rather than a dangling comma.
+    assert describe_factually({"bedrooms": 2, "property_type": "APARTMENT"}) == "2-bedroom apartment"
+    # Nothing to describe: not an empty string.
+    assert describe_factually({}) == "Shortlet"
+
+    """
+    End to end through the projection: what extraction found is what publishing
+    emits, and the fields stay inside the declared publishable set.
+    """
+    listing = DiscoveredListing(
+        source="npc",
+        source_url="https://www.nigeriapropertycentre.com/for-rent/short-let/lagos/lekki/1043552-x",
+        source_listing_id="1043552",
+        property_name="Luxury 3 Bedrooms Flats with City View",
+        property_type="SHORTLET",
+        bedrooms=3,
+        bathrooms=3,
+        advertised_price=22000000,
+        state="LA",
+        area="Lekki",
+        phone="09080000395",
+        media=("https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"),
+        cover_image_url="https://cdn.npc.com/1.jpg",
+    )
+
+    row = to_place_row(listing, "2026-09-23")
+
+    assert row["media"] == ["https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"]
+    assert row["media_count"] == 2
+    assert row["cover_image_url"] == "https://cdn.npc.com/1.jpg"
+
+    # The property's marketing title is still dropped, media notwithstanding.
+    assert "property_name" not in row
+
+    # And the row passes the publishable gate it was just built for.
+    assert_publishable(row)
+
 
 
 def test_image_urls_in_reports_what_would_be_removed() -> None:
@@ -1488,18 +1826,36 @@ def test_guard_refuses_to_fetch_when_robots_disallows() -> None:
     assert inner.calls == [], "the inner provider was called despite a robots refusal"
 
 
-def test_guard_strips_media_from_provider_output() -> None:
+def test_guard_preserves_media_from_provider_output() -> None:
     """
-    Media stripping runs on whatever a provider returns, so swapping the stdlib
-    transport for a managed service does not open the door to photographs.
+    Media handling runs on whatever a provider returns, so swapping the stdlib
+    transport for a managed service does not change what extraction sees.
+
+    This test used to assert `.jpg` was GONE: the guard's job was to delete
+    photographs before a parser could reach them. That policy was reversed - see
+    `compliance/allowed_fields.py` - so the assertion is inverted. The function now
+    normalises rather than removes, and what it still removes is what it still
+    must: embeds and inline bytes.
     """
     from compliance.rate_limit import HostThrottle
 
-    inner = _RecordingProvider('<html><img src="https://cdn.x/a.jpg"><p>₦200,000</p></html>')
+    inner = _RecordingProvider(
+        '<html><img src="https://cdn.x/a.jpg">'
+        '<video><source src="https://cdn.x/tour.mp4"></video>'
+        "<p>₦200,000</p></html>"
+    )
     guard = GuardedProvider(inner, _AllowAll(), HostThrottle(interval_seconds=0.0), 0.0)
 
     stripped = guard.fetch("https://example.com/listing")
-    assert ".jpg" not in stripped
+
+    # The gallery reaches the parser, because that is now the point.
+    assert "https://cdn.x/a.jpg" in stripped
+
+    # Embeds are still normalised away, so a provider is not a side door into
+    # carrying video this adapter was never written to read.
+    assert "tour.mp4" not in stripped
+
+    # And the price we actually need is untouched.
     assert "₦200,000" in stripped
 
 
@@ -1588,14 +1944,37 @@ def test_published_row_never_carries_the_operators_listing_title() -> None:
     ), row
 
 
-def test_publish_guard_rejects_media_and_prose() -> None:
-    for leaked in ({"photos": ["a.jpg"]}, {"description": "A lovely home"}, {"image": "x.jpg"}):
+def test_publish_guard_rejects_prose() -> None:
+    """
+    Prose is still refused. This test used to be
+    `test_publish_guard_rejects_media_and_prose` and looped over `photos` and
+    `image` as well; those pass the guard now by design - the platform carries a
+    listing's gallery - and asserting they were refused was only ever true
+    because the names were undeclared, which is a different rule.
+    """
+    for leaked in ({"description": "A lovely home"}, {"body_text": "..."}, {"summary": "..."}):
         try:
             assert_publishable({**{"operator_name": "X"}, **leaked})
         except PolicyViolation as exc:
             assert list(leaked)[0] in str(exc)
         else:
             raise AssertionError(f"publish guard allowed {leaked}")
+
+
+def test_publish_guard_accepts_a_gallery() -> None:
+    """
+    The other half of the same decision, asserted so the reversal cannot be
+    half-applied: prose out, gallery in.
+    """
+    row = assert_publishable(
+        {
+            "operator_name": "X",
+            "media": ["https://cdn.x/1.jpg"],
+            "media_count": 1,
+            "cover_image_url": "https://cdn.x/1.jpg",
+        }
+    )
+    assert row["media"] == ["https://cdn.x/1.jpg"]
 
 
 def test_publish_guard_rejects_undeclared_fields() -> None:
@@ -1697,13 +2076,39 @@ def test_to_affiliate_row_rejects_invalid_authorization_metadata() -> None:
         raise AssertionError(f"affiliate row accepted invalid metadata: {overrides}")
 
 
-def test_directory_declares_media_as_absent_rather_than_omitting_it() -> None:
+def test_directory_carries_each_place_gallery() -> None:
     """
-    A guest should be able to tell "no photographs we may show" from "the page
-    failed to load them". Declaring it null is what makes that possible.
+    The gallery travels with the row.
+
+    This test used to be `test_directory_declares_media_as_absent_rather_than_
+    omitting_it` and asserted the document's top-level `media` was None, which
+    was how the old no-photographs policy announced itself. Media is per-place now
+    and is carried, so what is worth asserting is that the document's summary
+    still says media exists, and that each row's own gallery and cover agree.
+    """
+    listing = _listing(
+        media=("https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"),
+        cover_image_url="https://cdn.npc.com/1.jpg",
+    )
+    directory = build_directory([listing], "2026-09-23", attribution="Nigeria Property Centre")
+
+    row = directory["places"][0]
+    assert row["media"] == ["https://cdn.npc.com/1.jpg", "https://cdn.npc.com/2.jpg"]
+    assert row["media_count"] == 2
+    assert row["cover_image_url"] == "https://cdn.npc.com/1.jpg"
+
+
+def test_a_place_with_no_photographs_says_so_rather_than_omitting_the_field() -> None:
+    """
+    A guest should be able to tell "the listing published no photographs" from
+    "the page failed to load them". Declaring the gallery empty is what makes that
+    possible, and it is why `media` is omitted rather than dropped entirely.
     """
     directory = build_directory([_listing()], "2026-09-23", attribution="Nigeria Property Centre")
 
+    row = directory["places"][0]
+    assert "media" not in row
+    assert "cover_image_url" not in row
     assert directory["media"] is None
 
 

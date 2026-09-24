@@ -5,8 +5,8 @@
  *
  * Behaviour change: it is now a real form. The design's "Search available
  * spaces" button only closed the modal, which is a dead end. This submits to
- * /search with the same query parameters the booking flow already understands,
- * so the modal becomes a genuine entry point into the funnel.
+ * /search with the same query parameters the results page reads, so the modal
+ * becomes a genuine entry point into the directory.
  */
 
 import { useState, type FormEvent } from 'react';

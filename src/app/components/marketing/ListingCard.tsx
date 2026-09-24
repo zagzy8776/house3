@@ -3,82 +3,123 @@
 /* eslint-disable @next/next/no-img-element */
 
 /**
- * Listing card - markup ported from the design, data from the real engine.
+ * Listing card.
  *
- * The design computed the guest price as `Math.round(rate * 1.127)` - a
- * hardcoded gross-up. This takes `guestNightlyKobo` computed by
- * `src/domain/pricing.ts`, so the card cannot drift from the checkout total:
- * the same fee policy, the same rounding, the same VAT treatment.
+ * TWO SOURCES, AND WHY THE CARD NO LONGER KNOWS WHICH
+ * ---------------------------------------------------
+ * This card renders whatever model it is handed. The homepage builds those
+ * models from the acquisition pipeline's published directory - real places, real
+ * observed rates, real photographs the listing published, and a link to the
+ * place's own page.
  *
- * The rating badge only renders when a real rating exists. We have no reviews
- * yet, so it is absent rather than invented - the design's 4.9/5.0 values were
- * placeholders.
+ * It used to take a `MarketingListing` from `src/content/marketing.ts`, which
+ * meant the front page rendered invented names and Unsplash stock photographs as
+ * if they were inventory. That is gone. `IllustrativeListingModel` below exists
+ * only so the design can still be worked on against a full grid; nothing on the
+ * site passes one.
+ *
+ * THE PRICE SAYS WHOSE IT IS
+ * --------------------------
+ * The figure is the OPERATOR's published rate, labelled "per night, operator's
+ * rate". The design's version computed `Math.round(rate * 1.127)` - a hardcoded
+ * gross-up standing in for our service fee. There is no service fee any more, so
+ * there is nothing to gross up: the number shown is the number the operator
+ * published, which is the number the guest will be quoted when they call.
  */
 
+import { formatNaira } from '@/domain/money';
 import { Card3D } from './primitives';
-import type { MarketingListing } from '@/content/marketing';
 
-export type ListingCardModel = MarketingListing & {
-  /** Guest-facing per-night total, already including fee and VAT, pre-formatted. */
-  guestNightlyDisplay: string;
+/** A card built from a real observed place. */
+export type ListingCardModel = {
+  id: string;
+  name: string;
+  area: string;
+  /** The listing's own photograph, or null when it published none. */
+  image: string | null;
+  /** Kobo. The rate the operator published - never a House3 price. */
+  rateKobo: number | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  type: string;
+  /** True when the listing published a gallery rather than a single image. */
+  hasGallery: boolean;
+  /** How many photographs the listing published. Zero renders the placeholder. */
+  photoCount: number;
+  /** Where to open the place. */
+  href: string;
+  tags: string[];
 };
 
 export function ListingCard({ listing }: { listing: ListingCardModel }) {
-  const searchHref = `/search?area=${encodeURIComponent(listing.area.split(',')[0] ?? listing.area)}&guests=2`;
+  const rate = listing.rateKobo === null ? null : formatNaira(listing.rateKobo, { decimals: false });
 
   return (
     <Card3D className="rounded-2xl overflow-hidden cursor-pointer group">
-      <div
-        className="rounded-2xl overflow-hidden"
-        style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+      <a
+        href={listing.href}
+        className="rounded-2xl overflow-hidden block h-full"
+        style={{
+          background: 'var(--card)',
+          border: '1px solid var(--border)',
+          textDecoration: 'none',
+          color: 'inherit'
+        }}
       >
-        <div className="relative overflow-hidden" style={{ height: 240, background: '#111' }}>
-          <img
-            src={listing.image}
-            alt={listing.name}
-            loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          />
+        <div className="relative overflow-hidden" style={{ height: 240, background: 'var(--muted)' }}>
+          {listing.image ? (
+            <img
+              src={listing.image}
+              alt={listing.name}
+              loading="lazy"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+          ) : (
+            <div
+              className="w-full h-full flex flex-col items-center justify-center px-6 text-center"
+              style={{
+                background: 'linear-gradient(140deg, rgba(217,124,43,0.16) 0%, rgba(20,14,10,0.9) 70%)'
+              }}
+            >
+              <p
+                className="text-sm m-0 font-medium"
+                style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-outfit)' }}
+              >
+                No photographs published
+              </p>
+            </div>
+          )}
+
           <div
             className="absolute inset-0"
             style={{ background: 'linear-gradient(to top, rgba(10,8,6,0.7) 0%, transparent 55%)' }}
           />
 
-          {listing.featured ? (
+          {/* The photo count, not a "Featured" badge: it tells the guest how much
+              there is to look at, which is the thing they act on. */}
+          {listing.photoCount > 1 ? (
             <div className="absolute top-3 left-3">
               <span
                 className="px-2.5 py-1 rounded-full text-xs font-semibold"
                 style={{
-                  background: 'var(--primary)',
-                  color: 'var(--primary-foreground)',
+                  background: 'rgba(0,0,0,0.6)',
+                  backdropFilter: 'blur(8px)',
+                  color: 'var(--foreground)',
                   fontFamily: 'var(--font-outfit)'
                 }}
               >
-                Featured
+                {listing.photoCount} photos
               </span>
             </div>
           ) : null}
 
-          <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end">
+          <div className="absolute bottom-3 left-3 right-3">
             <p
               className="text-white font-semibold text-sm m-0"
               style={{ fontFamily: 'var(--font-outfit)', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}
             >
               {listing.area}
             </p>
-            {listing.rating ? (
-              <div
-                className="flex items-center gap-1 px-2 py-1 rounded-full"
-                style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}
-              >
-                <svg width="10" height="10" viewBox="0 0 12 12" fill="var(--accent)" aria-hidden="true">
-                  <path d="M6 0l1.5 4.5H12L8.25 7.5 9.75 12 6 9l-3.75 3L3.75 7.5 0 4.5h4.5z" />
-                </svg>
-                <span className="text-xs font-medium text-white" style={{ fontFamily: 'var(--font-outfit)' }}>
-                  {listing.rating}
-                </span>
-              </div>
-            ) : null}
           </div>
         </div>
 
@@ -92,11 +133,16 @@ export function ListingCard({ listing }: { listing: ListingCardModel }) {
                 className="text-sm mt-0.5 m-0"
                 style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-outfit)' }}
               >
-                {listing.beds} bed · {listing.baths} bath · {listing.sqm}m²
+                {[
+                  listing.bedrooms !== null ? `${listing.bedrooms} bed` : null,
+                  listing.bathrooms !== null ? `${listing.bathrooms} bath` : null
+                ]
+                  .filter(Boolean)
+                  .join(' · ') || 'Details not published'}
               </p>
             </div>
             <span
-              className="px-2 py-0.5 rounded-lg text-xs"
+              className="px-2 py-0.5 rounded-lg text-xs whitespace-nowrap"
               style={{
                 background: 'var(--secondary)',
                 color: 'var(--secondary-foreground)',
@@ -107,56 +153,57 @@ export function ListingCard({ listing }: { listing: ListingCardModel }) {
             </span>
           </div>
 
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {listing.tags.map((tag) => (
-              <span
-                key={tag}
-                className="text-xs px-2 py-0.5 rounded-full"
-                style={{
-                  background: 'rgba(217,124,43,0.12)',
-                  color: 'var(--accent)',
-                  fontFamily: 'var(--font-outfit)',
-                  border: '1px solid rgba(217,124,43,0.2)'
-                }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+          {listing.tags.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {listing.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="text-xs px-2 py-0.5 rounded-full"
+                  style={{
+                    background: 'rgba(217,124,43,0.12)',
+                    color: 'var(--accent)',
+                    fontFamily: 'var(--font-outfit)',
+                    border: '1px solid rgba(217,124,43,0.2)'
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
 
-          <div
-            className="flex justify-between items-center pt-3 border-t"
-            style={{ borderColor: 'var(--border)' }}
-          >
+          <div className="flex justify-between items-end pt-3 border-t" style={{ borderColor: 'var(--border)' }}>
             <div>
               <p
                 className="text-xs mb-0.5 m-0"
                 style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-outfit)' }}
               >
-                per night, all fees in
+                {rate ? "per night, operator's rate" : 'rate not published'}
               </p>
               <p
                 className="font-bold text-lg m-0"
-                style={{ fontFamily: 'var(--font-jetbrains)', color: 'var(--primary)' }}
+                style={{
+                  fontFamily: 'var(--font-jetbrains)',
+                  color: rate ? 'var(--primary)' : 'var(--muted-foreground)'
+                }}
               >
-                {listing.guestNightlyDisplay}
+                {rate ?? '—'}
               </p>
             </div>
-            <a
-              href={searchHref}
-              className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:opacity-80"
+            <span
+              className="px-4 py-2 rounded-xl text-sm font-medium"
               style={{
                 background: 'var(--secondary)',
                 color: 'var(--foreground)',
-                fontFamily: 'var(--font-outfit)',
-                textDecoration: 'none'
+                fontFamily: 'var(--font-outfit)'
               }}
             >
               View →
-            </a>
+            </span>
           </div>
         </div>
-      </div>
+      </a>
     </Card3D>
   );
 }
+

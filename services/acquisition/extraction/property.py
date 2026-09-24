@@ -63,12 +63,38 @@ def strip_tags(value: str) -> str:
     return html_module.unescape(TAG_RE.sub(" ", value)).strip()
 
 
+#: The highest figure we will accept as a NIGHTLY rate: NGN 20,000,000.
+#:
+#: WHY THERE IS A CEILING AT ALL
+#:
+#: A floor already existed - below NGN 1,000 is treated as a parse error - and the
+#: ceiling is the same argument from the other end. It is needed because a real
+#: page produced a real false positive: NPC listing 3685973 (3-bedroom, Ikoyi)
+#: carries the figure 145,888,581 as its first price match. That is a mangled or
+#: concatenated number on the publisher's own page, not a rate - the page's other
+#: prices are 120,000 and 160,000 - and it was published as a nightly rate.
+#:
+#: The cost of that mistake is not one wrong number. This platform's entire claim
+#: is that its figures are observed facts a guest can act on; one absurd rate
+#: discredits every other figure on the page, and a guest who notices stops
+#: believing any of them.
+#:
+#: NGN 20,000,000 a night is deliberately far above the most expensive Nigerian
+#: shortlet (the top of the observed Lagos distribution is around NGN 6,000,000,
+#: for a whole villa) so it cannot reject a real listing, and far below the figures
+#: that concatenation produces. A price above it is dropped, and `price_basis`
+#: becomes the reason the UI can say "rate not published" honestly.
+MAX_PLAUSIBLE_NIGHTLY_NAIRA = 20_000_000
+
+
 def parse_price_to_kobo(raw: Optional[str]) -> Optional[int]:
     """
     "NGN 220,000" / "₦220,000 /day" / "1,200,000" -> kobo.
 
     Below 1,000 naira is treated as a parse error, because the alternative is
-    recording "3 bedrooms" as a 3 naira nightly rate.
+    recording "3 bedrooms" as a 3 naira nightly rate. Above
+    `MAX_PLAUSIBLE_NIGHTLY_NAIRA` is treated the same way, because a mangled
+    figure on a source page must not become a guest-facing price.
     """
     if not raw:
         return None
@@ -76,7 +102,11 @@ def parse_price_to_kobo(raw: Optional[str]) -> Optional[int]:
     if not digits:
         return None
     naira = int(digits)
-    return None if naira < 1_000 else naira * 100
+    if naira < 1_000:
+        return None
+    if naira > MAX_PLAUSIBLE_NIGHTLY_NAIRA:
+        return None
+    return naira * 100
 
 
 def first_int(pattern: re.Pattern[str], text: str) -> Optional[int]:

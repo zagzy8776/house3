@@ -192,20 +192,37 @@ No view counts are recorded anywhere. We cannot observe how many people viewed s
 else's listing — that number is in their analytics and appears nowhere on the page — and
 inferring one from search rank would mean presenting a guess as a measurement.
 
-## The operator directory (`/places`)
+## A listing's own page (`/stay/:id`)
 
-The second surface for the second kind of listing. `services/acquisition/publishing.py`
-writes `directory.json`; `src/domain/directory.ts` validates it; `/places` renders it.
+The surface for discovered inventory. `services/acquisition/publishing.py` writes
+`directory.json`; `src/domain/directory.ts` validates it; `/stay/:id` renders one place
+in full, and `/` and `/search` render the same rows as cards.
 
-It exists so the site carries real coverage in a state before anyone there has signed.
-The line is **facts versus creative work**, not "scraped versus not":
+There is no longer a separate `/places` operator directory. It was a table of
+operators to contact, which is the wrong shape for the product: a guest does not want
+a list of companies, they want the place. Clicking a listing now opens the place's own
+page, with its gallery, its facts and the ranked ways to reach it.
+
+The line is **facts and the listing's own gallery versus the operator's writing**:
 
 | Publishable | Not publishable |
 |---|---|
-| Operator name, phone, email, website, Instagram | Photographs |
-| Area, city, state | Written descriptions |
-| Bedrooms, bathrooms, property type | The operator's listing title |
+| Operator name, phone, email, website, Instagram | Written descriptions |
+| Area, city, state | The operator's listing title |
+| Bedrooms, bathrooms, property type | Any photograph the listing did not publish |
 | The rate they advertise, dated and attributed | The rate as a price we can charge |
+| The listing's own photographs, absolute and attributed | A stock or substitute image |
+
+Every row carries `attribution` and links back to `sourceUrl`; `assertPublishable()`
+throws without them. `advertisedPriceKobo` is the operator's published rate — it is
+never rendered as a bookable total, and `HANDOFF_DISCLOSURE` is what the page says
+beside it. `placeHref()` is the route; `placeDetailRows()` decides which facts are
+displayable, so the page renders a list rather than deciding what exists.
+
+Photographs are carried, and the extraction filters are the feature: site chrome,
+tracking pixels, avatars and "similar properties" thumbnails belonging to other
+listings are all dropped, so what a guest sees is this place and only this place.
+
 
 Every row carries `attribution` and links back to `sourceUrl`; `assertPublishable()`
 throws without them. `advertisedPriceKobo` is what the operator published — it is never

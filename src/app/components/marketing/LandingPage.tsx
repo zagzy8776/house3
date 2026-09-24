@@ -17,6 +17,7 @@
 
 import { useState } from 'react';
 import { BRAND, HERO, NAV_LINKS } from '@/content/marketing';
+import { formatNaira } from '@/domain/money';
 import { FloatingOrb, MOTION_KEYFRAMES } from './primitives';
 import { SearchModal } from './SearchModal';
 import { ShowcaseSection } from './sections/ShowcaseSection';
@@ -146,20 +147,33 @@ export function LandingPage({ listings, cities, heroStats, recentBooking }: Land
               transform: 'perspective(800px) rotateY(-8deg) rotateX(4deg)'
             }}
           >
-            <img
-              src={listings[0]?.image ?? ''}
-              alt=""
-              className="rounded-xl w-full mb-3 object-cover"
-              style={{ height: 110 }}
-            />
+            {listings[0]?.image ? (
+              <img
+                src={listings[0].image}
+                alt=""
+                className="rounded-xl w-full mb-3 object-cover"
+                style={{ height: 110 }}
+              />
+            ) : (
+              <div
+                className="rounded-xl w-full mb-3 flex items-center justify-center"
+                style={{ height: 110, background: 'var(--muted)' }}
+              >
+                <span className="text-xs" style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-outfit)' }}>
+                  no photo
+                </span>
+              </div>
+            )}
             <p className="text-xs font-semibold mb-0.5 m-0" style={{ fontFamily: 'var(--font-outfit)', color: 'var(--foreground)' }}>
-              {listings[0]?.name ?? 'The Lekki Residence'}
+              {listings[0]?.name ?? 'Our latest finds'}
             </p>
             <p className="text-xs m-0" style={{ color: 'var(--muted-foreground)', fontFamily: 'var(--font-outfit)' }}>
-              {listings[0]?.area ?? 'Lekki Phase 1, Lagos'}
+              {listings[0]?.area ?? 'Lagos, Abuja, Ibadan, Owerri, Uyo'}
             </p>
             <p className="text-sm font-bold mt-2 m-0" style={{ fontFamily: 'var(--font-jetbrains)', color: 'var(--primary)' }}>
-              {listings[0]?.guestNightlyDisplay ?? ''}/night
+              {listings[0]?.rateKobo
+                ? `${formatNaira(listings[0].rateKobo, { decimals: false })}/night`
+                : 'rate on request'}
             </p>
           </div>
         </div>

@@ -47,17 +47,27 @@ Three ways to fetch a page, one interface behind them, chosen with `--transport`
 | `fixture` | bundled HTML | offline development and tests |
 
 Every one of them is wrapped in `GuardedProvider`, which runs the robots check,
-then the throttle, then the provider, then media stripping. **A paid crawl API
-does not move the obligation.** If Firecrawl fetches a page, we received that
-page, so the rules run on its output exactly as they run on our own. Firecrawl's
-scrape endpoint takes no robots parameter and `excludeTags` is a cost
-optimisation on top of our stripper, never a replacement for it.
+then the throttle, then the provider, then media normalisation. **A paid crawl API
+does not move the obligation.** If Firecrawl fetches a page, we received that page,
+so the rules run on its output exactly as they run on our own. Firecrawl's scrape
+endpoint takes no robots parameter and `excludeTags` is a cost optimisation on top
+of our normaliser, never a replacement for it.
 
-`strip_media()` removes image references from the markup *before* extraction —
-`<img>`, `<picture>`, `<figure>`, CSS `url()`, `srcset`, data URIs, and any URL
-ending in an image extension in any attribute or inline JSON. A parser therefore
-cannot match a photo URL even by mistake. Stopping at an output allowlist would
-only prevent *storing* one.
+`strip_media()` runs on the markup *before* extraction. It no longer deletes
+images - the platform carries a listing's own gallery, by product decision, and
+`compliance/allowed_fields.py` records that reversal - so what it still does is
+normalise: `<video>`/`<audio>`/`<object>`/`<embed>` go whole, `<picture>` is
+unwrapped to the `<img>` inside it, and inline base64 is replaced with a marker so
+a data URI cannot smuggle bytes past a URL check.
+
+`extraction/media.py` is the module that reads the gallery, and its filters are the
+feature: a portal page is mostly chrome. Logos, favicons, icons, sprites, tracking
+pixels, agent avatars, `placeholder` assets and operator profile images are all
+dropped, `srcset` is resolved to its largest candidate, lazy-loading `data-src` is
+preferred over a placeholder `src`, and any image whose path names a DIFFERENT
+listing id is dropped outright - because a "similar properties" strip is four other
+people's apartments, and showing those under this listing's name would be worse
+than showing nothing.
 
 ## Discovery
 

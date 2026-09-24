@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import {
+  placeToPartner,
+  placeToUnit
+} from '@/server/directoryRepository';
+import {
   affiliateHandoffHref,
   assertPublishable,
   bookableSearchHref,
@@ -9,6 +13,8 @@ import {
   formatAdvertisedRate,
   parseDirectory,
   placeDescriptor,
+  placeDetailRows,
+  placeHref,
   placeLocation,
   UnpublishablePlaceError,
   type RawDirectoryPlace
@@ -47,7 +53,11 @@ describe('directory publication guard', () => {
     expect(place.advertisedPriceKobo).toBe(20_000_000);
     expect(place.distribution).toBe('DIRECTORY');
     expect(place.affiliate).toBeNull();
-    expect(place.media).toBeNull();
+    // An empty gallery, not a null one: a listing that published no photographs
+    // is a fact the UI renders as a placeholder, and `null` would force every
+    // caller to distinguish "no photos" from "field missing".
+    expect(place.media).toEqual([]);
+    expect(place.coverImageUrl).toBeNull();
   });
 
   it('accepts an authorized affiliate row and maps its handoff', () => {
@@ -196,16 +206,64 @@ describe('directory publication guard', () => {
     expect(() => assertPublishable(row({ source_url: undefined }))).toThrow(/no source URL/i);
   });
 
-  it('refuses a row carrying photographs', () => {
-    // The one mistake here that cannot be taken back: a page that went live
-    // with someone's photograph has already been viewed and cached.
-    for (const forbidden of ['photos', 'images', 'gallery', 'image']) {
-      expect(() => assertPublishable(row({ [forbidden]: ['a.jpg'] }))).toThrow(
+  it('refuses a row carrying the operator’s written copy', () => {
+    // MEDIA IS NOW ALLOWED; PROSE IS NOT. This test used to loop over
+    // ['photos','images','gallery','image'] and assert each one was refused.
+    // The media half of that policy was reversed by product decision - the
+    // platform shows a listing's photographs - and the record of the reversal is
+    // in services/acquisition/compliance/allowed_fields.py.
+    //
+    // What is still refused is the operator's writing, which is the other half
+    // and the one that matters more: a description is prose with an author.
+    for (const forbidden of ['description', 'body_text', 'summary']) {
+      expect(() => assertPublishable(row({ [forbidden]: 'A lovely home' }))).toThrow(
         /non-publishable field/i
       );
     }
   });
 
+  it('carries the gallery and derives the cover from it', () => {
+    // The positive half of the same decision: media IS published, and the cover
+    // is computed from the gallery rather than trusted from the row.
+    const place = assertPublishable(
+      row({
+        media: ['https://cdn.x/1.jpg', 'https://cdn.x/2.jpg'],
+        cover_image_url: 'https://cdn.x/2.jpg'
+      })
+    );
+
+    expect(place.media).toEqual(['https://cdn.x/1.jpg', 'https://cdn.x/2.jpg']);
+    // The cover is the FIRST gallery image, not the row's claim. A row that
+    // promoted an image the gallery does not contain would otherwise put a photo
+    // on a card that the gallery then fails to show.
+    expect(place.coverImageUrl).toBe('https://cdn.x/1.jpg');
+  });
+
+  it('drops unusable image URLs instead of rejecting the whole place', () => {
+    // A place is worth publishing for its name, area and rate alone. Losing a
+    // real property over one malformed image URL would be the wrong trade.
+    const place = assertPublishable(
+      row({
+        media: [
+          'https://cdn.x/1.jpg',
+          'javascript:alert(1)',
+          'data:image/png;base64,AAAA',
+          'not a url',
+          'https://cdn.x/1.jpg',
+          'https://cdn.x/3.jpg'
+        ]
+      })
+    );
+
+    expect(place.media).toEqual(['https://cdn.x/1.jpg', 'https://cdn.x/3.jpg']);
+    expect(place.coverImageUrl).toBe('https://cdn.x/1.jpg');
+  });
+
+  it('treats a listing with no photographs as an empty gallery, not an error', () => {
+    const place = assertPublishable(row());
+    expect(place.media).toEqual([]);
+    expect(place.coverImageUrl).toBeNull();
+  });
   it("refuses a row carrying the operator's own listing title", () => {
     // A listing title is the operator's marketing copy, not a fact. It stays
     // internal for dedupe and never reaches a public page.
@@ -342,7 +400,138 @@ describe.runIf(existsSync(REAL_DIRECTORY))('real pipeline output', () => {
     for (const place of result.places) {
       expect(place.attribution).toBeTruthy();
       expect(place.sourceUrl).toMatch(/^https?:\/\//);
-      expect(place.media).toBeNull();
+      // Media is carried now, so it is an array - empty when the listing published
+      // no photographs. The guarantee that matters is that every entry is an
+      // absolute http(s) URL and that the cover agrees with the gallery.
+      expect(Array.isArray(place.media)).toBe(true);
+      for (const url of place.media) {
+        expect(url).toMatch(/^https?:\/\//);
+      }
+      expect(place.coverImageUrl).toBe(place.media[0] ?? null);
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// the place page
+// ---------------------------------------------------------------------------
+
+describe('a place’s own page', () => {
+  it('encodes the id, because the id contains a colon', () => {
+    // A place id is `{source}:{listingId}`. A raw colon in a path segment is
+    // legal but fragile, and a route that truncated at it would 404 every
+    // listing - so the href is encoded here and decoded by the route.
+    const href = placeHref({ id: 'npc:1043552' });
+
+    expect(href).toBe('/stay/npc%3A1043552');
+    expect(decodeURIComponent(href.replace('/stay/', ''))).toBe('npc:1043552');
+  });
+
+  it('lists only the facts that were actually published', () => {
+    // A row reading "Bathrooms —" is noise, and a guest reads it as a failed
+    // lookup rather than as "the operator did not publish this".
+    const place = assertPublishable(row({ bathrooms: null, property_type: null, pms_detected: null }));
+    const labels = placeDetailRows(place, 'Lagos').map((entry) => entry.label);
+
+    expect(labels).not.toContain('Bathrooms');
+    expect(labels).not.toContain('Type');
+    expect(labels).not.toContain('Booking system');
+
+    // The ones that are always present, because every row carries them.
+    expect(labels).toContain('Bedrooms');
+    expect(labels).toContain('Location');
+    expect(labels).toContain('Source');
+    expect(labels).toContain('Last checked');
+  });
+
+  it('reports the attribution and the last-seen date as facts', () => {
+    const place = assertPublishable(row());
+    const detail = Object.fromEntries(placeDetailRows(place, 'Lagos').map((entry) => [entry.label, entry.value]));
+
+    expect(detail.Source).toBe('Nigeria Property Centre');
+    expect(detail['Last checked']).toBe('2026-09-20');
+    expect(detail.Location).toContain('Ikeja');
+  });
+
+  it('never renders a payable total', () => {
+    // The one invariant this page cannot break: there is no payment path in the
+    // app, so no label it produces may read like a charge.
+    const place = assertPublishable(row({ advertised_price: 20_000_000 }));
+    const rendered = placeDetailRows(place, 'Lagos')
+      .map((entry) => `${entry.label} ${entry.value}`)
+      .join(' ')
+      .toLowerCase();
+
+    for (const forbidden of ['total', 'pay now', 'service fee', 'vat', 'due']) {
+      expect(rendered).not.toContain(forbidden);
+    }
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// the search projection
+// ---------------------------------------------------------------------------
+
+describe('published places as searchable inventory', () => {
+  it('projects an observed place into the unit search reads', () => {
+    const place = assertPublishable(
+      row({ media: ['https://cdn.x/1.jpg'], advertised_price: 15_000_000 })
+    );
+    const unit = placeToUnit(place);
+    const partner = placeToPartner(place);
+
+    expect(unit.id).toBe('npc:1043552');
+    expect(unit.nightlyRateKobo).toBe(15_000_000);
+    expect(unit.stateCode).toBe('LA');
+    expect(unit.area).toBe('Ikeja');
+
+    // Not sellable, and there is no payment path to make it so.
+    expect(unit.bookable).toBe(false);
+
+    // Absent, not guessed: a wrong pin sends a guest to the wrong street, and
+    // search already treats null as "not geo-searchable".
+    expect(unit.latitude).toBeNull();
+    expect(unit.longitude).toBeNull();
+
+    // The operator is carried for the page, but no settlement account exists
+    // because no money moves.
+    expect(partner.displayName).toBe('Adeniyi Jones Residences Ltd');
+    expect(partner.paystackSubaccountCode).toBeNull();
+    expect(partner.settlementVerified).toBe(false);
+  });
+
+  it('gives an unpriced place a synthetic rate so it cannot break a whole search', () => {
+    // MEASURED BUG. `computeQuote` throws on a rate of 0, and the throw escaped
+    // the search loop - so six unpriced places out of 260 returned "0 places"
+    // for the whole of Lagos. A placeholder keeps the row priceable; the UI
+    // reads `advertisedPriceKobo` and renders "rate not published" instead.
+    const unpriced = assertPublishable(row({ advertised_price: null }));
+    const unit = placeToUnit(unpriced);
+
+    expect(unit.nightlyRateKobo).toBeGreaterThan(0);
+    expect(unit.nightlyRateKobo).toBe(100_000);
+
+    // And the observed absence is still visible to the UI, which is what decides
+    // what a guest actually sees.
+    expect(unpriced.advertisedPriceKobo).toBeNull();
+  });
+
+  it('carries the contact fields the place page needs', () => {
+    const place = assertPublishable(row({ website: 'https://adeniyijones.ng' }));
+    const unit = placeToUnit(place);
+
+    expect(unit.sourceUrl).toBe(place.sourceUrl);
+    expect(unit.sourceName).toBe('Nigeria Property Centre');
+    expect(unit.operatorName).toBe('Adeniyi Jones Residences Ltd');
+    expect(unit.contactPhone).toBe('0803 000 0000');
+  });
+
+  it('describes a place factually, never from a title', () => {
+    // Titles are dropped by the pipeline, so the descriptor is the only name a
+    // row has - and it has to be built from numbers and a location.
+    const unit = placeToUnit(assertPublishable(row()));
+    expect(unit.name).toBe('3-bedroom shortlet, Ikeja');
+  });
+});
+

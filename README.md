@@ -1,40 +1,52 @@
-# House3 — Nigeria shortlet & hostel booking platform
+# House3 — Nigerian shortlet discovery & referral
 
-House3 aggregates shortlet apartments, serviced flats and hostel beds across Nigeria,
-takes the guest's payment once, and settles the operator's share straight into the
-operator's own bank account. The platform's revenue is a **disclosed service fee**.
+House3 is a **discovery and referral platform** for Nigerian shortlets. It crawls the
+listings operators publish themselves, shows a guest the operator's own photographs, the
+rate they published and every other fact it observed — and then sends the guest to the
+operator to arrange the stay.
+
+**House3 does not take payments, does not process bookings, promises no availability and
+is not the merchant of record.** There is no payment code in this repository, no
+processor key it reads, and no fee it charges. A guest decides, contacts the property, and
+pays them directly. What the platform provides is coverage: the work of finding out who
+operates what, where, and at what rate.
 
 **Launch coverage:** Lagos → Abuja (FCT) → Oyo → Imo → Akwa Ibom, then the remaining
 31 states + FCT.
 
 ---
 
+## What a guest does
+
+```
+Homepage              observed places, with the operator's own photographs
+  -> View
+/stay/{source}:{id}   the gallery, every observed detail, the published rate,
+                      and the ranked ways to reach the operator
+  -> Call / WhatsApp / operator site / source listing
+The operator. Not House3.
+```
+
 ## How the money works
 
-This is the core of the product, so it is stated plainly.
+It does not, and that is the design. The table below is what the platform used to do and
+has been removed:
 
-| | Amount | Goes to |
-|---|---|---|
-| Room subtotal (`roomSubtotalKobo`) | the operator's own published rate | **the operator** |
-| Cleaning / turnover passthrough | the operator's own fee | **the operator** |
-| House3 service fee | % of room revenue, min/max capped, NGN 50 rounding | **House3** |
-| VAT on the service fee (7.5%) | Nigerian VAT on *our* supply only | **House3** |
-| Processor fee (e.g. 1.5% + NGN 100, capped NGN 2,000) | configured bearer | processor |
+| Concept | Status |
+|---|---|
+| Operator's published rate | **Observed.** Shown as "the rate the operator published", attributed to the source, with the date we saw it. |
+| Service fee | **Does not exist.** Removed with the payment layer. |
+| VAT on a service fee | **Does not exist.** There is no supply of ours to tax. |
+| Processor fee | **Does not exist.** Nothing is processed. |
+| A payable total | **Does not exist.** No page renders one, and no code path can produce one. |
 
-Worked example — a Lagos operator advertises **NGN 150,000** for one night:
+`src/domain/pricing.ts` and `src/domain/splits.ts` still hold the arithmetic, fully unit
+tested, with no caller in the UI. They are kept for a transaction business that may come
+later; `src/domain/contact.ts` is what the product expresses today and what every page
+uses.
 
-```
-Room (1 night)               NGN 150,000.00   -> operator
-Cleaning & turnover           NGN  10,000.00   -> operator
-House3 service fee (12%)      NGN  18,000.00   -> House3
-VAT on service fee (7.5%)     NGN   1,350.00   -> House3
---------------------------------------------------------------
-Charged to the guest          NGN 179,350.00
-```
+**The guest always knows whose rate they are looking at and who to call.**
 
-The guest is charged `179,350`. Paystack sends the operator their full share to their
-subaccount, keeps its own processing fee, and remits the remainder to House3. The
-platform never holds the operator's money waiting to pay it out by hand.
 
 **The guest always sees the breakdown, and the operator is always named on the listing.**
 That is not a nicety — it is what makes operators willing to sign, keeps the merchant

@@ -19,7 +19,7 @@ export const HERO = {
   badgeIllustrative: true,
   headlineFirst: 'Premium stays',
   headlineAccent: 'across Nigeria',
-  subhead: 'Shortlets, serviced flats and penthouse suites — with an itemised receipt before you pay.'
+  subhead: 'Shortlets, serviced flats and penthouse suites — see the operator’s own photographs and rates, then deal with them directly.'
 } as const;
 
 export const HERO_STATS: { value: string; label: string; illustrative: boolean }[] = [
@@ -27,18 +27,33 @@ export const HERO_STATS: { value: string; label: string; illustrative: boolean }
   { value: '312', label: 'Abuja listings', illustrative: true },
   { value: '195', label: 'Other states', illustrative: true },
   // This one is true, and it is the whole pitch. Never make it illustrative.
-  { value: '₦0', label: 'Hidden fees', illustrative: false }
+  { value: '₦0', label: 'Booking fees', illustrative: false }
 ];
 
 export const FILTERS = ['All', 'Serviced Flat', 'Studio', 'Penthouse', 'Shortlet'] as const;
 
 /**
- * Listing presentation data from the design.
+ * Listing presentation data for the design.
  *
- * `rate` is the OPERATOR's nightly rate - the number the operator advertises.
- * The guest-facing total is computed by the pricing engine, never by
- * multiplying by a hardcoded factor.
+ * THESE ARE NOT THE SITE'S INVENTORY. THEY ARE GONE FROM THE HOMEPAGE.
+ *
+ * This array used to be the source of the landing page's listing grid. It is
+ * illustrative design content - invented names ("The Lekki Residence"), invented
+ * rates, and Unsplash photographs of apartments that have nothing to do with any
+ * Nigerian shortlet. Rendering it as the front page's inventory was the single
+ * most misleading thing on the site: a guest saw a real-looking price for a place
+ * that does not exist, on a page that also claims every number is real.
+ *
+ * `src/app/page.tsx` now reads the acquisition pipeline's published directory and
+ * passes real observed places to `ListingCard`. Nothing imports this array.
+ *
+ * It is kept - rather than deleted - for one narrow purpose: `FILTERS` and the
+ * `MarketingListing` shape are still the design's vocabulary for listing type, and
+ * the visual design of the card is easier to work on against a full grid of six
+ * than against whatever a crawl happened to return. If you are tempted to wire it
+ * back into a page, read the paragraph above first.
  */
+
 export type MarketingListing = {
   id: string;
   name: string;
@@ -56,7 +71,8 @@ export type MarketingListing = {
   reviews?: number;
 };
 
-export const LISTINGS: MarketingListing[] = [
+export const ILLUSTRATIVE_LISTINGS: MarketingListing[] = [
+
   {
     id: '1',
     name: 'The Lekki Residence',
@@ -190,10 +206,10 @@ export const CITIES: {
 
 export const SECTION_COPY = {
   listingsHeadline: 'Available now',
-  listingsSub: 'All prices include fees — what you see is what you pay.',
+  listingsSub: 'The operator’s own photographs and nightly rate. We do not add a fee — you deal with them directly.',
   citiesHeadline: '5 states, growing',
-  ctaHeadline: 'Book your stay tonight.',
-  ctaBody: '1,354 verified spaces across Lagos, Abuja, Ibadan, Owerri and Uyo.',
+  ctaHeadline: 'Find your stay tonight.',
+  ctaBody: '1,354 spaces across Lagos, Abuja, Ibadan, Owerri and Uyo.',
   ctaIllustrative: true,
   ctaButton: 'Find a space'
 } as const;
@@ -203,13 +219,17 @@ export const SECTION_COPY = {
  *
  * The `#pricing` entry was removed along with the pricing section — an anchor to
  * a section that no longer exists is a dead link.
+ *
+ * The `Operators` entry was removed with `/places`. That page was a separate
+ * "operator directory" of contact-only rows, and it was the wrong shape for the
+ * product: a guest does not want a table of operators to contact, they want the
+ * place. Listings now open on their own page, at `/stay/:id`, with the gallery and
+ * every observed detail - so the nav entry pointed at a redundant surface and the
+ * page is gone.
  */
 export const NAV_LINKS = [
   { href: '#listings', label: 'Listings' },
-  { href: '#cities', label: 'Cities' },
-  // The operator directory - every shortlet we can see, whether or not we can
-  // sell it yet. A real route rather than an anchor, since it is its own page.
-  { href: '/places', label: 'Operators' }
+  { href: '#cities', label: 'Cities' }
 ] as const;
 
 /** Search modal coverage line — matches the five launch states. */
@@ -220,10 +240,14 @@ export const SEARCH_COVERAGE = 'Lagos · Abuja · Ibadan · Owerri · Uyo';
  *
  * Surfaced so the single `IS_ILLUSTRATIVE` flag can drive a visible disclosure
  * during pre-launch, or be flipped off once Lagos supply makes the numbers real.
+ *
+ * The listing grid is no longer on this list, because it is no longer a claim:
+ * the homepage renders places the crawler actually observed. What remains here is
+ * the marketing copy that still asserts coverage we have not measured.
  */
 export const ILLUSTRATIVE_CLAIMS = [
   HERO.badgeIllustrative ? 'hero badge: "1,354 spaces across 5 states"' : null,
   ...HERO_STATS.filter((stat) => stat.illustrative).map((stat) => `hero stat: ${stat.value} ${stat.label}`),
   ...CITIES.filter((city) => city.illustrative).map((city) => `city count: ${city.city} ${city.count}`),
-  SECTION_COPY.ctaIllustrative ? 'closing CTA: "1,354 verified spaces"' : null
+  SECTION_COPY.ctaIllustrative ? 'closing CTA: "1,354 spaces"' : null
 ].filter((entry): entry is string => entry !== null);

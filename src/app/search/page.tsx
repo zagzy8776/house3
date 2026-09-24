@@ -2,14 +2,30 @@
  * Search results.
  *
  * Moved here from `/` when the Figma Make landing page took over the front door.
- * Renders the FULL price breakdown on every result, via MoneyTable. There is no
- * code path in this app that shows a total without the fee that produced it.
+ *
+ * WHAT CHANGED AND WHY
+ * --------------------
+ * This page used to say "the operator's own rate, our service fee, and VAT on
+ * that fee" and render a `MoneyTable` whose last row read "Total to pay now",
+ * with a service-fee and VAT line above it. None of that is true any more:
+ * House3 does not take payments, does not charge a service fee and is not the
+ * merchant of record. A page that itemised a fee we do not charge was the most
+ * misleading thing the app could show, so the fee lines and the payable total are
+ * gone.
+ *
+ * What replaces them is the operator's own rate, the number of nights it covers,
+ * and a link to the place's own page where the guest sees the gallery and every
+ * observed detail and chooses how to make contact.
  */
 
 import { findState, liveStates } from '@/data/nigeria';
-import { getContainer } from '@/server/container';
-import type { PlaceResult } from '@/server/placeSearch';
-import { MoneyTable } from '../components/MoneyTable';
+import { HANDOFF_DISCLOSURE } from '@/domain/contact';
+import { formatNaira } from '@/domain/money';
+import { placeHref, placeDescriptor, placeLocation } from '@/domain/directory';
+import { buildDirectoryRepository } from '@/server/directoryRepository';
+import { createPlaceSearch, type PlaceResult } from '@/server/placeSearch';
+import { defaultFeePolicy, allFeePolicies } from '@/data/feePolicies';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,19 +55,40 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   let results: PlaceResult[] = [];
   let error: string | null = null;
   let operatorCount = 0;
+  let nights = 0;
+  let total = 0;
 
   try {
-    const outcome = getContainer().places.search({
+    // Search reads the PUBLISHED DIRECTORY, not the demo fixtures. Before this,
+    // the homepage rendered crawled places while this page returned zero for the
+    // same state - coverage the search box could not find.
+    const repo = await buildDirectoryRepository();
+    const policies = allFeePolicies();
+    const search = createPlaceSearch({
+      repo,
+      feePolicyFor: (stateCode) =>
+        policies.find((policy) => policy.subjectId === stateCode) ?? defaultFeePolicy()
+    });
+
+    const outcome = search.search({
       stateCode,
       area,
       stay: { checkIn, checkOut },
       guests
     });
+
     results = outcome.results;
+    nights = outcome.nights;
+    total = outcome.results.length + outcome.excluded.length;
     operatorCount = new Set(results.map((result) => result.partner.id)).size;
   } catch (caught) {
     error = caught instanceof Error ? caught.message : 'Search failed';
   }
+
+  // Every discovered unit links to the place's own page, where the gallery and
+  // the full detail live. That is what a guest needs in order to decide to call.
+  const detailHrefFor = (result: PlaceResult): string | null =>
+    result.unit.sourceUrl ? placeHref({ id: result.unit.id }) : null;
 
   return (
     <main className="h3-page">
@@ -62,8 +99,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         </span>
       </h1>
       <p className="h3-lede">
-        Every price is itemised: the operator&apos;s own rate, our service fee, and VAT on that fee.{' '}
-        <a href="/">Back to home</a>
+        What each operator published, and how to reach them. We do not take the booking or the
+        payment. <a href="/">Back to home</a>
       </p>
 
       <form method="get" className="h3-search">
@@ -106,21 +143,60 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       {error ? <p className="h3-error">{error}</p> : null}
 
       <p className="h3-summary">
-        {results.length} stay{results.length === 1 ? '' : 's'} from {operatorCount} operator
-        {operatorCount === 1 ? '' : 's'}
-        {area ? ` in ${area}` : ''} · {checkIn} to {checkOut} · {guests} guest{guests === 1 ? '' : 's'}
+        {results.length} place{results.length === 1 ? '' : 's'} of {total} in{' '}
+        {findState(stateCode)?.name ?? stateCode}
+        {area ? ` in ${area}` : ''} · {checkIn} to {checkOut} · {nights} night
+        {nights === 1 ? '' : 's'} · {guests} guest{guests === 1 ? '' : 's'}
       </p>
+
+      <p className="h3-summary" style={{ marginTop: '-0.5rem' }}>
+        {HANDOFF_DISCLOSURE}
+      </p>
+
+      {total === 0 ? (
+        <p className="h3-summary">
+          We have not crawled {findState(stateCode)?.name ?? stateCode} yet, so there is nothing to
+          show here. This is a limit of our coverage rather than of your search.
+        </p>
+      ) : null}
 
       <ul className="h3-list">
         {results.map((result) => (
-          <ResultCard key={result.unit.id} result={result} />
+          <ResultCard
+            key={result.unit.id}
+            result={result}
+            detailHref={detailHrefFor(result)}
+            nights={nights}
+          />
         ))}
       </ul>
     </main>
   );
 }
 
-function ResultCard({ result }: { result: PlaceResult }) {
+/**
+ * One search result.
+ *
+ * THE PRICE REPLACED A PAYABLE TOTAL
+ *
+ * This card used to render `MoneyTable`, whose final row read "Total to pay
+ * now" beneath a service-fee line and a VAT line. There is no code path in this
+ * app that can take that payment, so the card now shows the operator's own
+ * nightly rate, what it comes to for the dates chosen, and a way through to the
+ * place's page. The arithmetic notes what it is: a calculation, not a charge.
+ */
+function ResultCard({
+  result,
+  detailHref,
+  nights
+}: {
+  result: PlaceResult;
+  detailHref: string | null;
+  nights: number;
+}) {
+  const nightlyKobo = result.unit.nightlyRateKobo;
+  const stayKobo = nightlyKobo * nights;
+
   return (
     <li className="h3-card">
       <div className="h3-card__head">
@@ -134,12 +210,45 @@ function ResultCard({ result }: { result: PlaceResult }) {
             Operated by <strong>{result.partner.displayName}</strong> · minimum stay {result.unit.minNights}{' '}
             night{result.unit.minNights === 1 ? '' : 's'}
           </div>
+          {result.unit.sourceName ? (
+            <div className="h3-operator">
+              Observed on <strong>{result.unit.sourceName}</strong>
+            </div>
+          ) : null}
+
+          {detailHref ? (
+            <p className="h3-operator" style={{ marginTop: '0.75rem' }}>
+              <Link href={detailHref}>See the photographs and full details →</Link>
+            </p>
+          ) : null}
         </div>
 
         <div className="h3-card__price">
-          <MoneyTable lines={result.quote.lines} totalKobo={result.quote.totalKobo} />
+          <table className="h3-money">
+            <tbody>
+              <tr className="h3-money__row--room">
+                <td>
+                  {nights} night{nights === 1 ? '' : 's'} at the operator&apos;s rate
+                </td>
+                <td>{formatNaira(stayKobo)}</td>
+              </tr>
+              <tr className="h3-money__row--passthrough">
+                <td>Cleaning &amp; turnover</td>
+                <td>{formatNaira(result.unit.cleaningFeeKobo)}</td>
+              </tr>
+              <tr className="h3-money__row--total">
+                <td>Payable to the operator</td>
+                <td>{formatNaira(stayKobo + result.unit.cleaningFeeKobo)}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p className="h3-operator" style={{ marginTop: '0.5rem' }}>
+            {formatNaira(nightlyKobo)} per night. This is a calculation from the rate the operator
+            published, not a charge from House3.
+          </p>
         </div>
       </div>
     </li>
   );
 }
+

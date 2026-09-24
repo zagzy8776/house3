@@ -26,11 +26,12 @@ advertises a sitemap is telling crawlers where its canonical pages are; guessing
 URL shapes is both more fragile and less welcome. List-page pagination is the
 fallback, and it is capped.
 
-WHAT THIS ADAPTER WILL NOT DO
------------------------------
-It extracts facts: price, type, bedrooms, area, and the operator's published
-contact. It never returns photographs or description text, and
-`assert_no_media_or_prose` fails the run if a change makes it try.
+WHAT THIS ADAPTER EXTRACTS
+--------------------------
+Facts: price, type, bedrooms, area, the operator's published contact, and the
+listing's own gallery. Media is extracted by `extraction/media.py` and allowlisted
+by `compliance/allowed_fields.py`; prose (description text) is still refused, and
+`assert_no_media_or_prose` fails the run if a change makes this adapter emit it.
 """
 
 from __future__ import annotations
@@ -42,7 +43,9 @@ from urllib.parse import urljoin, urlparse
 
 from sources.base import DiscoveredListing, SourceLayer
 from extraction.contact import find_email, find_instagram, find_operator_website, find_phones
+from extraction.media import cover_from, extract_gallery
 from extraction.operator import extract_operator
+
 from extraction.pms import detect_pms, find_availability_url, find_booking_url
 from extraction.property import (
     BATHROOMS_RE,
@@ -267,6 +270,21 @@ class NpcAdapter:
         advertised_price = parse_price_to_kobo(price_match.group(0) if price_match else None)
         price_basis = parse_price_basis(plain, price_match)
 
+        # The gallery, extracted from the RAW html and not from `plain`: strip_tags
+        # has already removed the <img> elements by this point.
+        #
+        # `url` is passed as the base rather than `source_url`, deliberately. The
+        # page may have been reached from a list page whose relative paths resolve
+        # differently, and the images are physically on the page we actually
+        # fetched. Resolving against a canonical URL we never loaded would produce
+        # URLs that 404.
+        #
+        # `listing_id` filters out the "similar properties" strip. A live page for
+        # 3690360 returned four photographs of OTHER properties; without this they
+        # would have been shown under this listing's name.
+        gallery = extract_gallery(html, url, listing_id=listing_id)
+
+
         listing = DiscoveredListing(
             source=self.name,
             source_url=source_url,
@@ -291,7 +309,10 @@ class NpcAdapter:
             booking_url=find_booking_url(html, url),
             availability_hint_url=find_availability_url(html, url),
             title_document=extract_title_document(plain),
+            media=gallery,
+            cover_image_url=cover_from(gallery),
         )
+
 
         # A page with no operator signal at all is a property we cannot act on,
         # but it is still a real observation: keep it, scored low.

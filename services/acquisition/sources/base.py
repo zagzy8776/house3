@@ -45,8 +45,14 @@ class DiscoveredListing:
     """
     One listing page, reduced to facts we are allowed to keep.
 
-    Note there is no image field and no description field: they cannot be
-    represented here, which is stronger than promising not to use them.
+    MEDIA IS NOW REPRESENTED HERE. It was not, and the omission was the point:
+    this dataclass used to say "there is no image field ... which is stronger than
+    promising not to use them". The product decision changed - House3 shows a
+    guest the photographs a listing publishes, because a guest picking a place to
+    call needs to see the place - so `media` now exists and
+    `compliance/allowed_fields.py` allowlists it. See that module's docstring for
+    the decision and for what is still excluded (prose: `description`,
+    `body_text`, `summary`).
     """
 
     source: str
@@ -82,6 +88,12 @@ class DiscoveredListing:
     #: silently makes them comparable-looking. See `extraction/property.py`.
     price_basis: Optional[str] = None
     title_document: Optional[str] = None
+    #: The listing's own gallery: absolute image URLs, in the order the page
+    #: presented them. An empty tuple means the listing published no images, which
+    #: is a fact the UI renders as a placeholder rather than as a broken image.
+    media: tuple[str, ...] = ()
+    #: The first gallery image, promoted so a card does not have to index a list.
+    cover_image_url: Optional[str] = None
 
     def to_record(self) -> dict:
         """Serialise for the allowlist check, dropping unset fields."""
@@ -109,8 +121,12 @@ class DiscoveredListing:
             "availability_hint_url": self.availability_hint_url,
             "price_basis": self.price_basis,
             "title_document": self.title_document,
+            "media": list(self.media) or None,
+            "media_count": len(self.media) or None,
+            "cover_image_url": self.cover_image_url,
         }
         return assert_no_media_or_prose({k: v for k, v in raw.items() if v is not None})
+
 
 
 @runtime_checkable

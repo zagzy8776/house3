@@ -6,23 +6,21 @@ WHAT THIS IS
 Turns a crawl into rows the public site can display. It is the difference
 between a lead list and a directory.
 
-WHY FACTS ARE PUBLISHABLE AND PHOTOGRAPHS ARE NOT
--------------------------------------------------
-A directory is legal. Yelp does not need a licence to say "Adeniyi Jones
-Residences, Lekki, phone number, opens at 9". Facts about a business are not
-owned by anyone: its name, its address, its phone number, its published prices.
-We watched an operator advertise a 3-bedroom in Lekki at 220,000 a night. That
-happened, we saw it, and we can say so.
+FACTS, INCLUDING THE GALLERY
 
-A photograph is different. It is a creative work with an owner, and republishing
-it is not made lawful by the fact that it was reachable. That holds whether we
-fetched the page ourselves or paid an API to fetch it.
+A directory publishes facts about a business: its name, its address, its phone
+number, the prices it publishes, and the photographs it chose to show. House3
+shows a guest the listing's own gallery, because a guest choosing a place to call
+needs to see the place. Every row still carries `attribution` and links to
+`source_url`, so the origin of every field - including every photograph - is one
+click away.
 
-So this module publishes operator identity, location, size and advertised rate,
-attributes every row to its source, and links the guest to the operator. Media
-is `null` in the output, declared rather than merely absent, because "we have no
-photographs of this place yet" is a fact about the row that the UI should be
-able to render and the claim flow is built on.
+This module used to drop `property_name` as "the operator's marketing copy" and
+carry `media: null` as a declared feature. The media half of that decision has
+been reversed by product decision and the reversal is recorded in
+`compliance/allowed_fields.py`. PROSE IS STILL EXCLUDED: we display a listing's
+photographs, we do not republish its written description - and `property_name`
+is still dropped, for the reason below.
 
 WHAT IS DELIBERATELY EXCLUDED
 -----------------------------
@@ -34,6 +32,7 @@ night" is both more useful and unambiguously fact. No trade-off.
 Nothing here reads the network. The publishable set is derived from fields the
 extraction layer already cleared, and it is checked again on the way out.
 """
+
 
 from __future__ import annotations
 
@@ -66,12 +65,16 @@ PUBLISHABLE_FIELDS = frozenset(
         # what they asked - a published price, attributed
         "advertised_price",
         "currency",
-        # our own observation, not theirs
-        "first_seen_at",
-        "last_seen_at",
         # provenance, required on every row
         "source",
         "source_url",
+        # our own observation, not theirs
+        "first_seen_at",
+        "last_seen_at",
+        # the property's own gallery, observed and attributed
+        "media",
+        "media_count",
+        "cover_image_url",
         # public projection fields
         "id",
         "distribution",
@@ -82,6 +85,7 @@ PUBLISHABLE_FIELDS = frozenset(
         "affiliate_disclosure",
     }
 )
+
 
 #: Never published, whatever else changes. `property_name` is here because it is
 #: the operator's marketing copy rather than a fact, so it stays internal for
@@ -124,6 +128,25 @@ def assert_publishable(record: dict) -> dict:
     return record
 
 
+def plausible_price_kobo(amount_kobo: Optional[int]) -> Optional[int]:
+    """
+    The advertised price, or None when the figure cannot be a nightly rate.
+
+    Shared with `extraction.property.parse_price_to_kobo` so the ceiling is one
+    constant rather than two that can drift. Applied a second time here because a
+    row can arrive from records extracted before the guard existed.
+    """
+    from extraction.property import MAX_PLAUSIBLE_NIGHTLY_NAIRA
+
+    if not isinstance(amount_kobo, int) or amount_kobo <= 0:
+        return None
+    if amount_kobo < 1_000 * 100:
+        return None
+    if amount_kobo > MAX_PLAUSIBLE_NIGHTLY_NAIRA * 100:
+        return None
+    return amount_kobo
+
+
 def contact_route(listing: DiscoveredListing) -> Optional[dict]:
     """
     How a guest can reach the operator. Ordered by how directly it converts.
@@ -151,6 +174,21 @@ def to_place_row(listing: DiscoveredListing, observed_on: str) -> dict:
 
     Attribute-or-drop: every optional field is omitted rather than nulled, so a
     row never carries a placeholder the UI might render as real information.
+
+    The gallery is carried through. `media` is the listing's own photographs as
+    absolute URLs, attributed to the source like every other field on the row, and
+    `cover_image_url` is promoted so a card does not have to index the list.
+
+    THE PRICE IS RE-CHECKED HERE, NOT ONLY AT EXTRACTION
+    ----------------------------------------------------
+    `parse_price_to_kobo` refuses an implausible figure when a page is parsed, but
+    a directory can also be built from records extracted BEFORE that guard existed
+    - which is exactly what happened: a re-publish carried NPC 3685973's mangled
+    `145,888,581` straight through, because re-publishing must be lossless and
+    therefore must not silently rewrite values. The ceiling is applied here as well
+    so a stored artefact cannot reach a guest on the second pass. A price that
+    fails the check is dropped, which the UI renders as "rate not published" -
+    true, and better than a number nobody should believe.
     """
     raw = {
         "operator_name": listing.operator_name,
@@ -165,10 +203,14 @@ def to_place_row(listing: DiscoveredListing, observed_on: str) -> dict:
         "state": listing.state,
         "city": listing.city,
         "area": listing.area,
-        "advertised_price": listing.advertised_price,
+        "advertised_price": plausible_price_kobo(listing.advertised_price),
         "currency": listing.currency,
         "source": listing.source,
         "source_url": listing.source_url,
+        "media": list(listing.media) or None,
+        "media_count": len(listing.media) or None,
+        "cover_image_url": listing.cover_image_url,
+
         # Our own observation dates, not theirs.
         "first_seen_at": observed_on,
         "last_seen_at": observed_on,
@@ -195,11 +237,13 @@ def build_directory(
     URL is not affiliate authorization. Affiliate rows enter through an
     authorized partner feed, represented separately by `to_affiliate_row()`.
 
-    `media` is declared null on every row rather than omitted. A guest should
-    able to tell the difference between "this place has no photographs we may
-    show" and "this page failed to load them", and the claim flow exists to
-    change the first into photographs.
+    Each row carries the listing's own gallery: `media` is a list of absolute
+    image URLs attributed to the source like every other field, and
+    `cover_image_url` is the first of them. A row with no `media` published no
+    photographs, which the UI renders as a placeholder rather than as a broken
+    image.
     """
+
     seen: dict[str, dict] = {}
     for listing in listings:
         if listing.source_listing_id in seen:

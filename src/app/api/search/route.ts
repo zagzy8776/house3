@@ -18,9 +18,12 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { findState, liveStates } from '@/data/nigeria';
+import { allFeePolicies, defaultFeePolicy } from '@/data/feePolicies';
+import { HANDOFF_DISCLOSURE } from '@/domain/contact';
 import { centroidForArea, PRICE_BANDS } from '@/domain/geo';
 import { TITLE_DOCUMENTS, TITLE_DOCUMENT_LABELS, parseTitleDocuments } from '@/domain/title';
-import { getContainer } from '@/server/container';
+import { buildDirectoryRepository } from '@/server/directoryRepository';
+import { createPlaceSearch } from '@/server/placeSearch';
 
 export const dynamic = 'force-dynamic';
 
@@ -114,10 +117,19 @@ export async function GET(request: Request) {
     if (centroid) geoFilter = { center: centroid, radiusKm: radiusKm ?? 5 };
   }
 
-  const { places: directory } = getContainer();
+  // The published directory, not the demo fixtures. This route used to read the
+  // in-memory demo inventory, so it returned nothing for data the site's own
+  // pages were rendering.
+  const repo = await buildDirectoryRepository();
+  const policies = allFeePolicies();
+  const search = createPlaceSearch({
+    repo,
+    feePolicyFor: (stateCode) =>
+      policies.find((policy) => policy.subjectId === stateCode) ?? defaultFeePolicy()
+  });
 
   try {
-    const outcome = directory.search({
+    const outcome = search.search({
       stateCode: state,
       // With a radius we do NOT also pin the exact area name, otherwise
       // "near Lekki Phase 1, 8km" would wrongly exclude Ikoyi.
@@ -167,10 +179,20 @@ export async function GET(request: Request) {
           lines: result.quote.lines,
           totalKobo: result.quote.totalKobo,
           operatorRateKobo: result.quote.roomSubtotalKobo,
-          serviceFeeKobo: result.quote.serviceFeeKobo,
-          serviceFeeVatKobo: result.quote.serviceFeeVatKobo
+          cleaningFeeKobo: result.quote.cleaningFeeKobo
         },
-        feePolicyId: result.quote.policyId
+        // There is no fee, because House3 charges none and takes no payment. The
+        // pricing engine still computes one internally - it is the arithmetic of a
+        // stay - but it is NOT emitted here. It used to be, and a client reading
+        // `serviceFeeKobo` would reasonably conclude House3 takes ₦3,000 a booking.
+        // A field that describes a charge that cannot happen is a false statement,
+        // so it is removed rather than zeroed: zero reads as "we charge nothing
+        // this time", which is a different and equally wrong claim.
+        handoff: {
+          source: result.unit.sourceName ?? null,
+          sourceUrl: result.unit.sourceUrl ?? null,
+          disclosure: HANDOFF_DISCLOSURE
+        }
       })),
       excluded: outcome.excluded.map((entry) => ({
         unitId: entry.unitId,

@@ -7,9 +7,9 @@
  * step for data whose whole basis is that it is attributable.
  *
  * Failing soft: a missing or malformed file yields an empty directory rather than
- * a 500. The public site should degrade to "we have bookable stays but no
- * directory yet", never to a crash. `rejected` is surfaced so a run that lost
- * rows is visible instead of quietly shrinking.
+ * a 500. The public site should degrade to "we have not crawled yet", never to a
+ * crash. `rejected` is surfaced so a run that lost rows is visible instead of
+ * quietly shrinking.
  */
 
 import { readFile } from 'node:fs/promises';
@@ -60,6 +60,19 @@ export async function loadDirectory(now?: string): Promise<DirectorySnapshot> {
 }
 
 /**
+ * One place by id, or null.
+ *
+ * Reads the whole file rather than indexing it. The directory is a few thousand
+ * rows and Next caches the route segment, so a linear scan is not the cost here;
+ * an index would be a second structure to keep in step with the parser, which is
+ * where the bug would be. Revisit if the directory reaches five figures.
+ */
+export async function loadPlace(id: string): Promise<DirectoryPlace | null> {
+  const { places } = await loadDirectory();
+  return places.find((place) => place.id === id) ?? null;
+}
+
+/**
  * Directory places grouped for display, newest observation first within a state.
  *
  * Ordering by state keeps a five-state crawl readable: Lagos rows do not get
@@ -84,3 +97,4 @@ export function groupByState(
       places: [...grouped].sort((a, b) => b.lastSeenAt.localeCompare(a.lastSeenAt))
     }));
 }
+
